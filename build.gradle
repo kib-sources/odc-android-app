@@ -5,27 +5,27 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:4.1.1"
+        classpath 'com.android.tools.build:gradle:4.2.2'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 }
 
 allprojects {
-    def localProperties = new Properties()
-    localProperties.load(new FileInputStream(rootProject.file("local.properties")))
+//    def localProperties = new Properties()
+//    localProperties.load(new FileInputStream(rootProject.file("local.properties")))
 
     repositories {
         google()
         jcenter()
-        maven {
-            name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/fktrcfylh1234567/odc-kotlin-core")
-
-            credentials {
-                username = localProperties['github_user']
-                password = localProperties['github_token']
-            }
-        }
+//        maven {
+//            name = "GitHubPackages"
+//            url = uri("https://maven.pkg.github.com/fktrcfylh1234567/odc-kotlin-core")
+//
+//            credentials {
+//                username = localProperties['github_user']
+//                password = localProperties['github_token']
+//            }
+//        }
     }
 }
 
