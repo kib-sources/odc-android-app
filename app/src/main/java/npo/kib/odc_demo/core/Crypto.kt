@@ -13,49 +13,58 @@ import java.io.StringReader
 import java.math.BigInteger
 import java.nio.charset.StandardCharsets
 import java.security.*
-
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.RSAPublicKeySpec
-import java.security.spec.X509EncodedKeySpec
 
 
 object Crypto {
-    //    fun initPair(): Pair<PublicKey, PrivateKey> {
-//        val pairGenerator = KeyPairGenerator.getInstance("RSA")
-//        pairGenerator.initialize(512)
-//        val pair = pairGenerator.genKeyPair()
-//        return pair.public to pair.private
-//    }
-    private const val alias = "SOK and SPK"
-    fun initPair(): Pair<PublicKey, PrivateKey> {
+    private const val simKeysAlias = "SOK and SPK"
+    private const val oneTimeKeysAlias = "OTOK and OTPK"
 
+    fun initSkp() = initPair(simKeysAlias)
+
+    fun initOtkp() = initPair(oneTimeKeysAlias)
+
+    private fun initPair(alias: String): Pair<PublicKey, PrivateKey> {
+        Log.d("OpenDigitalCashA", alias)
         val keySize = 512
         val kpg = KeyPairGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_RSA, "AndroidKeyStore"
         )
-
         kpg.initialize(
             KeyGenParameterSpec.Builder(
                 alias,
                 KeyProperties.PURPOSE_SIGN or KeyProperties.PURPOSE_VERIFY
             )
                 .setDigests(KeyProperties.DIGEST_SHA256, KeyProperties.DIGEST_SHA512)
+                .setSignaturePaddings(KeyProperties.SIGNATURE_PADDING_RSA_PKCS1)
                 .setKeySize(keySize)
                 .build()
         )
-
         val keyPair = kpg.generateKeyPair()
         return keyPair.public to keyPair.private
     }
 
+
+    fun getSimKeys(): Pair<PublicKey, PrivateKey> {
+        val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+        val entry: KeyStore.Entry = keyStore.getEntry(simKeysAlias, null)
+        val privateKey: PrivateKey = (entry as KeyStore.PrivateKeyEntry).privateKey
+        val publicKey: PublicKey = keyStore.getCertificate(simKeysAlias).publicKey
+        return publicKey to privateKey
+    }
+
+
     fun hash(vararg strings: String?): ByteArray {
-        val salt = "eRgjPi235ps1"
-        var v = salt
-
+        // val salt = "eRgjPi235ps1"
+        // var v = salt
+        var v = ""
         for (value in strings.filterNotNull()) {
-            v += "|$value"
+            v += "$value "
         }
-
+        v = v.removeSuffix(" ")
+        v += "]!L3bP9a@GM6U*LL"
         return v.sha256()
     }
 
@@ -63,9 +72,10 @@ object Crypto {
         val privateSignature: Signature = Signature.getInstance("SHA256withRSA")
         privateSignature.initSign(privateKey)
         privateSignature.update(hexHash)
-
+        Log.d("OpenDigitalCashH", hexHash.toHex())
         val signature: ByteArray = privateSignature.sign()
-        return Base64.encodeToString(signature, Base64.DEFAULT)
+        //return Base64.encodeToString(signature, Base64.DEFAULT)
+        return signature.toHex()
     }
 
     fun verifySignature(hexHash: ByteArray, signature: String, publicKey: PublicKey): Boolean {
@@ -87,8 +97,15 @@ object Crypto {
     fun getPublicKeyFromStore(): PublicKey {
         val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
-        val entry: KeyStore.Entry = keyStore.getEntry(alias, null)
-        return keyStore.getCertificate(alias).publicKey
+        val entry: KeyStore.Entry = keyStore.getEntry(simKeysAlias, null)
+        return keyStore.getCertificate(simKeysAlias).publicKey
+    }
+
+    fun getPrivateKeyFromStore(): PrivateKey {
+        val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
+        keyStore.load(null)
+        val entry: KeyStore.Entry = keyStore.getEntry(simKeysAlias, null)
+        return (entry as KeyStore.PrivateKeyEntry).privateKey
     }
 }
 
@@ -112,11 +129,9 @@ fun loadPrivateKey(stored: String): PrivateKey {
 }
 
 fun loadPublicKey(stored: String): PublicKey {
-    Log.d("base", stored)
+    Log.d("StringKey", stored)
 //    val data = Base64.decode(stored.toByteArray(StandardCharsets.UTF_8), Base64.DEFAULT)
 //    //val data2 = java.util.Base64.getDecoder().decode(stored.toByteArray(StandardCharsets.UTF_8))
-//    Log.d("base", data.toString())
-//   // Log.d("base", data2.toString())
 //    var nInt = BigInteger(1, data)
 //    val spec = X509EncodedKeySpec(data)
 //
@@ -142,9 +157,11 @@ fun loadPublicKey(stored: String): PublicKey {
 }
 
 fun PublicKey.getString(): String {
-    val keyFactory = KeyFactory.getInstance("RSA")
-    val spec = keyFactory.getKeySpec(this, X509EncodedKeySpec::class.java)
-    return Base64.encodeToString(spec.encoded, Base64.DEFAULT)
+    val pubBytes = this.encoded
+    val spkInfo = SubjectPublicKeyInfo.getInstance(pubBytes)
+    val primitive = spkInfo.parsePublicKey()
+    val publicKeyPKCS1 = primitive.encoded
+    return Base64.encodeToString(publicKeyPKCS1, Base64.DEFAULT)
 }
 
 
@@ -152,3 +169,4 @@ fun PrivateKey.getString(): String {
     val spec = PKCS8EncodedKeySpec(encoded)
     return Base64.encodeToString(spec.encoded, Base64.DEFAULT)
 }
+
