@@ -2,7 +2,7 @@
    Декларирование одного блока
  */
 
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.models
 
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.checkHashes

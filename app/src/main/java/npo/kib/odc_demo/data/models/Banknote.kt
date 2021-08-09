@@ -1,16 +1,14 @@
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.models
 
 import com.google.gson.annotations.SerializedName
 import npo.kib.odc_demo.core.Crypto
-import npo.kib.odc_demo.core.ISO_4217_CODE
 import npo.kib.odc_demo.core.checkHashes
 import java.security.PublicKey
-import java.sql.Time
 
 fun makeBanknoteHashValue(
     bin: Int,
     amount: Int,
-    currencyCode: ISO_4217_CODE,
+    currencyCode: Int,
     bnid: String
 ): ByteArray {
     return Crypto.hash(bin.toString(), amount.toString(), currencyCode.toString(), bnid)
@@ -21,23 +19,18 @@ fun makeBanknoteHashValue(
 data class Banknote(
     val bin: Int,
 
-    @SerializedName("amount")
     val amount: Int,
 
-    @SerializedName("code")
-    val currencyCode: ISO_4217_CODE,
+    val currencyCode: Int,
 
     // BankNote id
-    @SerializedName("bnid")
     val bnid: String,
 
     // hash
     // val hash: ByteArray,
     val hashValue: ByteArray,
-    @SerializedName("signature")
     val signature: String,
 
-    @SerializedName("time")
     val time: Int
 ) {
 

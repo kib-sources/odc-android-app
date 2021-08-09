@@ -1,11 +1,6 @@
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.models
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.coroutines.Deferred
-import npo.kib.odc_demo.core.ISO_4217_CODE
-import java.security.PublicKey
-import java.sql.Time
-import java.util.*
 
 data class BokResponse(
     @SerializedName("bok")

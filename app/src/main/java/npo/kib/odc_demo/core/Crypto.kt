@@ -47,11 +47,11 @@ object Crypto {
 
 
     fun getSimKeys(): Pair<PublicKey, PrivateKey> {
-        val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")
+        val keyStore = KeyStore.getInstance("AndroidKeyStore")
         keyStore.load(null)
-        val entry: KeyStore.Entry = keyStore.getEntry(simKeysAlias, null)
-        val privateKey: PrivateKey = (entry as KeyStore.PrivateKeyEntry).privateKey
-        val publicKey: PublicKey = keyStore.getCertificate(simKeysAlias).publicKey
+        val entry = keyStore.getEntry(simKeysAlias, null)
+        val privateKey = (entry as KeyStore.PrivateKeyEntry).privateKey
+        val publicKey = keyStore.getCertificate(simKeysAlias).publicKey
         return publicKey to privateKey
     }
 
@@ -129,7 +129,6 @@ fun loadPrivateKey(stored: String): PrivateKey {
 }
 
 fun loadPublicKey(stored: String): PublicKey {
-    Log.d("StringKey", stored)
 //    val data = Base64.decode(stored.toByteArray(StandardCharsets.UTF_8), Base64.DEFAULT)
 //    //val data2 = java.util.Base64.getDecoder().decode(stored.toByteArray(StandardCharsets.UTF_8))
 //    var nInt = BigInteger(1, data)
@@ -138,16 +137,13 @@ fun loadPublicKey(stored: String): PublicKey {
     val subjectPublicKeyInfo =
         PEMParser(StringReader(stored)).readObject() as SubjectPublicKeyInfo
 
-    val pubKey: PublicKey
-
     if (PKCSObjectIdentifiers.rsaEncryption === subjectPublicKeyInfo.algorithm.algorithm) {
         val der = subjectPublicKeyInfo.parsePublicKey().toASN1Primitive() as DLSequence
         val modulus = der.getObjectAt(0) as ASN1Object
         val exponent = der.getObjectAt(1) as ASN1Object
         val spec = RSAPublicKeySpec(BigInteger(modulus.toString()), BigInteger(exponent.toString()))
         val keyFactory = KeyFactory.getInstance("RSA")
-        pubKey = keyFactory.generatePublic(spec)
-        return pubKey
+        return keyFactory.generatePublic(spec)
     } else {
         throw Exception("loadPublicKey error")
     }

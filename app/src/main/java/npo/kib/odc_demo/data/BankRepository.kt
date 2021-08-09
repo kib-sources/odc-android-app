@@ -3,7 +3,10 @@ package npo.kib.odc_demo.data
 import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.room.Room
 import npo.kib.odc_demo.core.*
+import npo.kib.odc_demo.data.db.BlockchainDatabase
+import npo.kib.odc_demo.data.models.*
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -20,12 +23,15 @@ class BankRepository(context: Context) {
         this.addInterceptor(interceptor)
     }.build()
     private val url = "http://31.186.250.158:80"
-    private val url2 = "http://46.151.157.153:5000"
     private val bokKey = "BOK"
     private val sokSignKey = "SOK_signed"
     private val widKey = "WID"
+    private val bin = 333
     private val prefs = context.getSharedPreferences("openKeys", AppCompatActivity.MODE_PRIVATE)
     private val editor = prefs.edit()
+    private val db =
+        Room.databaseBuilder(context, BlockchainDatabase::class.java, "blockchain").build()
+    private val blockchainDao = db.blockchainDao()
 
     private val retrofit = Retrofit
         .Builder()
@@ -60,7 +66,13 @@ class BankRepository(context: Context) {
         val spk = keys.second
         var sokSignature = prefs.getString(sokSignKey, null)
         var wid = prefs.getString(widKey, null)
-        if ((sokSignature == null) || (wid == null)) {
+        if (sokSignature != null) {
+            Log.d("OpenDigitalCashQ", sokSignature)
+        }
+        if (wid != null) {
+            Log.d("OpenDigitalCashQ", wid)
+        }
+        if (sokSignature == null || wid == null) {
             Log.d("OpenDigitalCashWal", "getting sok_sign and wid from server")
             val walletResp =
                 retrofit.registerWallet(WalletRequest("-----BEGIN RSA PUBLIC KEY-----\n${sok.getString()}-----END RSA PUBLIC KEY-----"))
@@ -68,10 +80,7 @@ class BankRepository(context: Context) {
             Log.d("OpenDigitalCashWal", walletResp.wid)
             sokSignature = walletResp.sokSignature
             wid = walletResp.wid
-            editor.putString(sokSignKey, sokSignature)
-            editor.apply()
-            editor.putString(widKey, wid)
-            editor.apply()
+            editor.putString(sokSignKey, sokSignature).putString(widKey, wid).apply()
         }
         val bok = loadPublicKey(getBok())
         val wallet = Wallet(spk, sok, sokSignature, bok, wid)
@@ -83,6 +92,7 @@ class BankRepository(context: Context) {
         amount: Int,
         wallet: Wallet
     ): ArrayList<Triple<Banknote, Block, ProtectedBlock>> {
+        Log.d("OpenDigitalCashT3", Thread.currentThread().name)
         val request = IssueRequest(amount, wallet.wid)
         val issueResponse = retrofit.issueBanknotes(request)
         val rawBanknotes = issueResponse.issuedBanknotes
@@ -92,7 +102,13 @@ class BankRepository(context: Context) {
             for (banknote in banknotes) {
                 var (block, protectedBlock) = wallet.firstBlock(banknote)
                 block = receiveBanknote(wallet, banknote, block, protectedBlock)
-                blockchain.add(Triple(banknote, block, protectedBlock))
+                blockchainDao.insertAll(
+                    Blockchain(
+                        banknote = banknote,
+                        block = block,
+                        protectedBlock = protectedBlock
+                    )
+                )
             }
         }
         return blockchain
@@ -114,7 +130,7 @@ class BankRepository(context: Context) {
             wid = wallet.wid
         )
         val response = retrofit.receiveBanknote(request)
-        val retBlock = Block(
+        return Block(
             uuid = block.uuid,
             parentUuid = null,
             bnid = block.bnid,
@@ -123,7 +139,6 @@ class BankRepository(context: Context) {
             hashValue = response.transactionHash.toByteArray(),
             signature = response.transactionHashSigned
         )
-        return retBlock
     }
 
     private fun parseBanknotes(raw: List<BanknoteRaw>): List<Banknote> {
@@ -131,17 +146,34 @@ class BankRepository(context: Context) {
         var banknote: Banknote
         for (r in raw) {
             banknote = Banknote(
-                bin = 333,
+                bin = bin,
                 amount = r.amount,
-                currencyCode = ISO_4217_CODE.from(r.code),
+                currencyCode = r.code,
                 bnid = r.bnid,
                 signature = r.signature,
                 time = r.time,
-                hashValue = makeBanknoteHashValue(333, r.amount, ISO_4217_CODE.from(r.code), r.bnid)
+                hashValue = makeBanknoteHashValue(333, r.amount, r.code, r.bnid)
             )
             banknotes.add(banknote)
         }
 
         return banknotes
+    }
+
+    fun getSum() = blockchainDao.getSum()
+
+    suspend fun getBlockchainsByAmount(requiredAmount: Int) {
+        //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
+        var amount = requiredAmount
+        val banknoteAmounts = blockchainDao.getBnidsAndAmounts()
+        banknoteAmounts.sortedByDescending { amounts -> amounts.amount }
+        val blockchainsList = arrayListOf<Blockchain>()
+        for (banknoteAmount in banknoteAmounts) {
+            if (amount >= banknoteAmount.amount){
+                blockchainsList.add(blockchainDao.getBlockchainByBnid(banknoteAmount.bnid))
+                amount -= banknoteAmount.amount
+            }
+            if (amount <= 0) break
+        }
     }
 }

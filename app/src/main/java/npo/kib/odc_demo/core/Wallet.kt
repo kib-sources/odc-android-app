@@ -12,15 +12,12 @@ import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
 import kotlin.collections.HashMap
-import kotlin.random.Random.Default.nextInt
-
-import java.util.*
 
 
-import npo.kib.odc_demo.data.Banknote
-import npo.kib.odc_demo.data.Block
-import npo.kib.odc_demo.data.ProtectedBlock
-import npo.kib.odc_demo.data.makeBlockHashValue
+import npo.kib.odc_demo.data.models.Banknote
+import npo.kib.odc_demo.data.models.Block
+import npo.kib.odc_demo.data.models.ProtectedBlock
+import npo.kib.odc_demo.data.models.makeBlockHashValue
 
 
 class Wallet(
@@ -121,14 +118,7 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
         return protectedBlock
     }
 
-    fun serverInitVerification(banknote: Banknote): java.lang.Exception? {
-        // TODO данный вызов может происходить только от сервера.
-        //  Теоретически нужно проверить, что банкноты корректно подписаны
-        // throw NotImplementedError("serverInitVerification")
-        return null
-    }
-
-    fun initVerification(parentBlock: Block, protectedBlock: ProtectedBlock): Exception? {
+    fun initVerification(parentBlock: Block, protectedBlock: ProtectedBlock) {
 
         if (parentBlock.parentUuid == null) {
             // Передача от банка к владельцу
@@ -138,32 +128,31 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
         // Передача от владельца владельцу
 
         if (protectedBlock.parentOtokSignature == null) {
-            throw java.lang.Exception("parentOtokSignature не указан!")
+            throw Exception("parentOtokSignature не указан!")
         }
         if (protectedBlock.parentSokSignature == null) {
-            throw java.lang.Exception("parentSokSignature не указан!")
+            throw Exception("parentSokSignature не указан!")
         }
         if (protectedBlock.sok == null) {
-            throw java.lang.Exception("parentSokSignature не указан!")
+            throw Exception("parentSokSignature не указан!")
         }
 
-        if (Crypto.verifySignature(
+        if (!Crypto.verifySignature(
                 protectedBlock._hashParentSok,
                 protectedBlock.parentSokSignature,
                 this.BOK
-            ) == false
+            )
         ) {
-            throw java.lang.Exception("SOK отправителья не подписан")
+            throw Exception("SOK отправителья не подписан")
         }
-        if (Crypto.verifySignature(
+        if (!Crypto.verifySignature(
                 parentBlock._hashOtok,
                 protectedBlock.parentOtokSignature,
                 protectedBlock.sok
-            ) == false
+            )
         ) {
-            throw java.lang.Exception("OTOK отправителья не подписан")
+            throw Exception("OTOK отправителья не подписан")
         }
-        return null
     }
 
     fun acceptanceInit(
@@ -174,13 +163,13 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
 
 
         if (protectedBlock.parentSokSignature == null) {
-            throw java.lang.Exception("protectedBlock.parentSokSignature == null")
+            throw Exception("protectedBlock.parentSokSignature == null")
         }
         if (protectedBlock.parentSok == null) {
-            throw java.lang.Exception("protectedBlock.parentSok == null")
+            throw Exception("protectedBlock.parentSok == null")
         }
         if (protectedBlock.parentOtokSignature == null) {
-            throw java.lang.Exception("protectedBlock.parentOtokSignature == null")
+            throw Exception("protectedBlock.parentOtokSignature == null")
         }
 
         if (!Crypto.verifySignature(
@@ -189,7 +178,7 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
                 bok
             )
         ) {
-            throw java.lang.Exception("Некорректный soc")
+            throw Exception("Некорректный soc")
         }
 
         val parentOtok = parentBlock.otok
@@ -200,7 +189,7 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
                 protectedBlock.parentSok
             )
         ) {
-            throw java.lang.Exception("Некорректный parent otok")
+            throw Exception("Некорректный parent otok")
         }
 
         // ------------------------------------------------------------------------------------------------------------
@@ -243,7 +232,7 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
         childBlock: Block,
         protectedBlock: ProtectedBlock,
         bok: PublicKey
-    ): Exception? {
+    ) {
 
         assert(parentBlock.uuid == childBlock.parentUuid)
 
@@ -253,7 +242,7 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
                 bok
             )
         ) {
-            return java.lang.Exception("soc не подписан банком")
+            throw Exception("soc не подписан банком")
         }
 
         if (!Crypto.verifySignature(
@@ -262,9 +251,8 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
                 protectedBlock.sok!!,
             )
         ) {
-            return java.lang.Exception("otok задан не SIM картой")
+            throw Exception("otok задан не SIM картой")
         }
-        return null
     }
 
 
@@ -274,11 +262,8 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
         protectedBlock: ProtectedBlock,
         bok: PublicKey
     ): Block {
-        val exp = this.acceptanceInitVerification(parentBlock, childBlock, protectedBlock, bok)
-        if (exp != null) {
-            throw exp
-        }
 
+        acceptanceInitVerification(parentBlock, childBlock, protectedBlock, bok)
         val magic = randomMagic()
         val hashValue =
             makeBlockHashValue(childBlock.uuid, childBlock.parentUuid, childBlock.bnid, magic)
