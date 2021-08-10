@@ -134,8 +134,18 @@ fun loadPublicKey(stored: String): PublicKey {
 //    var nInt = BigInteger(1, data)
 //    val spec = X509EncodedKeySpec(data)
 //
-    val subjectPublicKeyInfo =
+    val subjectPublicKeyInfo = if (stored.take(30) == "-----BEGIN RSA PUBLIC KEY-----")
         PEMParser(StringReader(stored)).readObject() as SubjectPublicKeyInfo
+    else PEMParser(
+        StringReader(
+            "-----BEGIN RSA PUBLIC KEY-----\n${
+                stored.replace(
+                    " ",
+                    "\n"
+                )
+            }-----END RSA PUBLIC KEY-----"
+        )
+    ).readObject() as SubjectPublicKeyInfo
 
     if (PKCSObjectIdentifiers.rsaEncryption === subjectPublicKeyInfo.algorithm.algorithm) {
         val der = subjectPublicKeyInfo.parsePublicKey().toASN1Primitive() as DLSequence

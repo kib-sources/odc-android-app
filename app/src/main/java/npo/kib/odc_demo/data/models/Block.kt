@@ -4,14 +4,17 @@
 
 package npo.kib.odc_demo.data.models
 
+import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.checkHashes
+import npo.kib.odc_demo.data.PublicKeySerializer
+import npo.kib.odc_demo.data.UUIDSerializer
 import java.lang.Exception
 import java.security.PublicKey
 import java.util.*
 
 
-fun makeBlockHashValue(uuid: UUID, parentUuid: UUID?, bnid: String, magic: String): ByteArray {
+fun makeBlockHashValue(uuid: UUID?, parentUuid: UUID?, bnid: String, magic: String): ByteArray {
     return if (parentUuid == null) {
         Crypto.hash(uuid.toString(), bnid, magic)
     } else {
@@ -19,19 +22,23 @@ fun makeBlockHashValue(uuid: UUID, parentUuid: UUID?, bnid: String, magic: Strin
     }
 }
 
+@Serializable
 data class Block(
     /*
     Блок публичного блокчейна к каждой банкноте
     */
-    val uuid: UUID,
+    @Serializable(with = UUIDSerializer::class)
+    val uuid: UUID?,
 
+    @Serializable(with = UUIDSerializer::class)
     val parentUuid: UUID?,
 
     // BankNote id
     val bnid: String,
 
     // One Time Open key
-    val otok: PublicKey,
+    @Serializable(with = PublicKeySerializer::class)
+    val otok: PublicKey?,
 
     /// --->
     /// signature :
@@ -69,19 +76,23 @@ data class Block(
 
 }
 
+@Serializable
 data class ProtectedBlock(
     /*
     Сопроваждающий блок для дополнительного подтверждения на Сервере.
     */
 
+    @Serializable(with = PublicKeySerializer::class)
     val parentSok: PublicKey?,
     val parentSokSignature: String?,
     val parentOtokSignature: String?,
 
 
     // Ссылка на Block
+    @Serializable(with = UUIDSerializer::class)
     val refUuid: UUID?,
 
+    @Serializable(with = PublicKeySerializer::class)
     val sok: PublicKey?,
     val sokSignature: String?,
     val otokSignature: String,

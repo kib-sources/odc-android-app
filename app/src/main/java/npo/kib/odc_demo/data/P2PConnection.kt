@@ -10,6 +10,7 @@ import com.google.android.gms.nearby.connection.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 
 class P2PConnection(context: Context) {
     private val mConnectionsClient = Nearby.getConnectionsClient(context)
@@ -120,7 +121,7 @@ class P2PConnection(context: Context) {
                     ConnectionsStatusCodes.STATUS_OK -> {
                         // We're connected! Can now start sending and receiving data.
                         if (mIsAdvertising) {
-                            _isConnected.value = true
+                            _isConnected.update { true }
                         }
                         mIsConnecting = true
                         Log.d("OpenDigitalCashP", "status ok")

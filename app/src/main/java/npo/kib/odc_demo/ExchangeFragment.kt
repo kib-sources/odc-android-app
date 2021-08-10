@@ -1,6 +1,5 @@
 package npo.kib.odc_demo
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,9 +8,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.core.loadPublicKey
 
 class ExchangeFragment : Fragment() {
 
@@ -59,9 +59,11 @@ class ExchangeFragment : Fragment() {
 //            }
         }
 
-        viewModel.viewModelScope.launch {
-            viewModel.isConnectedFlow.collect {
-                buttonSend.isEnabled = it
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.isConnectedFlow.collect {
+                    buttonSend.isEnabled = it
+                }
             }
         }
 
@@ -74,8 +76,12 @@ class ExchangeFragment : Fragment() {
             viewModel.send(amountEditText.text.toString().toInt())
         }
 
-        viewModel.viewModelScope.launch {
-            viewModel.getSum().collect { sumView.text = it.toString() }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.sum.collect { sumView.text = it.toString() }
+            }
         }
+
+
     }
 }

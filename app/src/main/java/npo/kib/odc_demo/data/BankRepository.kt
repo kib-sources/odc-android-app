@@ -50,7 +50,7 @@ class BankRepository(context: Context) {
             editor.putString(bokKey, bok)
             editor.apply()
         }
-        Log.d("OpenDigitalCash", "bok is = $bok")
+        Log.d("OpenDigitalCashB", "bok is = $bok")
         return bok
     }
 
@@ -122,7 +122,7 @@ class BankRepository(context: Context) {
     ): Block {
         val request = ReceiveRequest(
             bnid = block.bnid,
-            otok = "-----BEGIN RSA PUBLIC KEY-----\n${block.otok.getString()}-----END RSA PUBLIC KEY-----",
+            otok = "-----BEGIN RSA PUBLIC KEY-----\n${block.otok?.getString()}-----END RSA PUBLIC KEY-----",
             otokSignature = protectedBlock.otokSignature,
             time = banknote.time,
             transactionSign = protectedBlock.transactionSignature,
@@ -162,18 +162,20 @@ class BankRepository(context: Context) {
 
     fun getSum() = blockchainDao.getSum()
 
-    suspend fun getBlockchainsByAmount(requiredAmount: Int) {
+    suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<Blockchain> {
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
-        val banknoteAmounts = blockchainDao.getBnidsAndAmounts()
-        banknoteAmounts.sortedByDescending { amounts -> amounts.amount }
-        val blockchainsList = arrayListOf<Blockchain>()
+        val banknoteAmounts = blockchainDao.getBnidsAndAmounts().toCollection(ArrayList())
+        banknoteAmounts.sortByDescending { it.amount }
+        val blockchainsList = ArrayList<Blockchain>()
         for (banknoteAmount in banknoteAmounts) {
             if (amount >= banknoteAmount.amount){
+                Log.d("OpenDigitalCashS", banknoteAmount.amount.toString() + "   " + banknoteAmount.bnid)
                 blockchainsList.add(blockchainDao.getBlockchainByBnid(banknoteAmount.bnid))
                 amount -= banknoteAmount.amount
             }
             if (amount <= 0) break
         }
+        return blockchainsList
     }
 }

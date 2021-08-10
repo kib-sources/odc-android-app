@@ -1,6 +1,7 @@
 package npo.kib.odc_demo.data.models
 
 import com.google.gson.annotations.SerializedName
+import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.checkHashes
 import java.security.PublicKey
@@ -15,7 +16,7 @@ fun makeBanknoteHashValue(
 }
 
 // @Serializable(with = kotlinx.serialization.json.JsonElementSerializer::class)
-// @Serializable
+@Serializable
 data class Banknote(
     val bin: Int,
 

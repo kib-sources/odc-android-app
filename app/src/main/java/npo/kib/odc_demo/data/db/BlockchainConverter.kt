@@ -12,11 +12,18 @@ class BlockchainConverter {
     fun fromUUID(uuid: UUID?) = uuid.toString()
 
     @TypeConverter
-    fun toUUID(str: String) = UUID.fromString(str)
+    fun toUUID(str: String): UUID? {
+        return if (str == "null") null
+        else UUID.fromString(str)
+    }
 
     @TypeConverter
     fun fromPublicKey(key: PublicKey?) = key?.getString()
 
     @TypeConverter
-    fun toPublicKey(str: String) = loadPublicKey(str)
+    fun toPublicKey(str: String?): PublicKey? {
+        return if (str.isNullOrEmpty()) null
+        else
+            loadPublicKey(str)
+    }
 }

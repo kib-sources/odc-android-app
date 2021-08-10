@@ -1,0 +1,166 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "f9b3cb749a18fc3ecae2b33606a91ee7",
+    "entities": [
+      {
+        "tableName": "Blockchain",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `bin` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `currencyCode` INTEGER NOT NULL, `bnid` TEXT NOT NULL, `hashValue` BLOB NOT NULL, `signature` TEXT NOT NULL, `time` INTEGER NOT NULL, `block_uuid` TEXT NOT NULL, `block_parentUuid` TEXT, `block_bnid` TEXT NOT NULL, `block_otok` TEXT NOT NULL, `block_magic` TEXT, `block_hashValue` BLOB, `block_signature` TEXT, `protected_block_parentSok` TEXT, `protected_block_parentSokSignature` TEXT, `protected_block_parentOtokSignature` TEXT, `protected_block_refUuid` TEXT, `protected_block_sok` TEXT, `protected_block_sokSignature` TEXT, `protected_block_otokSignature` TEXT NOT NULL, `protected_block_transactionSignature` TEXT NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "banknote.bin",
+            "columnName": "bin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.amount",
+            "columnName": "amount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.currencyCode",
+            "columnName": "currencyCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.bnid",
+            "columnName": "bnid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.hashValue",
+            "columnName": "hashValue",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.signature",
+            "columnName": "signature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "block.uuid",
+            "columnName": "block_uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "block.parentUuid",
+            "columnName": "block_parentUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "block.bnid",
+            "columnName": "block_bnid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "block.otok",
+            "columnName": "block_otok",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "block.magic",
+            "columnName": "block_magic",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "block.hashValue",
+            "columnName": "block_hashValue",
+            "affinity": "BLOB",
+            "notNull": false
+          },
+          {
+            "fieldPath": "block.signature",
+            "columnName": "block_signature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.parentSok",
+            "columnName": "protected_block_parentSok",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.parentSokSignature",
+            "columnName": "protected_block_parentSokSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.parentOtokSignature",
+            "columnName": "protected_block_parentOtokSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.refUuid",
+            "columnName": "protected_block_refUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.sok",
+            "columnName": "protected_block_sok",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.sokSignature",
+            "columnName": "protected_block_sokSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.otokSignature",
+            "columnName": "protected_block_otokSignature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protectedBlock.transactionSignature",
+            "columnName": "protected_block_transactionSignature",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "columnNames": [
+            "id"
+          ],
+          "autoGenerate": true
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f9b3cb749a18fc3ecae2b33606a91ee7')"
+    ]
+  }
+}
