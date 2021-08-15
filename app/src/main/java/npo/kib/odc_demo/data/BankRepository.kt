@@ -4,9 +4,16 @@ import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.room.Room
+import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import npo.kib.odc_demo.core.*
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.data.p2p.ObjectSerializer
+import npo.kib.odc_demo.data.p2p.P2PConnection
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -16,22 +23,26 @@ import java.security.PublicKey
 
 class BankRepository(context: Context) {
 
-    private val interceptor: HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
+    private val interceptor = HttpLoggingInterceptor().apply {
         this.level = HttpLoggingInterceptor.Level.BODY
     }
-    private val okHttpClient = OkHttpClient.Builder().apply {
-        this.addInterceptor(interceptor)
-    }.build()
+    private val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
     private val url = "http://31.186.250.158:80"
+
     private val bokKey = "BOK"
     private val sokSignKey = "SOK_signed"
     private val widKey = "WID"
     private val bin = 333
     private val prefs = context.getSharedPreferences("openKeys", AppCompatActivity.MODE_PRIVATE)
     private val editor = prefs.edit()
+
     private val db =
         Room.databaseBuilder(context, BlockchainDatabase::class.java, "blockchain").build()
     private val blockchainDao = db.blockchainDao()
+
+    private val p2p = P2PConnection(context)
+    private val serializer = ObjectSerializer()
+    val connectionResult = p2p.connectionResult
 
     private val retrofit = Retrofit
         .Builder()
@@ -40,6 +51,20 @@ class BankRepository(context: Context) {
         .addConverterFactory(GsonConverterFactory.create())
         .build()
         .create(BankApi::class.java)
+
+    init {
+        var job: Job = Job()
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.d("OpenDigitalCashT", "Корутина выполняется на потоке: ${Thread.currentThread().name}")
+            connectionResult.collect {
+                if (it is ConnectingStatus.ConnectionResult) {
+                    if (it.result.status.statusCode == ConnectionsStatusCodes.STATUS_OK) {
+                        job = p2p.receivedBytes.onEach { bytes -> receiveBytes(bytes) }.launchIn(this)
+                    }
+                } else job.cancel()
+            }
+        }
+    }
 
     private suspend fun getBok(): String {
         var bok = prefs.getString(bokKey, null)
@@ -72,6 +97,7 @@ class BankRepository(context: Context) {
         if (wid != null) {
             Log.d("OpenDigitalCashQ", wid)
         }
+        val bok = loadPublicKey(getBok())
         if (sokSignature == null || wid == null) {
             Log.d("OpenDigitalCashWal", "getting sok_sign and wid from server")
             val walletResp =
@@ -79,10 +105,14 @@ class BankRepository(context: Context) {
             Log.d("OpenDigitalCashWal", walletResp.sokSignature)
             Log.d("OpenDigitalCashWal", walletResp.wid)
             sokSignature = walletResp.sokSignature
+            val sokHash =
+                Crypto.hash("-----BEGIN RSA PUBLIC KEY-----\n${sok.getString()}-----END RSA PUBLIC KEY-----")
+            if (!Crypto.verifySignature(sokHash, sokSignature, bok)) {
+                throw Exception("Подпись SOK недействительна")
+            }
             wid = walletResp.wid
             editor.putString(sokSignKey, sokSignature).putString(widKey, wid).apply()
         }
-        val bok = loadPublicKey(getBok())
         val wallet = Wallet(spk, sok, sokSignature, bok, wid)
         Log.d("OpenDigitalCashWal", wallet.toString())
         return wallet
@@ -92,7 +122,6 @@ class BankRepository(context: Context) {
         amount: Int,
         wallet: Wallet
     ): ArrayList<Triple<Banknote, Block, ProtectedBlock>> {
-        Log.d("OpenDigitalCashT3", Thread.currentThread().name)
         val request = IssueRequest(amount, wallet.wid)
         val issueResponse = retrofit.issueBanknotes(request)
         val rawBanknotes = issueResponse.issuedBanknotes
@@ -136,8 +165,8 @@ class BankRepository(context: Context) {
             bnid = block.bnid,
             otok = block.otok,
             magic = response.magic,
-            hashValue = response.transactionHash.toByteArray(),
-            signature = response.transactionHashSigned
+            transactionHashValue = response.transactionHash.toByteArray(),
+            transactionHashSignature = response.transactionHashSigned
         )
     }
 
@@ -162,15 +191,18 @@ class BankRepository(context: Context) {
 
     fun getSum() = blockchainDao.getSum()
 
-    suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<Blockchain> {
+    private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<Blockchain> {
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
         val banknoteAmounts = blockchainDao.getBnidsAndAmounts().toCollection(ArrayList())
         banknoteAmounts.sortByDescending { it.amount }
         val blockchainsList = ArrayList<Blockchain>()
         for (banknoteAmount in banknoteAmounts) {
-            if (amount >= banknoteAmount.amount){
-                Log.d("OpenDigitalCashS", banknoteAmount.amount.toString() + "   " + banknoteAmount.bnid)
+            if (amount >= banknoteAmount.amount) {
+                Log.d(
+                    "OpenDigitalCashS",
+                    banknoteAmount.amount.toString() + "   " + banknoteAmount.bnid
+                )
                 blockchainsList.add(blockchainDao.getBlockchainByBnid(banknoteAmount.bnid))
                 amount -= banknoteAmount.amount
             }
@@ -178,4 +210,42 @@ class BankRepository(context: Context) {
         }
         return blockchainsList
     }
+
+//P2P Connection
+
+    fun startAdvertising() {
+        p2p.startAdvertising()
+    }
+
+    fun startDiscovery() {
+        p2p.startDiscovery()
+    }
+
+    fun acceptConnection() {
+        p2p.acceptConnection()
+    }
+
+    fun rejectConnection() {
+        p2p.rejectConnection()
+    }
+
+    suspend fun send(amount: Int) {
+        val blockchainArray = getBlockchainsByAmount(amount)
+        val payloadContainer = PayloadContainer(1, blockchainArray)
+        val blockchainJson = serializer.toJson(payloadContainer)
+        Log.d("OpenDigitalCashJ", blockchainJson)
+        p2p.send(blockchainJson.encodeToByteArray())
+    }
+
+    private suspend fun receiveBytes(bytes: ByteArray) {
+        val container = serializer.toObject(bytes.decodeToString())
+        Log.d("OpenDigitalCashJ", bytes.decodeToString())
+        Log.d("OpenDigitalCashJ", container.blockchainsList?.first().toString())
+        container.blockchainsList?.forEach { blockchain ->
+            val wallet = registerWallet()
+            val (childBlock, childProtectedBlock) = wallet.acceptanceInit(blockchain.block, blockchain.protectedBlock)
+        }
+    }
+
+
 }

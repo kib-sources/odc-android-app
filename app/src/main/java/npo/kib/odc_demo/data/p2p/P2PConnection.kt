@@ -1,16 +1,15 @@
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.p2p
 
-import android.R
-import android.app.AlertDialog
 import android.content.Context
-import android.content.DialogInterface
 import android.util.Log
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import npo.kib.odc_demo.data.models.ConnectingStatus
 
 class P2PConnection(context: Context) {
     private val mConnectionsClient = Nearby.getConnectionsClient(context)
@@ -18,10 +17,12 @@ class P2PConnection(context: Context) {
     private val userName = "User"
     private var mIsAdvertising = false
     private var mIsDiscovering = false
-    private lateinit var mConnection: String
-    private var mIsConnecting = false
-    private val _isConnected = MutableStateFlow(false)
-    val isConnected = _isConnected.asStateFlow()
+    private lateinit var connectionEndpoint: String
+    private val _connectionResult: MutableStateFlow<ConnectingStatus> =
+        MutableStateFlow(ConnectingStatus.NoConnection)
+    val connectionResult = _connectionResult.asStateFlow()
+    private val _receivedBytes = MutableSharedFlow<ByteArray>()
+    val receivedBytes = _receivedBytes.asSharedFlow()
 
     fun startAdvertising() {
         val advertisingOptions =
@@ -93,54 +94,18 @@ class P2PConnection(context: Context) {
             override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
                 Log.d("OpenDigitalCash", "onConnectionInitiated")
                 //TODO добавить диалог подтверждения соединения
-//                AlertDialog.Builder(context)
-//                    .setTitle("Accept connection to " + info.endpointName)
-//                    .setMessage("Confirm the code matches on both devices: " + info.authenticationDigits)
-//                    .setPositiveButton(
-//                        "Accept"
-//                    ) { dialog: DialogInterface?, which: Int ->  // The user confirmed, so we can accept the connection.
-//                        mConnection = endpointId
-//                        mConnectionsClient
-//                            .acceptConnection(endpointId, mPayloadCallback)
-//                    }
-//                    .setNegativeButton(
-//                        R.string.cancel
-//                    ) { dialog: DialogInterface?, which: Int ->  // The user canceled, so we should reject the connection.
-//                        mConnectionsClient.rejectConnection(endpointId)
-//                    }
-//                    .setIcon(R.drawable.ic_dialog_alert)
-//
-//                    .show()
-                mConnection = endpointId
-                mConnectionsClient
-                    .acceptConnection(endpointId, mPayloadCallback)
+                connectionEndpoint = endpointId
+                _connectionResult.update { ConnectingStatus.ConnectionInitiated(info) }
             }
 
             override fun onConnectionResult(endpointId: String, result: ConnectionResolution) {
-                when (result.status.statusCode) {
-                    ConnectionsStatusCodes.STATUS_OK -> {
-                        // We're connected! Can now start sending and receiving data.
-                        if (mIsAdvertising) {
-                            _isConnected.update { true }
-                        }
-                        mIsConnecting = true
-                        Log.d("OpenDigitalCashP", "status ok")
-                    }
-                    ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
-                        // The connection was rejected by one or both sides.
-                    }
-                    ConnectionsStatusCodes.STATUS_ERROR -> {
-                        // The connection broke before it was able to be accepted.
-                    }
-                    else -> {
-                        // Unknown status code
-                    }
-                }
+                _connectionResult.update { ConnectingStatus.ConnectionResult(result) }
             }
 
             override fun onDisconnected(endpointId: String) {
                 // We've been disconnected from this endpoint. No more data can be
                 // sent or received.
+                _connectionResult.update { ConnectingStatus.Disconnected }
             }
         }
 
@@ -148,7 +113,7 @@ class P2PConnection(context: Context) {
     fun send(bytes: ByteArray) {
         val payload = Payload.fromBytes(bytes)
         mConnectionsClient
-            .sendPayload(mConnection, payload)
+            .sendPayload(connectionEndpoint, payload)
             .addOnFailureListener { e -> Log.d("sendPayload() failed.", e.toString()) }
     }
 
@@ -165,5 +130,18 @@ class P2PConnection(context: Context) {
 
     fun onReceive(endpointId: String, payload: Payload) {
         Log.d("ODCRec", "(endpointId=$endpointId, payload=$payload")
+        if (payload.type == Payload.Type.BYTES && endpointId == connectionEndpoint) {
+            CoroutineScope(Dispatchers.IO).launch {
+                payload.asBytes()?.let { _receivedBytes.emit(it) }
+            }
+        }
+    }
+
+    fun acceptConnection() {
+        mConnectionsClient.acceptConnection(connectionEndpoint, mPayloadCallback)
+    }
+
+    fun rejectConnection() {
+        mConnectionsClient.rejectConnection(connectionEndpoint)
     }
 }

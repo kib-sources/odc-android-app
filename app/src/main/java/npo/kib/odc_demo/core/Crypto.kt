@@ -55,18 +55,7 @@ object Crypto {
         return publicKey to privateKey
     }
 
-
-    fun hash(vararg strings: String?): ByteArray {
-        // val salt = "eRgjPi235ps1"
-        // var v = salt
-        var v = ""
-        for (value in strings.filterNotNull()) {
-            v += "$value "
-        }
-        v = v.removeSuffix(" ")
-        v += "]!L3bP9a@GM6U*LL"
-        return v.sha256()
-    }
+    fun hash(vararg strings: String?) = strings.joinToString(separator = " ", postfix = "]!L3bP9a@GM6U*LL").sha256()
 
     fun signature(hexHash: ByteArray, privateKey: PrivateKey): String {
         val privateSignature: Signature = Signature.getInstance("SHA256withRSA")
@@ -83,8 +72,8 @@ object Crypto {
         publicSignature.initVerify(publicKey)
         publicSignature.update(hexHash)
 
-        val signatureBytes = Base64.decode(signature, Base64.DEFAULT)
-
+       // val signatureBytes = Base64.decode(signature, Base64.DEFAULT)
+        val signatureBytes = signature.decodeHex()
         return publicSignature.verify(signatureBytes)
     }
 
@@ -93,6 +82,14 @@ object Crypto {
         .digest(toByteArray())
 
     fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
+
+    fun String.decodeHex(): ByteArray {
+        check(length % 2 == 0) { "Must have an even length" }
+
+        return chunked(2)
+            .map { it.toInt(16).toByte() }
+            .toByteArray()
+    }
 
     fun getPublicKeyFromStore(): PublicKey {
         val keyStore: KeyStore = KeyStore.getInstance("AndroidKeyStore")

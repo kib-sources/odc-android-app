@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">OpenDigitalCash</string>
     <string name="app_package">npo.kib.odc_demo.core</string>
+    <string name="chancel">Отмена</string>
 </resources>

@@ -1,48 +1,28 @@
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.p2p
 
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import npo.kib.odc_demo.core.getString
 import npo.kib.odc_demo.core.loadPublicKey
 import npo.kib.odc_demo.data.models.Blockchain
-import java.io.*
+import npo.kib.odc_demo.data.models.PayloadContainer
 import java.security.PublicKey
 import java.util.*
+import kotlin.collections.ArrayList
 
 class ObjectSerializer {
-    @Throws(IOException::class, ClassNotFoundException::class)
-    fun deserializeBytes(bytes: ByteArray?): Any {
-        val bytesIn = ByteArrayInputStream(bytes)
-        val ois = ObjectInputStream(bytesIn)
-        val obj: Any = ois.readObject()
-        ois.close()
-        return obj
+    fun toObject(stringValue: String): PayloadContainer {
+        return Json.decodeFromString(stringValue)
     }
 
-
-    @Throws(IOException::class)
-    fun serializeObject(obj: Any?): ByteArray {
-        val bytesOut = ByteArrayOutputStream()
-        val oos = ObjectOutputStream(bytesOut)
-        oos.writeObject(obj)
-        oos.flush()
-        val bytes: ByteArray = bytesOut.toByteArray()
-        bytesOut.close()
-        oos.close()
-        return bytes
-    }
-
-    fun toObject(stringValue: String): Blockchain {
-        return Json.decodeFromString(Blockchain.serializer(), stringValue)
-    }
-
-    fun toJson(blockchain: Blockchain): String {
-        return Json.encodeToString(Blockchain.serializer(), blockchain)
+    fun toJson(payloadContainer: PayloadContainer): String {
+        return Json.encodeToString(payloadContainer)
     }
 }
 

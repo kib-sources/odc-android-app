@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "f9b3cb749a18fc3ecae2b33606a91ee7",
+    "identityHash": "4d432f955dbc88ec05ad8b377c3cfe71",
     "entities": [
       {
         "tableName": "Blockchain",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `bin` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `currencyCode` INTEGER NOT NULL, `bnid` TEXT NOT NULL, `hashValue` BLOB NOT NULL, `signature` TEXT NOT NULL, `time` INTEGER NOT NULL, `block_uuid` TEXT NOT NULL, `block_parentUuid` TEXT, `block_bnid` TEXT NOT NULL, `block_otok` TEXT NOT NULL, `block_magic` TEXT, `block_hashValue` BLOB, `block_signature` TEXT, `protected_block_parentSok` TEXT, `protected_block_parentSokSignature` TEXT, `protected_block_parentOtokSignature` TEXT, `protected_block_refUuid` TEXT, `protected_block_sok` TEXT, `protected_block_sokSignature` TEXT, `protected_block_otokSignature` TEXT NOT NULL, `protected_block_transactionSignature` TEXT NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `bin` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `currencyCode` INTEGER NOT NULL, `bnid` TEXT NOT NULL, `hashValue` BLOB NOT NULL, `signature` TEXT NOT NULL, `time` INTEGER NOT NULL, `block_uuid` TEXT, `block_parentUuid` TEXT, `block_bnid` TEXT NOT NULL, `block_otok` TEXT, `block_magic` TEXT, `block_hashValue` BLOB, `block_signature` TEXT, `protected_block_parentSok` TEXT, `protected_block_parentSokSignature` TEXT, `protected_block_parentOtokSignature` TEXT, `protected_block_refUuid` TEXT, `protected_block_sok` TEXT, `protected_block_sokSignature` TEXT, `protected_block_otokSignature` TEXT NOT NULL, `protected_block_transactionSignature` TEXT NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -60,7 +60,7 @@
             "fieldPath": "block.uuid",
             "columnName": "block_uuid",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "block.parentUuid",
@@ -78,7 +78,7 @@
             "fieldPath": "block.otok",
             "columnName": "block_otok",
             "affinity": "TEXT",
-            "notNull": true
+            "notNull": false
           },
           {
             "fieldPath": "block.magic",
@@ -160,7 +160,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f9b3cb749a18fc3ecae2b33606a91ee7')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4d432f955dbc88ec05ad8b377c3cfe71')"
     ]
   }
 }

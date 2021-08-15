@@ -19,5 +19,5 @@ interface BlockchainDao {
     suspend fun getBlockchainByBnid(requiredBnid: String): Blockchain
 
     @Query("SELECT SUM(amount) FROM blockchain")
-    fun getSum(): Flow<Int>
+    fun getSum(): Flow<Int?>
 }

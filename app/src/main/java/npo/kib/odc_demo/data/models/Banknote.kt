@@ -1,6 +1,5 @@
 package npo.kib.odc_demo.data.models
 
-import com.google.gson.annotations.SerializedName
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.checkHashes
@@ -15,7 +14,6 @@ fun makeBanknoteHashValue(
     return Crypto.hash(bin.toString(), amount.toString(), currencyCode.toString(), bnid)
 }
 
-// @Serializable(with = kotlinx.serialization.json.JsonElementSerializer::class)
 @Serializable
 data class Banknote(
     val bin: Int,
@@ -34,12 +32,6 @@ data class Banknote(
 
     val time: Int
 ) {
-
-    // TODO сохранить в JSON
-    // TODO выгрузить из JSON-а
-    // TODO сохранить в protobuf
-    // TODO выгрузить из protobuf
-
 
     fun verification(bok: PublicKey): Boolean {
         val checkHashValue = makeBanknoteHashValue(bin, amount, currencyCode, bnid)

@@ -7,8 +7,8 @@ package npo.kib.odc_demo.data.models
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.checkHashes
-import npo.kib.odc_demo.data.PublicKeySerializer
-import npo.kib.odc_demo.data.UUIDSerializer
+import npo.kib.odc_demo.data.p2p.PublicKeySerializer
+import npo.kib.odc_demo.data.p2p.UUIDSerializer
 import java.lang.Exception
 import java.security.PublicKey
 import java.util.*
@@ -45,8 +45,8 @@ data class Block(
     val magic: String?,
 //        val subscribeTransactionHash: ByteArray?,
 //        val subscribeTransactionSignature: String?,
-    val hashValue: ByteArray?,
-    val signature: String?,
+    val transactionHashValue: ByteArray?,
+    val transactionHashSignature: String?,
 ) {
     // TODO функция отображения в JSON для передачи на сервер
 
@@ -61,17 +61,17 @@ data class Block(
         if (magic == null) {
             throw Exception("Блок не до конца определён. Не задан magic")
         }
-        if (hashValue == null) {
+        if (transactionHashValue == null) {
             throw Exception("Блок не до конца определён. Не задан hashValue")
         }
-        if (signature == null) {
+        if (transactionHashSignature == null) {
             throw Exception("Блок не до конца определён. Не задан signature")
         }
         val hashValueCheck = makeBlockHashValue(uuid, parentUuid, bnid, magic)
-        if (!checkHashes(hashValueCheck, hashValue)) {
+        if (!checkHashes(hashValueCheck, transactionHashValue)) {
             throw Exception("Некорректно подсчитан hashValue")
         }
-        return Crypto.verifySignature(hashValue, signature, publicKey)
+        return Crypto.verifySignature(transactionHashValue, transactionHashSignature, publicKey)
     }
 
 }

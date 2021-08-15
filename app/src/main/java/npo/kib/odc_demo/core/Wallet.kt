@@ -26,20 +26,10 @@ class Wallet(
     public val sokSignature: String,
 
     // Сделать глобальной переменной
-    public val BOK: PublicKey,
+    public val bok: PublicKey,
     val wid: String
 ) {
     private val bag = HashMap<UUID, PrivateKey>()
-
-
-    var BOK_str = """-----BEGIN RSA PUBLIC KEY-----
-MEgCQQCZScdB8AFwcrZDOLVsBT7m+KyuARWixZCstV99oOMYD318o0rhAqSYk/3Q
-nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
------END RSA PUBLIC KEY-----""";
-
-    // TODO определить BOK
-    // var BOK = X509EncodedKeySpec()
-    // var BOK = null
 
 
     // TODO зарузка в файл
@@ -81,8 +71,8 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
             bnid = bnid,
             otok = otok,
             magic = null,
-            hashValue = null,
-            signature = null,
+            transactionHashValue = null,
+            transactionHashSignature = null,
         )
         val otokSignature_ = this.otokSignature(otok)
         val transactionHash = getTransactionHashSign(uuid, null, otok, bnid, banknote.time)
@@ -140,10 +130,10 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
         if (!Crypto.verifySignature(
                 protectedBlock._hashParentSok,
                 protectedBlock.parentSokSignature,
-                this.BOK
+                this.bok
             )
         ) {
-            throw Exception("SOK отправителья не подписан")
+            throw Exception("SOK отправителя не подписан")
         }
         if (!Crypto.verifySignature(
                 parentBlock._hashOtok,
@@ -157,8 +147,7 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
 
     fun acceptanceInit(
         parentBlock: Block,
-        protectedBlock: ProtectedBlock,
-        bok: PublicKey
+        protectedBlock: ProtectedBlock
     ): Pair<Block, ProtectedBlock> {
 
 
@@ -171,20 +160,16 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
         if (protectedBlock.parentOtokSignature == null) {
             throw Exception("protectedBlock.parentOtokSignature == null")
         }
-
-        if (!Crypto.verifySignature(
-                Crypto.hash(protectedBlock.parentSok.toString()),
-                protectedBlock.parentSokSignature,
-                bok
-            )
-        ) {
+        val sokHash =
+            Crypto.hash("-----BEGIN RSA PUBLIC KEY-----\n${protectedBlock.parentSok.getString()}-----END RSA PUBLIC KEY-----")
+        if (!Crypto.verifySignature(sokHash, protectedBlock.parentSokSignature, bok)) {
             throw Exception("Некорректный soc")
         }
 
         val parentOtok = parentBlock.otok
 
         if (!Crypto.verifySignature(
-                Crypto.hash(parentOtok.toString()),
+                Crypto.hash(parentOtok?.getString()),
                 protectedBlock.parentOtokSignature,
                 protectedBlock.parentSok
             )
@@ -206,8 +191,8 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
             bnid = parentBlock.bnid,
             otok = otok,
             magic = null,
-            hashValue = null,
-            signature = null,
+            transactionHashValue = null,
+            transactionHashSignature = null,
         )
         val otokSignature_ = this.otokSignature(otok)
 
@@ -278,8 +263,8 @@ nxV31GMYcJv7qABEqnowEkTGDh1TAgMBAAE=
             bnid = childBlock.bnid,
             otok = childBlock.otok,
             magic = magic,
-            hashValue = hashValue,
-            signature = signature,
+            transactionHashValue = hashValue,
+            transactionHashSignature = signature,
         )
 
         return childBlock_full
