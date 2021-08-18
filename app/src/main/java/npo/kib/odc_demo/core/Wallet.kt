@@ -7,75 +7,46 @@ package npo.kib.odc_demo.core
     В рамках презентации -- внутри самого приложения, что не безопасно .
  */
 
-import android.util.Log
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
-import kotlin.collections.HashMap
-
-
 import npo.kib.odc_demo.data.models.Banknote
 import npo.kib.odc_demo.data.models.Block
+import npo.kib.odc_demo.data.models.AcceptanceBlocks
 import npo.kib.odc_demo.data.models.ProtectedBlock
-import npo.kib.odc_demo.data.models.makeBlockHashValue
-
 
 class Wallet(
     private val spk: PrivateKey,
-    public val sok: PublicKey,
-    public val sokSignature: String,
-
-    // Сделать глобальной переменной
-    public val bok: PublicKey,
+    private val sok: PublicKey,
+    private val sokSignature: String,
+    private val bok: PublicKey,
     val wid: String
 ) {
-    private val bag = HashMap<UUID, PrivateKey>()
+    private fun otokSignature(otok: PublicKey) =
+        Crypto.signature(Crypto.hash(otok.getStringPem()), spk)
 
-
-    // TODO зарузка в файл
-    // TODO выгрузка из файла
-
-    fun otokSignature(otok: PublicKey): String {
-        return Crypto.signature(
-            Crypto.hash("-----BEGIN RSA PUBLIC KEY-----\n${otok.getString()}-----END RSA PUBLIC KEY-----"),
-            this.spk
-        )
-    }
-
-    fun getTransactionHashSign(
-        uuid: UUID,
-        parentUuid: UUID?,
-        otok: PublicKey,
-        bnid: String,
-        time: Int
-    ): String {
-        val hash = Crypto.hash(
-            uuid.toString(),
-            "-----BEGIN RSA PUBLIC KEY-----\n${otok.getString()}-----END RSA PUBLIC KEY-----",
-            bnid,
-            time.toString()
-        )
-        return Crypto.signature(hash, this.spk)
+    fun banknoteVerification(banknote: Banknote) {
+        if (!banknote.verification(bok)) {
+            throw Exception("Банкнота поддельная")
+        }
     }
 
     fun firstBlock(banknote: Banknote): Pair<Block, ProtectedBlock> {
         val uuid = UUID.randomUUID()
-        val bnid = banknote.bnid
-        val (otok, otpk) = Crypto.initOtkp()
-        Log.d("OpenDigitalCashK", otok.getString())
-        Log.d("OpenDigitalCashK", Crypto.getPublicKeyFromStore().getString())
-        this.bag[uuid] = otpk
+        val otok = Crypto.initOTKP(uuid)
         val block = Block(
             uuid = uuid,
             parentUuid = null,
-            bnid = bnid,
+            bnid = banknote.bnid,
             otok = otok,
+            time = banknote.time,
             magic = null,
             transactionHashValue = null,
             transactionHashSignature = null,
         )
-        val otokSignature_ = this.otokSignature(otok)
-        val transactionHash = getTransactionHashSign(uuid, null, otok, bnid, banknote.time)
+
+        val transactionHash = block.makeBlockHashValue()
+        val transactionHashSign = Crypto.signature(transactionHash, this.spk)
         val protectedBlock = ProtectedBlock(
             parentSok = null,
             parentSokSignature = null,
@@ -83,73 +54,43 @@ class Wallet(
             refUuid = uuid,
             sok = this.sok,
             sokSignature = this.sokSignature,
-            otokSignature = otokSignature_,
-            transactionSignature = transactionHash
+            otokSignature = otokSignature(otok),
+            transactionSignature = transactionHashSign,
+            time = banknote.time
         )
-
         return Pair(block, protectedBlock)
     }
 
-    fun init(parentBlock: Block): ProtectedBlock {
+    //A
+    fun initProtectedBlock(protectedBlock: ProtectedBlock) = ProtectedBlock(
+        parentSok = protectedBlock.sok,
+        parentSokSignature = protectedBlock.sokSignature,
+        parentOtokSignature = protectedBlock.otokSignature,
+        refUuid = null,
+        sok = null,
+        sokSignature = null,
+        otokSignature = "",
+        transactionSignature = "",
+        time = (Calendar.getInstance().timeInMillis / 1000).toInt()
+    )
 
-        // TODO Необходимо взять parentBlock.otok и подписать его
-        val parentOtokSignature = ""
-
-        val protectedBlock = ProtectedBlock(
-            parentSok = this.sok,
-            parentSokSignature = this.sokSignature,
-            parentOtokSignature = parentOtokSignature,
-            refUuid = null,
-            sok = null,
-            sokSignature = null,
-            otokSignature = "",
-            transactionSignature = ""
-        )
-        return protectedBlock
+    fun firstBlockVerification(block: Block) {
+        if (!block.verification(bok))
+            throw Exception("Некорректный Block")
     }
 
-    fun initVerification(parentBlock: Block, protectedBlock: ProtectedBlock) {
-
-        if (parentBlock.parentUuid == null) {
-            // Передача от банка к владельцу
-            throw Exception("initVerification не требуется для передачи купюры первому владельцу. См. serverInitVerification")
-        }
-
-        // Передача от владельца владельцу
-
-        if (protectedBlock.parentOtokSignature == null) {
-            throw Exception("parentOtokSignature не указан!")
-        }
-        if (protectedBlock.parentSokSignature == null) {
-            throw Exception("parentSokSignature не указан!")
-        }
-        if (protectedBlock.sok == null) {
-            throw Exception("parentSokSignature не указан!")
-        }
-
-        if (!Crypto.verifySignature(
-                protectedBlock._hashParentSok,
-                protectedBlock.parentSokSignature,
-                this.bok
-            )
-        ) {
-            throw Exception("SOK отправителя не подписан")
-        }
-        if (!Crypto.verifySignature(
-                parentBlock._hashOtok,
-                protectedBlock.parentOtokSignature,
-                protectedBlock.sok
-            )
-        ) {
-            throw Exception("OTOK отправителья не подписан")
+    private fun blockchainVerification(blocks: List<Block>) {
+        var lastKey = bok
+        for (block in blocks) {
+            if (!block.verification(lastKey))
+                throw Exception("Некорректный blockchain")
+            lastKey = block.otok
         }
     }
 
-    fun acceptanceInit(
-        parentBlock: Block,
-        protectedBlock: ProtectedBlock
-    ): Pair<Block, ProtectedBlock> {
-
+    //B
+    fun acceptanceInit(blocks: List<Block>, protectedBlock: ProtectedBlock): AcceptanceBlocks {
+        blockchainVerification(blocks)
 
         if (protectedBlock.parentSokSignature == null) {
             throw Exception("protectedBlock.parentSokSignature == null")
@@ -160,16 +101,17 @@ class Wallet(
         if (protectedBlock.parentOtokSignature == null) {
             throw Exception("protectedBlock.parentOtokSignature == null")
         }
-        val sokHash =
-            Crypto.hash("-----BEGIN RSA PUBLIC KEY-----\n${protectedBlock.parentSok.getString()}-----END RSA PUBLIC KEY-----")
-        if (!Crypto.verifySignature(sokHash, protectedBlock.parentSokSignature, bok)) {
+
+        val parentSokHash =
+            Crypto.hash(protectedBlock.parentSok.getStringPem())
+        if (!Crypto.verifySignature(parentSokHash, protectedBlock.parentSokSignature, bok)) {
             throw Exception("Некорректный soc")
         }
 
-        val parentOtok = parentBlock.otok
-
+        val parentBlock = blocks.last()
+        val otokHash = Crypto.hash(parentBlock.otok.getStringPem())
         if (!Crypto.verifySignature(
-                Crypto.hash(parentOtok?.getString()),
+                otokHash,
                 protectedBlock.parentOtokSignature,
                 protectedBlock.parentSok
             )
@@ -180,164 +122,73 @@ class Wallet(
         // ------------------------------------------------------------------------------------------------------------
         // Теперь нужно создать новый блок
         val uuid = UUID.randomUUID()
-
-        val (otok, otpk) = Crypto.initOtkp()
-
-        this.bag[uuid] = otpk
-
+        val otok = Crypto.initOTKP(uuid)
         val childBlock = Block(
             uuid = uuid,
             parentUuid = parentBlock.uuid,
             bnid = parentBlock.bnid,
             otok = otok,
+            time = protectedBlock.time,
             magic = null,
             transactionHashValue = null,
             transactionHashSignature = null,
         )
-        val otokSignature_ = this.otokSignature(otok)
 
-        val protectedBlock_new = ProtectedBlock(
+        val transactionHash = childBlock.makeBlockHashValue()
+        val transactionHashSign = Crypto.signature(transactionHash, spk)
+        val protectedBlockNew = ProtectedBlock(
             parentSok = protectedBlock.parentSok,
             parentSokSignature = protectedBlock.parentSokSignature,
             parentOtokSignature = protectedBlock.parentOtokSignature,
             refUuid = uuid,
-            sok = this.sok,
-            sokSignature = this.sokSignature,
-            otokSignature = otokSignature_,
-            transactionSignature = ""
+            sok = sok,
+            sokSignature = sokSignature,
+            otokSignature = otokSignature(otok),
+            transactionSignature = transactionHashSign,
+            time = protectedBlock.time
         )
-
-
-
-        return Pair(childBlock, protectedBlock_new)
+        return AcceptanceBlocks(childBlock, protectedBlockNew)
     }
 
     private fun acceptanceInitVerification(
-        parentBlock: Block,
         childBlock: Block,
         protectedBlock: ProtectedBlock,
         bok: PublicKey
     ) {
+        if (!checkTimeIsNearCurrent(childBlock.time, 60)) {
+            throw Exception("Некорректное время")
+        }
 
-        assert(parentBlock.uuid == childBlock.parentUuid)
-
-        if (!Crypto.verifySignature(
-                Crypto.hash(protectedBlock.sok.toString()),
-                protectedBlock.sokSignature!!,
-                bok
-            )
-        ) {
+        val sokHash = Crypto.hash(protectedBlock.sok!!.getStringPem())
+        if (!Crypto.verifySignature(sokHash, protectedBlock.sokSignature!!, bok)) {
             throw Exception("soc не подписан банком")
         }
 
-        if (!Crypto.verifySignature(
-                Crypto.hash(childBlock.otok.toString()),
-                protectedBlock.otokSignature!!,
-                protectedBlock.sok!!,
-            )
-        ) {
+        val otokHash = Crypto.hash(childBlock.otok.getStringPem())
+        if (!Crypto.verifySignature(otokHash, protectedBlock.otokSignature, protectedBlock.sok)) {
             throw Exception("otok задан не SIM картой")
         }
     }
 
+    //A
+    fun signature(parentBlock: Block, childBlock: Block, protectedBlock: ProtectedBlock): Block {
+        acceptanceInitVerification(childBlock, protectedBlock, bok)
 
-    fun signature(
-        parentBlock: Block,
-        childBlock: Block,
-        protectedBlock: ProtectedBlock,
-        bok: PublicKey
-    ): Block {
-
-        acceptanceInitVerification(parentBlock, childBlock, protectedBlock, bok)
         val magic = randomMagic()
-        val hashValue =
-            makeBlockHashValue(childBlock.uuid, childBlock.parentUuid, childBlock.bnid, magic)
-
-        val otpk = this.bag[parentBlock.uuid]
-
-        val signature = Crypto.signature(hashValue, otpk!!)
-
-        val childBlock_full = Block(
+        val hashValue = childBlock.makeBlockHashValue()
+        val uuid = parentBlock.uuid
+        val otpk = Crypto.getOtpk(uuid)
+        val signature = Crypto.signature(hashValue, otpk)
+        Crypto.deleteOneTimeKeys(uuid)
+        return Block(
             uuid = childBlock.uuid,
             parentUuid = childBlock.parentUuid,
             bnid = childBlock.bnid,
             otok = childBlock.otok,
+            time = childBlock.time,
             magic = magic,
             transactionHashValue = hashValue,
             transactionHashSignature = signature,
         )
-
-        return childBlock_full
     }
-}
-
-
-// Пример из POC-а
-// Не используется. Написан Александром, не смотрел что там.
-class WalletFromPythonPOC(
-    private val spk: PrivateKey,
-    val sok: PublicKey,
-    val sokSignature: String,
-) {
-
-    private val bag = HashMap<UUID, PrivateKey>()
-
-    fun newBlockParams(bnid: String, parentUuid: UUID? = null): TransactionBlock {
-        val (publicKey, privateKey) = Crypto.initOtkp()
-
-        val uuid = UUID.randomUUID()
-
-        val transactionHash = getTransactionHash(uuid, parentUuid, publicKey, bnid)
-        val initWalletSignature = Crypto.signature(transactionHash, spk)
-
-        bag[uuid] = privateKey
-
-        return TransactionBlock(uuid, parentUuid, publicKey, transactionHash, initWalletSignature)
-    }
-
-    fun subscribe(uuid: UUID, parentUuid: UUID, bnid: String): Subscription {
-        val otpk = bag[parentUuid]
-            ?: throw Exception("Уже передан блок с uuid=$parentUuid или данного блока никогда не было в кошельке")
-
-        val magic = randomMagic()
-
-        val transactionHash = getSubscribeTransactionHash(uuid, magic, bnid)
-        val transactionSignature = Crypto.signature(transactionHash, otpk)
-
-        // Удаляем ключ, чтобы более ни разу нельзя было подписывать
-        //   в нормальном решении необходимо хранение на доверенном носителе, например на SIM
-        bag.remove(parentUuid)
-
-        return Subscription(magic, transactionHash, transactionSignature)
-    }
-}
-
-data class Subscription(
-    val magic: String,
-    val subscribeTransactionHash: ByteArray,
-    val subscribeTransactionSignature: String
-)
-
-data class TransactionBlock(
-    val uuid: UUID,
-    val parentUuid: UUID?,
-    val otok: PublicKey,
-    val transactionHash: ByteArray,
-    val initWalletSignature: String
-)
-
-fun getTransactionHash(uuid: UUID, parentUuid: UUID?, otok: PublicKey, bnid: String): ByteArray =
-    Crypto.hash(uuid.toString(), parentUuid.toString(), otok.toString(), bnid)
-
-fun getSubscribeTransactionHash(uuid: UUID, magic: String, bnid: String): ByteArray =
-    Crypto.hash(uuid.toString(), magic, bnid)
-
-
-fun createBankSubscription(uuid: UUID, bpk: PrivateKey, bnid: String): Subscription {
-    val magic = randomMagic()
-
-    val transactionHash = getSubscribeTransactionHash(uuid, magic, bnid)
-    val transactionSignature = Crypto.signature(transactionHash, bpk)
-
-    return Subscription(magic, transactionHash, transactionSignature)
 }

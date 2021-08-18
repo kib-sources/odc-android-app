@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PayloadContainer(
-    val payloadType: Int = 0,
-    val blockchainsList: ArrayList<Blockchain>? = null
+    val blockchain: BlockchainFromDB? = null,
+    val blocks: AcceptanceBlocks? = null,
+    val childFull: Block? = null
 )

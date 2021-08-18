@@ -1,7 +1,6 @@
 package npo.kib.odc_demo
 
 import android.app.Application
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
@@ -25,15 +24,7 @@ class ExchangeViewModel(application: Application) : AndroidViewModel(application
 
     fun issueBanknotes(amount: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            val wallet = repo.registerWallet()
-            //Получаем список <Banknotes, Block, ProtectedBlock>
-            val iB = repo.issueBanknotes(amount, wallet)
-            for (b in iB) {
-                Log.d("OpenDigitalCash", b.first.toString())
-                Log.d("OpenDigitalCash", b.second.toString())
-                Log.d("OpenDigitalCash", b.third.toString())
-            }
-
+            repo.issueBanknotes(amount)
         }
     }
 
@@ -55,7 +46,7 @@ class ExchangeViewModel(application: Application) : AndroidViewModel(application
 
     fun send(amount: Int) {
         viewModelScope.launch(Dispatchers.IO) {
-            repo.send(amount)
+            repo.sendBanknotes(amount)
         }
     }
 }

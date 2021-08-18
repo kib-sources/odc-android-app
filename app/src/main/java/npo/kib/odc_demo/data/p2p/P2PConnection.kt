@@ -6,7 +6,6 @@ import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.data.models.ConnectingStatus
@@ -93,7 +92,6 @@ class P2PConnection(context: Context) {
         object : ConnectionLifecycleCallback() {
             override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
                 Log.d("OpenDigitalCash", "onConnectionInitiated")
-                //TODO добавить диалог подтверждения соединения
                 connectionEndpoint = endpointId
                 _connectionResult.update { ConnectingStatus.ConnectionInitiated(info) }
             }

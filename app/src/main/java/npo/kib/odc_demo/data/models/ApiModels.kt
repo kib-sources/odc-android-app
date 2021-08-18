@@ -93,5 +93,4 @@ data class ReceiveRequest(
 
     @SerializedName("wid")
     val wid: String
-
 )

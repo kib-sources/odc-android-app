@@ -6,11 +6,9 @@ import com.google.android.gms.nearby.connection.ConnectionResolution
 sealed class ConnectingStatus {
     object NoConnection : ConnectingStatus()
 
-    data class ConnectionInitiated(val info: ConnectionInfo) :
-        ConnectingStatus()
+    data class ConnectionInitiated(val info: ConnectionInfo) : ConnectingStatus()
 
-    data class ConnectionResult(val result: ConnectionResolution) :
-        ConnectingStatus()
+    data class ConnectionResult(val result: ConnectionResolution) : ConnectingStatus()
 
     object Disconnected : ConnectingStatus()
 }

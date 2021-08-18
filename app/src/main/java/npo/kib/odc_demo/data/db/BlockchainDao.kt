@@ -10,7 +10,10 @@ import npo.kib.odc_demo.data.models.Blockchain
 @Dao
 interface BlockchainDao {
     @Insert
-    suspend fun insertAll(blockchain: Blockchain)
+    fun insertAll(blockchain: Blockchain)
+
+    @Query("DELETE from blockchain WHERE bnidKey = :bnid")
+    suspend fun delete(bnid: String)
 
     @Query("SELECT bnid, amount FROM blockchain")
     suspend fun getBnidsAndAmounts(): List<Amounts>

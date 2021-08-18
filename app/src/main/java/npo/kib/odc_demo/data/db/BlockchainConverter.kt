@@ -7,7 +7,6 @@ import java.security.PublicKey
 import java.util.*
 
 class BlockchainConverter {
-
     @TypeConverter
     fun fromUUID(uuid: UUID?) = uuid.toString()
 
@@ -23,7 +22,6 @@ class BlockchainConverter {
     @TypeConverter
     fun toPublicKey(str: String?): PublicKey? {
         return if (str.isNullOrEmpty()) null
-        else
-            loadPublicKey(str)
+        else str.loadPublicKey()
     }
 }

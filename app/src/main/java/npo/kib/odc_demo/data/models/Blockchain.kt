@@ -11,13 +11,12 @@ import npo.kib.odc_demo.data.db.BlockchainConverter
 @Entity
 @TypeConverters(BlockchainConverter::class)
 data class Blockchain(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int? = null,
+    @PrimaryKey
+    val bnidKey: String,
 
     @Embedded
     val banknote: Banknote,
-    @Embedded(prefix = "block_")
-    val block: Block,
-    @Embedded(prefix = "protected_block_")
-    val protectedBlock: ProtectedBlock
+
+    @Embedded
+    var protectedBlock: ProtectedBlock
 )
