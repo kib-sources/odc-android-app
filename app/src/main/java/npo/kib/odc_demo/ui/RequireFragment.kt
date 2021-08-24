@@ -238,9 +238,7 @@ class RequireFragment : Fragment() {
         AlertDialog.Builder(requireContext())
             .setTitle(getString(R.string.location_denied))
             .setMessage(getString(R.string.allow_perm_in_settings))
-            .setPositiveButton(
-                getString(R.string.settings)
-            ) { _, _ ->
+            .setPositiveButton(getString(R.string.settings)) { _, _ ->
                 val intent = Intent()
                 intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
                 val uri = Uri.fromParts("package", requireActivity().application.packageName, null)
@@ -253,19 +251,11 @@ class RequireFragment : Fragment() {
     }
 
     private val activityResultLauncher: ActivityResultLauncher<Array<String>> =
-        registerForActivityResult(
-            ActivityResultContracts.RequestMultiplePermissions()
-        ) { result ->
-            var allAreGranted = true
-            for (b in result.values) {
-                allAreGranted = allAreGranted && b
-            }
-
-            if (allAreGranted) {
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+            if (result.values.all { it == true }) {
                 viewModel.startDiscovery()
             } else {
-                binding.requireStatusTextView.text =
-                    getString(R.string.permission_rejected)
+                binding.requireStatusTextView.text = getString(R.string.permission_rejected)
                 showPermissionDeniedDialog()
             }
         }
@@ -282,10 +272,7 @@ class RequireFragment : Fragment() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) Manifest.permission.ACCESS_FINE_LOCATION
             else Manifest.permission.ACCESS_COARSE_LOCATION
         if (!isPermissionsAllowed()) {
-            if (shouldShowRequestPermissionRationale(
-                    permission
-                )
-            ) {
+            if (shouldShowRequestPermissionRationale(permission)) {
                 showPermissionDeniedDialog()
             } else {
                 activityResultLauncher.launch(arrayOf(permission))
