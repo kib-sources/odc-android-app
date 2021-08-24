@@ -3,8 +3,18 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/drawable/border_radius.xml" value="0.2703125" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/drawable/ic_launcher_background.xml" value="0.2703125" />
         <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/activity_main.xml" value="0.25416666666666665" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/bill_fragment.xml" value="0.25416666666666665" />
         <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/exchange_fragment.xml" value="0.2461734693877551" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/fragment_scrolling.xml" value="0.25416666666666665" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/request_dialog.xml" value="0.25416666666666665" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/require_fragment.xml" value="0.25416666666666665" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/send_fragment.xml" value="0.25416666666666665" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/layout/wallet_fragment.xml" value="0.24010416666666667" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/menu/main.xml" value="0.25416666666666665" />
+        <entry key="..\:/AndroidStudioProjects/odc-android-app/app/src/main/res/xml/root_preferences.xml" value="0.25416666666666665" />
       </map>
     </option>
   </component>

@@ -7,6 +7,7 @@ package npo.kib.odc_demo.core
     В рамках презентации -- внутри самого приложения, что не безопасно .
  */
 
+import npo.kib.odc_demo.checkTimeIsNearCurrent
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
@@ -14,6 +15,7 @@ import npo.kib.odc_demo.data.models.Banknote
 import npo.kib.odc_demo.data.models.Block
 import npo.kib.odc_demo.data.models.AcceptanceBlocks
 import npo.kib.odc_demo.data.models.ProtectedBlock
+import npo.kib.odc_demo.randomMagic
 
 class Wallet(
     private val spk: PrivateKey,

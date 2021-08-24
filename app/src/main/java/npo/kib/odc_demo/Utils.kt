@@ -2,8 +2,10 @@
     Вспомогательные функции
  */
 
-package npo.kib.odc_demo.core
+package npo.kib.odc_demo
 
+import android.widget.Toast
+import androidx.fragment.app.Fragment
 import java.util.*
 import kotlin.random.Random
 
@@ -17,16 +19,23 @@ fun checkHashes(hash1: ByteArray, hash2: ByteArray): Boolean {
     if (hash1.count() != hash2.count()) {
         return false
     }
-    for (i in 0 until hash1.count()) {
-        if (hash1[i] != hash2[i]) {
-            return false
-        }
-    }
-    return true
+    return hash1.zip(hash2).all { (first, second) -> first == second }
 }
 
 fun checkTimeIsNearCurrent(t: Int, epsilon: Int): Boolean {
     val timestamp = Calendar.getInstance().timeInMillis / 1000
     val diff = timestamp - t
     return (diff in 0..epsilon)
+}
+
+fun String.decodeHex(): ByteArray {
+    check(length % 2 == 0) { "Must have an even length" }
+
+    return chunked(2)
+        .map { it.toInt(16).toByte() }
+        .toByteArray()
+}
+
+fun Fragment.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(requireActivity(), text, duration).show()
 }

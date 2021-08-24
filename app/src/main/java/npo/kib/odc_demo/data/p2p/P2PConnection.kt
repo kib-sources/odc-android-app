@@ -2,24 +2,35 @@ package npo.kib.odc_demo.data.p2p
 
 import android.content.Context
 import android.util.Log
+import androidx.preference.PreferenceManager
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.R
 import npo.kib.odc_demo.data.models.ConnectingStatus
+import npo.kib.odc_demo.data.models.SearchingStatus
 
 class P2PConnection(context: Context) {
     private val mConnectionsClient = Nearby.getConnectionsClient(context)
     private val serviceId = "npo.kib.odc_demo"
-    private val userName = "User"
-    private var mIsAdvertising = false
-    private var mIsDiscovering = false
     private lateinit var connectionEndpoint: String
+
+    private val usernameKey = context.resources.getString(R.string.username_key)
+    private val defaultUsername = "User"
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
+
     private val _connectionResult: MutableStateFlow<ConnectingStatus> =
         MutableStateFlow(ConnectingStatus.NoConnection)
     val connectionResult = _connectionResult.asStateFlow()
+
+    private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> =
+        MutableStateFlow(SearchingStatus.NONE)
+    val searchingStatusFlow = _searchingStatusFlow.asStateFlow()
+
     private val _receivedBytes = MutableSharedFlow<ByteArray>()
     val receivedBytes = _receivedBytes.asSharedFlow()
 
@@ -31,14 +42,12 @@ class P2PConnection(context: Context) {
                 userName, serviceId, connectionLifecycleCallback, advertisingOptions
             )
             .addOnSuccessListener {
-                mIsAdvertising = true
                 // We're advertising!
-                Log.d("OpenDigitalCash", "We're advertising!")
+                _searchingStatusFlow.update { SearchingStatus.ADVERTISING }
             }
             .addOnFailureListener {
-                mIsAdvertising = false
                 // We were unable to start advertising.
-                Log.d("OpenDigitalCash", "We were unable to start advertising.")
+                _searchingStatusFlow.update { SearchingStatus.FAILURE }
             }
     }
 
@@ -48,23 +57,23 @@ class P2PConnection(context: Context) {
         mConnectionsClient
             .startDiscovery(serviceId, endpointDiscoveryCallback, discoveryOptions)
             .addOnSuccessListener {
-                mIsDiscovering = true
-                Log.d("OpenDigitalCash", "We're discovering!")
+                _searchingStatusFlow.update { SearchingStatus.DISCOVERING }
             }
-            .addOnFailureListener { e ->
-                mIsDiscovering = false
-                Log.d("OpenDigitalCash", "We were unable to start discovering.")
+            .addOnFailureListener {
+                _searchingStatusFlow.update { SearchingStatus.FAILURE }
             }
     }
 
-    private fun stopAdvertising() {
-        mIsAdvertising = false
+    fun stopAdvertising() {
+        mConnectionsClient.stopAllEndpoints()
         mConnectionsClient.stopAdvertising()
+        _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
-    private fun stopDiscovering() {
-        mIsDiscovering = false
+    fun stopDiscovery() {
+        mConnectionsClient.stopAllEndpoints()
         mConnectionsClient.stopDiscovery()
+        _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
     private val endpointDiscoveryCallback =
@@ -91,7 +100,6 @@ class P2PConnection(context: Context) {
     private val connectionLifecycleCallback =
         object : ConnectionLifecycleCallback() {
             override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
-                Log.d("OpenDigitalCash", "onConnectionInitiated")
                 connectionEndpoint = endpointId
                 _connectionResult.update { ConnectingStatus.ConnectionInitiated(info) }
             }
@@ -127,7 +135,6 @@ class P2PConnection(context: Context) {
     }
 
     fun onReceive(endpointId: String, payload: Payload) {
-        Log.d("ODCRec", "(endpointId=$endpointId, payload=$payload")
         if (payload.type == Payload.Type.BYTES && endpointId == connectionEndpoint) {
             CoroutineScope(Dispatchers.IO).launch {
                 payload.asBytes()?.let { _receivedBytes.emit(it) }

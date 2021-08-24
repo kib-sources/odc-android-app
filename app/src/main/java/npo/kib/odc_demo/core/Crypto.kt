@@ -3,7 +3,7 @@ package npo.kib.odc_demo.core
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import android.util.Log
+import npo.kib.odc_demo.decodeHex
 import org.bouncycastle.asn1.ASN1Object
 import org.bouncycastle.asn1.DLSequence
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers
@@ -24,7 +24,6 @@ object Crypto {
     fun initOTKP(uuid: UUID) = initPair(uuid.toString()).first
 
     private fun initPair(alias: String): Pair<PublicKey, PrivateKey> {
-        Log.d("OpenDigitalCashA", alias)
         val keySize = 512
         val kpg = KeyPairGenerator.getInstance(
             KeyProperties.KEY_ALGORITHM_RSA, keyStoreType
@@ -86,15 +85,7 @@ object Crypto {
     private fun String.sha256(): ByteArray =
         MessageDigest.getInstance("SHA-256").digest(toByteArray())
 
-    fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
-
-    fun String.decodeHex(): ByteArray {
-        check(length % 2 == 0) { "Must have an even length" }
-
-        return chunked(2)
-            .map { it.toInt(16).toByte() }
-            .toByteArray()
-    }
+    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 }
 
 /**
@@ -109,7 +100,7 @@ fun String.loadPublicKey(): PublicKey {
         )
     ).readObject() as SubjectPublicKeyInfo
 
-    if (PKCSObjectIdentifiers.rsaEncryption === subjectPublicKeyInfo.algorithm.algorithm) {
+    if (PKCSObjectIdentifiers.rsaEncryption == subjectPublicKeyInfo.algorithm.algorithm) {
         val der = subjectPublicKeyInfo.parsePublicKey().toASN1Primitive() as DLSequence
         val modulus = der.getObjectAt(0) as ASN1Object
         val exponent = der.getObjectAt(1) as ASN1Object
