@@ -1,38 +1,23 @@
 package npo.kib.odc_demo.data
 
-import npo.kib.odc_demo.App
+import android.app.Application
 import npo.kib.odc_demo.core.*
+import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.decodeHex
-import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import kotlin.collections.ArrayList
 
-class BankRepository(app: App) {
-
-    private val interceptor = HttpLoggingInterceptor().apply {
-        this.level = HttpLoggingInterceptor.Level.BODY
-    }
-    private val okHttpClient = OkHttpClient.Builder().addInterceptor(interceptor).build()
-    private val url = "http://31.186.250.158:80"
+class BankRepository(application: Application) {
 
     private val bin = 333
 
-    private val db = app.getDatabase()
+    private val db = BlockchainDatabase.getInstance(application)
     private val blockchainDao = db.blockchainDao()
     private val blockDao = db.blockDao()
 
-    private val walletRepository = WalletRepository(app)
+    private val walletRepository = WalletRepository(application)
 
-    private val retrofit = Retrofit
-        .Builder()
-        .baseUrl(url)
-        .client(okHttpClient)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
-        .create(BankApi::class.java)
+    private val bankApi = RetrofitFactory.getBankApi()
 
     suspend fun getSum() = blockchainDao.getSum()
 
@@ -48,7 +33,7 @@ class BankRepository(app: App) {
         }
         val request = IssueRequest(amount, wallet.wid)
         val issueResponse = try {
-            retrofit.issueBanknotes(request)
+            bankApi.issueBanknotes(request)
         } catch (e: Exception) {
             return ServerConnectionStatus.ERROR
         }
@@ -89,7 +74,7 @@ class BankRepository(app: App) {
             uuid = block.uuid.toString(),
             wid = wallet.wid
         )
-        val response = retrofit.receiveBanknote(request)
+        val response = bankApi.receiveBanknote(request)
         val fullBlock = Block(
             uuid = block.uuid,
             parentUuid = null,

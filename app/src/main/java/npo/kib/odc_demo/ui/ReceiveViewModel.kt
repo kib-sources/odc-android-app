@@ -8,11 +8,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.App
 import npo.kib.odc_demo.data.P2PRepository
 
-class RequireViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = P2PRepository(application as App)
+class ReceiveViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = P2PRepository(application)
 
     val connectionResult = repository.connectionResult
     val searchingStatusFlow = repository.searchingStatusFlow

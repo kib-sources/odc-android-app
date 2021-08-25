@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.data.p2p
 
-import android.content.Context
+import android.app.Application
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.google.android.gms.nearby.Nearby
@@ -13,14 +13,14 @@ import npo.kib.odc_demo.R
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
 
-class P2PConnection(context: Context) {
-    private val mConnectionsClient = Nearby.getConnectionsClient(context)
-    private val serviceId = "npo.kib.odc_demo"
+class P2PConnection(application: Application) {
+    private val mConnectionsClient = Nearby.getConnectionsClient(application)
+    private val serviceId = application.resources.getString(R.string.app_package)
     private lateinit var connectionEndpoint: String
 
-    private val usernameKey = context.resources.getString(R.string.username_key)
+    private val usernameKey = application.resources.getString(R.string.username_key)
     private val defaultUsername = "User"
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
     private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
     private val _connectionResult: MutableStateFlow<ConnectingStatus> =

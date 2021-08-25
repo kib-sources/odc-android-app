@@ -1,5 +1,6 @@
 package npo.kib.odc_demo.data
 
+import android.app.Application
 import androidx.preference.PreferenceManager
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import kotlinx.coroutines.CoroutineScope
@@ -7,27 +8,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.App
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.core.Wallet
+import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
 import npo.kib.odc_demo.data.p2p.P2PConnection
 import java.util.*
 import kotlin.collections.LinkedHashMap
 
-class P2PRepository(app: App) {
-    private val p2p = P2PConnection(app)
+class P2PRepository(application: Application) {
+    private val p2p = P2PConnection(application)
     private val serializer = ObjectSerializer()
 
     val connectionResult = p2p.connectionResult
     val searchingStatusFlow = p2p.searchingStatusFlow
 
-    private val db = app.getDatabase()
+    private val db = BlockchainDatabase.getInstance(application)
     private val blockchainDao = db.blockchainDao()
     private val blockDao = db.blockDao()
 
-    private val walletRepository = WalletRepository(app)
+    private val walletRepository = WalletRepository(application)
     private lateinit var wallet: Wallet
 
     private val _isSendingFlow: MutableStateFlow<Boolean?> = MutableStateFlow(null)
@@ -41,9 +42,9 @@ class P2PRepository(app: App) {
     private val _amountRequestFlow: MutableStateFlow<AmountRequest?> = MutableStateFlow(null)
     val amountRequestFlow = _amountRequestFlow.asStateFlow()
 
-    private val usernameKey = app.resources.getString(R.string.username_key)
-    private val defaultUsername = "User"
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(app)
+    private val usernameKey = application.resources.getString(R.string.username_key)
+    private val defaultUsername = application.resources.getString(R.string.default_username)
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
     private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
     init {

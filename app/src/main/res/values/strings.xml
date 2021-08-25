@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">OpenDigitalCash</string>
-    <string name="app_package" translatable="false">npo.kib.odc_demo.core</string>
+    <string name="app_package" translatable="false">npo.kib.odc_demo</string>
     <string name="cancel">Cancel</string>
     <string name="receive">Receive</string>
     <string name="wallet_send">Give away</string>
@@ -44,4 +44,5 @@
     <string name="sending_is_going">Sending in progress. Wait, please</string>
     <string name="sending_completed">Банкноты успешно отправлены</string>
     <string name="request_banknotes_description">User %1$s (wid: %2$s) wants to accept</string>
+    <string name="default_username" translatable="false">User</string>
 </resources>

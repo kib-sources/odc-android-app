@@ -5,7 +5,7 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
-import npo.kib.odc_demo.ui.RequireFragment
+import npo.kib.odc_demo.ui.ReceiveFragment
 import npo.kib.odc_demo.ui.SendFragment
 import npo.kib.odc_demo.ui.SettingsFragment
 import npo.kib.odc_demo.ui.WalletFragment
@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity(), SwitcherInterface {
 
     override fun openRequireFragment() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, RequireFragment.newInstance())
+            .replace(R.id.fragment_container, ReceiveFragment.newInstance())
             .addToBackStack(null)
             .commit()
     }

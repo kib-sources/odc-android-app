@@ -8,9 +8,6 @@ import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.core.loadPublicKey
 import npo.kib.odc_demo.data.models.WalletRequest
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.security.PrivateKey
 import java.security.PublicKey
 
@@ -39,20 +36,11 @@ class WalletRepository(application: Application) {
         var bokString = prefs.getString(bokKey, null)
 
         if (sokSignature == null || wid == null || bokString == null) {
-            val okHttpClient = OkHttpClient.Builder().build()
-            val url = "http://31.186.250.158:80"
-            val retrofit = Retrofit
-                .Builder()
-                .baseUrl(url)
-                .client(okHttpClient)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build()
-                .create(BankApi::class.java)
-
             Log.d("OpenDigitalCash", "getting sok_sign, wid and bok from server")
-            val bokResponse = retrofit.getBok()
+            val bankApi = RetrofitFactory.getBankApi()
+            val bokResponse = bankApi.getBok()
             val walletResp =
-                retrofit.registerWallet(WalletRequest(sok.getStringPem()))
+                bankApi.registerWallet(WalletRequest(sok.getStringPem()))
             bokString = bokResponse.bok
             sokSignature = walletResp.sokSignature
             verifySokSign(sok, sokSignature, bokString)

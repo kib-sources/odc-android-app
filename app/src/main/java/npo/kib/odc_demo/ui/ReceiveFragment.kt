@@ -29,21 +29,21 @@ import npo.kib.odc_demo.makeToast
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.RequiringStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
-import npo.kib.odc_demo.databinding.RequireFragmentBinding
+import npo.kib.odc_demo.databinding.ReceiveFragmentBinding
 
-class RequireFragment : Fragment() {
+class ReceiveFragment : Fragment() {
 
     companion object {
-        fun newInstance() = RequireFragment()
+        fun newInstance() = ReceiveFragment()
     }
 
-    private var _binding: RequireFragmentBinding? = null
+    private var _binding: ReceiveFragmentBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: RequireViewModel
+    private lateinit var viewModel: ReceiveViewModel
     private lateinit var mController: SwitcherInterface
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,13 +64,13 @@ class RequireFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        _binding = RequireFragmentBinding.inflate(inflater, container, false)
+        _binding = ReceiveFragmentBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[RequireViewModel::class.java]
+        viewModel = ViewModelProvider(this)[ReceiveViewModel::class.java]
         viewModel.getSum()
 
         viewLifecycleOwner.lifecycleScope.launch {
