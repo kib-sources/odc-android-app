@@ -174,6 +174,7 @@ class ReceiveFragment : Fragment() {
                                 }
                             }
                         ConnectingStatus.Disconnected -> {
+                            viewModel.getSum()
                             makeVisible(true)
                             binding.requireStatusTextView.text =
                                 getString(R.string.connecting_disconnected)

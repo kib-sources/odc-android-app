@@ -2,7 +2,10 @@ package npo.kib.odc_demo.data.models
 
 import com.google.gson.annotations.SerializedName
 
-data class BokResponse(
+data class CredentialsResponse(
+    @SerializedName("bin")
+    val bin: String,
+
     @SerializedName("bok")
     val bok: String,
 
@@ -37,6 +40,7 @@ data class IssueResponse(
 
 data class BanknoteRaw(
     val amount: Int,
+    val bin: String,
     val bnid: String,
     val code: Int,
     val signature: String,

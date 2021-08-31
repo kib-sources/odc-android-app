@@ -15,7 +15,6 @@ import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
 import npo.kib.odc_demo.data.p2p.P2PConnection
 import java.util.*
-import kotlin.collections.LinkedHashMap
 
 class P2PRepository(application: Application) {
     private val p2p = P2PConnection(application)
@@ -46,6 +45,13 @@ class P2PRepository(application: Application) {
     private val defaultUsername = application.resources.getString(R.string.default_username)
     private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
     private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
+
+    private val sendingList = LinkedList<BlockchainFromDB>()
+    private lateinit var sentBlock: Block
+
+    private lateinit var blockchainToDB: Blockchain
+    private lateinit var blocksToDB: List<Block>
+    private var receivingAmount: Int = 0
 
     init {
         var job = Job() as Job
@@ -120,8 +126,6 @@ class P2PRepository(application: Application) {
         return blockchainsList
     }
 
-    private val sentBlocks = LinkedHashMap<UUID, Block>()
-
     fun requireBanknotes(amount: Int) {
         _requiringStatusFlow.update { RequiringStatus.REQUEST }
         val payloadContainer = PayloadContainer(
@@ -135,7 +139,6 @@ class P2PRepository(application: Application) {
         p2p.send(amountJson.encodeToByteArray())
     }
 
-
     /**
      * Sending banknotes to another device
      * @param amount Amount to send
@@ -146,6 +149,17 @@ class P2PRepository(application: Application) {
         val blockchainArray = getBlockchainsByAmount(amount)
 
         for (blockchainFromDB in blockchainArray) {
+            sendingList.add(blockchainFromDB)
+        }
+        //Отправка суммы и первой банкноты
+        p2p.send(serializer.toJson(PayloadContainer(amount = amount)).encodeToByteArray())
+        sendBlockchain(sendingList.poll())
+    }
+
+    private fun sendBlockchain(blockchainFromDB: BlockchainFromDB?) {
+        if (blockchainFromDB == null) {
+            _isSendingFlow.update { false }
+        } else {
             //Создание нового ProtectedBlock
             val newProtectedBlock =
                 wallet.initProtectedBlock(blockchainFromDB.blockchain.protectedBlock)
@@ -154,20 +168,10 @@ class P2PRepository(application: Application) {
             val payloadContainer = PayloadContainer(blockchain = blockchainFromDB)
             val blockchainJson = serializer.toJson(payloadContainer)
             p2p.send(blockchainJson.encodeToByteArray())
-
             //Запоминаем отправленный parentBlock для последующей верификации
-            val parentBlock = blockchainFromDB.blocks.last()
-            sentBlocks[parentBlock.uuid] = parentBlock
+            sentBlock = blockchainFromDB.blocks.last()
         }
     }
-
-    fun sendRejection() {
-        p2p.send(serializer.toJson(PayloadContainer()).encodeToByteArray())
-        _amountRequestFlow.update { null }
-    }
-
-    private val blockchainsToDB = LinkedHashMap<String, Blockchain>()
-    private val blocksToDB = LinkedHashMap<String, List<Block>>()
 
     private suspend fun receiveBytes(bytes: ByteArray) {
         val container = serializer.toObject(bytes.decodeToString())
@@ -175,7 +179,7 @@ class P2PRepository(application: Application) {
         if (container.amountRequest != null) {
             val requiredAmount = container.amountRequest.amount
             val currentAmount = getSum() ?: 0
-            if (requiredAmount < currentAmount) {
+            if (requiredAmount <= currentAmount) {
                 _amountRequestFlow.update { container.amountRequest }
             } else sendRejection()
         } else
@@ -192,48 +196,52 @@ class P2PRepository(application: Application) {
                 sendAcceptanceBlocks(childBlocksPair)
 
                 //Запоминаем блокчейн для добавления в бд в случае успешной верификации
-                val bnid = blockchainFromDB.blockchain.bnidKey
-                blockchainsToDB[bnid] = Blockchain(
-                    bnidKey = bnid,
+                blockchainToDB = Blockchain(
+                    bnidKey = blockchainFromDB.blockchain.bnidKey,
                     banknote = blockchainFromDB.blockchain.banknote,
                     protectedBlock = childBlocksPair.protectedBlock
                 )
-                blocksToDB[bnid] = blocks
+                blocksToDB = blocks
             } else
 
             //Шаг 5.
                 if (container.blocks != null) {
                     val acceptanceBlocks = container.blocks
                     val childBlockFull = wallet.signature(
-                        sentBlocks[acceptanceBlocks.childBlock.parentUuid]!!,
+                        sentBlock,
                         acceptanceBlocks.childBlock,
                         acceptanceBlocks.protectedBlock
                     )
-                    val block = acceptanceBlocks.childBlock
-                    blockchainDao.delete(block.bnid)
-                    sentBlocks.remove(block.parentUuid)
+                    blockchainDao.delete(acceptanceBlocks.childBlock.bnid)
                     sendChildBlockFull(childBlockFull)
-                    if (sentBlocks.isEmpty()) _isSendingFlow.update { false }
+                    sendBlockchain(sendingList.poll())
                 } else
 
                 //Шаг 6b
                     if (container.childFull != null) {
                         val childBlockFull = container.childFull
-                        val bnid = childBlockFull.bnid
-                        if (!childBlockFull.verification(blocksToDB[bnid]!!.last().otok)) {
+                        if (!childBlockFull.verification(blocksToDB.last().otok)) {
                             throw Exception("childBlock некорректно подписан")
                         }
-                        blockchainDao.insertAll(blockchainsToDB[bnid]!!)
-                        for (block in blocksToDB[bnid]!!) {
+                        blockchainDao.insertAll(blockchainToDB)
+                        for (block in blocksToDB) {
                             blockDao.insertAll(block)
                         }
                         blockDao.insertAll(childBlockFull)
-                        blockchainsToDB.remove(bnid)
-                        blocksToDB.remove(bnid)
-                        if (blocksToDB.isEmpty()) _requiringStatusFlow.update { RequiringStatus.COMPLETED }
-                    } else {
-                        _requiringStatusFlow.update { RequiringStatus.REJECT }
-                    }
+                        receivingAmount -= blockchainToDB.banknote.amount
+                        if (receivingAmount <= 0) _requiringStatusFlow.update { RequiringStatus.COMPLETED }
+                    } else
+
+                        if (container.amount != null) {
+                            receivingAmount = container.amount
+                        } else {
+                            _requiringStatusFlow.update { RequiringStatus.REJECT }
+                        }
+    }
+
+    fun sendRejection() {
+        p2p.send(serializer.toJson(PayloadContainer()).encodeToByteArray())
+        _amountRequestFlow.update { null }
     }
 
     private fun sendAcceptanceBlocks(acceptanceBlocks: AcceptanceBlocks) {

@@ -163,6 +163,7 @@ class SendFragment : Fragment() {
                                 }
                             }
                         ConnectingStatus.Disconnected -> {
+                            viewModel.getSum()
                             makeVisible(true)
                             binding.sendingStatusView.text =
                                 getString(R.string.connecting_disconnected)

@@ -80,7 +80,6 @@ class P2PConnection(application: Application) {
         object : EndpointDiscoveryCallback() {
             override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
                 // An endpoint was found. We request a connection to it.
-                Log.d("OpenDigitalCash", "An endpoint was found. We request a connection to it.")
                 mConnectionsClient
                     .requestConnection(userName, endpointId, connectionLifecycleCallback)
                     .addOnSuccessListener {
@@ -125,13 +124,10 @@ class P2PConnection(application: Application) {
 
     private val mPayloadCallback: PayloadCallback = object : PayloadCallback() {
         override fun onPayloadReceived(endpointId: String, payload: Payload) {
-            Log.d("onPayloadReceived", "(endpointId=$endpointId, payload=$payload")
             onReceive(endpointId, payload)
         }
 
-        override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {
-            Log.d("onPayloadTransferUpdate", "endpointId=$endpointId, update=$update")
-        }
+        override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {}
     }
 
     fun onReceive(endpointId: String, payload: Payload) {

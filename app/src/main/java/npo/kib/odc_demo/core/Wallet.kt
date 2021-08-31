@@ -22,12 +22,17 @@ class Wallet(
     private val sok: PublicKey,
     private val sokSignature: String,
     private val bok: PublicKey,
+    private val bin: Int,
     val wid: String
 ) {
     private fun otokSignature(otok: PublicKey) =
         Crypto.signature(Crypto.hash(otok.getStringPem()), spk)
 
     fun banknoteVerification(banknote: Banknote) {
+        if (banknote.bin != bin) {
+            throw Exception("Банкнота выпущена другим банком")
+        }
+
         if (!banknote.verification(bok)) {
             throw Exception("Банкнота поддельная")
         }

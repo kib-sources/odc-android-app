@@ -1,6 +1,8 @@
 package npo.kib.odc_demo.data
 
 import android.app.Application
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import npo.kib.odc_demo.core.*
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
@@ -8,8 +10,6 @@ import npo.kib.odc_demo.decodeHex
 import kotlin.collections.ArrayList
 
 class BankRepository(application: Application) {
-
-    private val bin = 333
 
     private val db = BlockchainDatabase.getInstance(application)
     private val blockchainDao = db.blockchainDao()
@@ -39,23 +39,27 @@ class BankRepository(application: Application) {
         }
         val rawBanknotes = issueResponse.issuedBanknotes
         val banknotes = parseBanknotes(rawBanknotes)
-        for (banknote in banknotes) {
-            wallet.banknoteVerification(banknote)
-            var (block, protectedBlock) = wallet.firstBlock(banknote)
-            try {
-                block = receiveBanknote(wallet, block, protectedBlock)
-            } catch (e: Exception) {
-                return ServerConnectionStatus.ERROR
-            }
 
-            blockchainDao.insertAll(
-                Blockchain(
-                    bnidKey = banknote.bnid,
-                    banknote = banknote,
-                    protectedBlock = protectedBlock
-                )
-            )
-            blockDao.insertAll(block)
+        try {
+            coroutineScope {
+                banknotes.map { banknote ->
+                    wallet.banknoteVerification(banknote)
+                    val (block, protectedBlock) = wallet.firstBlock(banknote)
+                    async {
+                        Blockchain(
+                            bnidKey = banknote.bnid,
+                            banknote = banknote,
+                            protectedBlock = protectedBlock
+                        ) to receiveBanknote(wallet, block, protectedBlock)
+                    }
+                }.forEach {
+                    val registered = it.await()
+                    blockchainDao.insertAll(registered.first)
+                    blockDao.insertAll(registered.second)
+                }
+            }
+        } catch (e: Exception) {
+            return ServerConnectionStatus.ERROR
         }
         return ServerConnectionStatus.SUCCESS
     }
@@ -94,7 +98,7 @@ class BankRepository(application: Application) {
         var banknote: Banknote
         for (r in raw) {
             banknote = Banknote(
-                bin = bin,
+                bin = r.bin.toInt(),
                 amount = r.amount,
                 currencyCode = r.code,
                 bnid = r.bnid,

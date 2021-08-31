@@ -6,8 +6,8 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface BankApi {
-    @GET("/bok")
-    suspend fun getBok(): BokResponse
+    @GET("/credentials")
+    suspend fun getCredentials(): CredentialsResponse
 
     @POST("/register-wallet")
     suspend fun registerWallet(@Body wr: WalletRequest): WalletResponse

@@ -12,6 +12,7 @@ import java.security.PrivateKey
 import java.security.PublicKey
 
 class WalletRepository(application: Application) {
+    private val binKey = "BIN"
     private val bokKey = "BOK"
     private val sokSignKey = "SOK_signed"
     private val widKey = "WID"
@@ -33,22 +34,24 @@ class WalletRepository(application: Application) {
         val spk = keys.second
         var sokSignature = prefs.getString(sokSignKey, null)
         var wid = prefs.getString(widKey, null)
+        var bin = prefs.getString(binKey, null)
         var bokString = prefs.getString(bokKey, null)
 
-        if (sokSignature == null || wid == null || bokString == null) {
+        if (sokSignature == null || wid == null || bokString == null || bin == null) {
             Log.d("OpenDigitalCash", "getting sok_sign, wid and bok from server")
             val bankApi = RetrofitFactory.getBankApi()
-            val bokResponse = bankApi.getBok()
+            val credentialsResponse = bankApi.getCredentials()
             val walletResp =
                 bankApi.registerWallet(WalletRequest(sok.getStringPem()))
-            bokString = bokResponse.bok
+            bin = credentialsResponse.bin
+            bokString = credentialsResponse.bok
             sokSignature = walletResp.sokSignature
             verifySokSign(sok, sokSignature, bokString)
             wid = walletResp.wid
-            editor.putString(bokKey, bokString).putString(sokSignKey, sokSignature)
+            editor.putString(binKey, bin).putString(bokKey, bokString).putString(sokSignKey, sokSignature)
                 .putString(widKey, wid).apply()
         }
-        return Wallet(spk, sok, sokSignature, bokString.loadPublicKey(), wid)
+        return Wallet(spk, sok, sokSignature, bokString.loadPublicKey(), bin.toInt(), wid)
     }
 
     private fun verifySokSign(sok: PublicKey, sokSignature: String, bokString: String) {
@@ -62,7 +65,8 @@ class WalletRepository(application: Application) {
     fun isWalletRegistered(): Boolean {
         val sokSignature = prefs.getString(sokSignKey, null)
         val wid = prefs.getString(widKey, null)
+        val bin = prefs.getString(binKey, null)
         val bokString = prefs.getString(bokKey, null)
-        return !(sokSignature == null || wid == null || bokString == null)
+        return !(sokSignature == null || wid == null || bokString == null || bin == null)
     }
 }

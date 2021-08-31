@@ -17,13 +17,14 @@ data class Banknote(
         currencyCode: Int,
         time: Int,
         amount: Int,
+        bin: Int,
         bnid: String
     ): ByteArray {
-        return Crypto.hash(currencyCode.toString(), time.toString(), amount.toString(), bnid)
+        return Crypto.hash(currencyCode.toString(), time.toString(), amount.toString(), bin.toString(), bnid)
     }
 
     fun verification(bok: PublicKey): Boolean {
-        val hashValueCheck = makeBanknoteHashValue(currencyCode, time, amount, bnid)
+        val hashValueCheck = makeBanknoteHashValue(currencyCode, time, amount, bin, bnid)
         return Crypto.verifySignature(hashValueCheck, signature, bok)
     }
 }
