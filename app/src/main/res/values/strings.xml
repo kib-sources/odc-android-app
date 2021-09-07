@@ -1,3 +1,48 @@
 <resources>
-    <string name="app_name">OpenDigitalCash</string>
+    <string name="app_name" translatable="false">OpenDigitalCash</string>
+    <string name="app_package" translatable="false">npo.kib.odc_demo</string>
+    <string name="cancel">Cancel</string>
+    <string name="receive">Receive</string>
+    <string name="wallet_send">Give away</string>
+    <string name="issue_banknotes">Issue banknotes</string>
+    <string name="settings">Settings</string>
+
+    <string name="base_header">Base</string>
+    <string name="username_title">Username</string>
+
+    <string name="username_key" translatable="false">username</string>
+    <string name="send_title">Send banknotes or respond to a request</string>
+    <string name="receive_title">Receive banknotes or send a request</string>
+    <string name="require">Request</string>
+    <string name="send">Send</string>
+    <string name="enter_sum_to_receive">Enter the amount to receive</string>
+    <string name="enter_sum_to_send">Enter the amount to send</string>
+    <string name="searching_failure">Failed to start searching for device</string>
+    <string name="searching_device">Searching for a device</string>
+    <string name="requiring_request">Banknotes requested</string>
+    <string name="requiring_reject">Request denied</string>
+    <string name="requiring_acceptance">Receiving banknotes. Wait, please</string>
+    <string name="requiring_completed">Banknotes received successfully</string>
+    <string name="enter_sum">Enter the amount</string>
+    <string name="connecting_initiated">Device found. Waiting for confirmation</string>
+    <string name="connecting_ok">Connection established</string>
+    <string name="connecting_rejected">Connection was rejected. Searching for a new device</string>
+    <string name="connecting_error">Connection was broken. Searching for a new device</string>
+    <string name="connecting_undefined_error">Unknown error</string>
+    <string name="connecting_disconnected">Connection was broken. Searching for a new device</string>
+    <string name="rejection">Deny</string>
+    <string name="connection_error">Connection error</string>
+    <string name="wallet_not_registered">Wallet not registered</string>
+    <string name="balance_rubles" translatable="false">%1$d ₽</string>
+    <string name="your_balance_rubles">Ваш баланс: %1$d ₽</string>
+    <string name="accept_connection_to">Accept user connection</string>
+    <string name="make_sure">Make sure the code is the same on both devices:</string>
+    <string name="location_denied">Location permission required</string>
+    <string name="allow_perm_in_settings">Please provide it in Settings</string>
+    <string name="permission_rejected">You will not be able to exchange banknotes until you provide location permission</string>
+    <string name="insufficient_funds">Insufficient funds</string>
+    <string name="sending_is_going">Sending in progress. Wait, please</string>
+    <string name="sending_completed">Банкноты успешно отправлены</string>
+    <string name="request_banknotes_description">User %1$s (wid: %2$s) wants to accept</string>
+    <string name="default_username" translatable="false">User</string>
 </resources>
