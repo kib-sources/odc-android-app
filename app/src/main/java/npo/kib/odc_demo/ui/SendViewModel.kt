@@ -8,11 +8,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.data.P2PRepository
+import npo.kib.odc_demo.data.P2pSendUseCase
 import npo.kib.odc_demo.data.WalletRepository
 
 class SendViewModel(application: Application) : AndroidViewModel(application) {
-    private val repository = P2PRepository(application)
+    private val repository = P2pSendUseCase(application)
     private val walletRepository = WalletRepository(application)
 
     val connectionResult = repository.connectionResult
