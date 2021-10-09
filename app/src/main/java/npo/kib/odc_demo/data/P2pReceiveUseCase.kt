@@ -1,10 +1,15 @@
 package npo.kib.odc_demo.data
 
-import android.app.Application
+import android.content.Context
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.data.p2p.P2PConnectionBidirectionalNearbyImpl
+import npo.kib.odc_demo.data.p2p.P2pConnection
 
-class P2pReceiveUseCase(application: Application): P2pBaseUseCase(application) {
+class P2pReceiveUseCase(
+    context: Context,
+    override val p2p: P2pConnection = P2PConnectionBidirectionalNearbyImpl(context),
+) : P2pBaseUseCase(context) {
 
     fun startDiscovery() {
         p2p.startDiscovery()

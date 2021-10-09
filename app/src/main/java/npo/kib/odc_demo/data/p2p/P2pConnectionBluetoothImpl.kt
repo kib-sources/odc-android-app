@@ -1,8 +1,8 @@
 package npo.kib.odc_demo.data.p2p
 
-import android.app.Application
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothSocket
+import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
@@ -13,7 +13,7 @@ import java.io.InputStream
 import java.util.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class P2pConnectionBidirectionalBluetoothImpl(application: Application) : P2pConnection {
+class P2pConnectionBluetoothImpl(context: Context) : P2pConnection {
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> = MutableStateFlow(SearchingStatus.NONE)

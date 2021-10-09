@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.data
 
-import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
@@ -15,20 +15,20 @@ import npo.kib.odc_demo.data.models.WalletRequest
 import java.security.PrivateKey
 import java.security.PublicKey
 
-class WalletRepository(application: Application) {
+class WalletRepository(context: Context) {
     private val binKey = "BIN"
     private val bokKey = "BOK"
     private val sokSignKey = "SOK_signed"
     private val widKey = "WID"
 
-    private val keysPrefs = application.getSharedPreferences("openKeys", AppCompatActivity.MODE_PRIVATE)
+    private val keysPrefs = context.getSharedPreferences("openKeys", AppCompatActivity.MODE_PRIVATE)
 
-    private val usernameKey = application.resources.getString(R.string.username_key)
-    private val defaultUsername = application.resources.getString(R.string.default_username)
-    private val userPrefs = PreferenceManager.getDefaultSharedPreferences(application)
+    private val usernameKey = context.resources.getString(R.string.username_key)
+    private val defaultUsername = context.resources.getString(R.string.default_username)
+    private val userPrefs = PreferenceManager.getDefaultSharedPreferences(context)
     val userName = userPrefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
-    private val blockchainDao = BlockchainDatabase.getInstance(application).blockchainDao()
+    private val blockchainDao = BlockchainDatabase.getInstance(context).blockchainDao()
 
     private var _wallet: Wallet? = null
 

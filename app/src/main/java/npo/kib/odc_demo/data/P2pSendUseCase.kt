@@ -1,13 +1,18 @@
 package npo.kib.odc_demo.data
 
-import android.app.Application
+import android.content.Context
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
-import java.util.ArrayList
+import npo.kib.odc_demo.data.p2p.P2PConnectionBidirectionalNearbyImpl
+import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
+import java.util.*
 
-open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application) {
+open class P2pSendUseCase(
+    context: Context,
+    override val p2p: P2pConnectionBidirectional = P2PConnectionBidirectionalNearbyImpl(context),
+) : P2pBaseUseCase(context) {
 
     fun startAdvertising() {
         p2p.startAdvertising()

@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.data.db
 
-import android.app.Application
+import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -15,11 +15,10 @@ abstract class BlockchainDatabase : RoomDatabase() {
         private var instance: BlockchainDatabase? = null
 
         @Synchronized
-        fun getInstance(application: Application): BlockchainDatabase {
+        fun getInstance(context: Context): BlockchainDatabase {
             if (instance == null) {
                 instance =
-                    Room.databaseBuilder(application, BlockchainDatabase::class.java, DB_NAME)
-                        .build()
+                    Room.databaseBuilder(context, BlockchainDatabase::class.java, DB_NAME).build()
             }
             return instance as BlockchainDatabase
         }

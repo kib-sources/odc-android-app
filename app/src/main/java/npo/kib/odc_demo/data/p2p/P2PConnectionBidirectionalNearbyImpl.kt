@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.data.p2p
 
-import android.app.Application
+import android.content.Context
 import android.util.Log
 import androidx.preference.PreferenceManager
 import com.google.android.gms.nearby.Nearby
@@ -14,14 +14,14 @@ import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
 
 // Имплементация расширенного интерфейс p2p соеденений на базе Google Nearby Connections API
-class P2PConnectionBidirectionalNearbyImpl(application: Application) : P2pConnectionBidirectional {
-    private val mConnectionsClient = Nearby.getConnectionsClient(application)
-    private val serviceId = application.resources.getString(R.string.app_package)
+class P2PConnectionBidirectionalNearbyImpl(context: Context) : P2pConnectionBidirectional {
+    private val mConnectionsClient = Nearby.getConnectionsClient(context)
+    private val serviceId = context.resources.getString(R.string.app_package)
     private lateinit var connectionEndpoint: String
 
-    private val usernameKey = application.resources.getString(R.string.username_key)
+    private val usernameKey = context.resources.getString(R.string.username_key)
     private val defaultUsername = "User"
-    private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
+    private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)

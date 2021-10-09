@@ -1,22 +1,22 @@
 package npo.kib.odc_demo.data
 
-import android.app.Application
+import android.content.Context
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import npo.kib.odc_demo.core.*
-import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.core.decodeHex
+import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.data.api.RetrofitFactory
 import npo.kib.odc_demo.data.db.BlockchainDatabase
-import kotlin.collections.ArrayList
+import npo.kib.odc_demo.data.models.*
 
-class BankRepository(application: Application) {
+class BankRepository(context: Context) {
 
-    private val db = BlockchainDatabase.getInstance(application)
+    private val db = BlockchainDatabase.getInstance(context)
     private val blockchainDao = db.blockchainDao()
     private val blockDao = db.blockDao()
 
-    private val walletRepository = WalletRepository(application)
+    private val walletRepository = WalletRepository(context)
 
     private val bankApi = RetrofitFactory.getBankApi()
 

@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.data.p2p
 
-import android.app.Application
+import android.content.Context
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,7 +12,7 @@ import java.net.ServerSocket
 import java.net.Socket
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class P2pConnectionBidirectionalTcpImpl(application: Application, private val ip: String = "192.168.1.134") :
+class P2pConnectionBidirectionalTcpImpl(context: Context, private val ip: String = "192.168.1.134") :
     P2pConnectionBidirectional {
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
