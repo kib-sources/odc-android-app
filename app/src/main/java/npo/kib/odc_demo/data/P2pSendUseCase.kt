@@ -5,14 +5,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
-import npo.kib.odc_demo.data.p2p.P2PConnectionBidirectionalNearbyImpl
-import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
 import java.util.*
 
-open class P2pSendUseCase(
-    context: Context,
-    override val p2p: P2pConnectionBidirectional = P2PConnectionBidirectionalNearbyImpl(context),
-) : P2pBaseUseCase(context) {
+open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
 
     fun startAdvertising() {
         p2p.startAdvertising()
