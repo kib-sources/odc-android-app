@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.checkHashes
 import npo.kib.odc_demo.core.getStringPem
-import npo.kib.odc_demo.db.BlockchainConverter
+import npo.kib.odc_demo.data.db.BlockchainConverter
 import npo.kib.odc_demo.data.p2p.PublicKeySerializer
 import npo.kib.odc_demo.data.p2p.PublicKeySerializerNotNull
 import npo.kib.odc_demo.data.p2p.UUIDSerializer

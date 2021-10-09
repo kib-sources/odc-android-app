@@ -30,37 +30,41 @@ class P2pReceiveUseCase(application: Application): P2pBaseUseCase(application) {
     override suspend fun onBytesReceive(bytes: ByteArray) {
         val container = serializer.toObject(bytes.decodeToString())
 
-        //Шаг 2-4
+        //Шаг 0
+        if (container.amount != null) {
+            receivingAmount = container.amount
+            return
+        }
+
+        //Шаги 2-4
         if (container.blockchain != null) {
-            createAcceptanceBlock(container.blockchain)
+            acceptance(container.blockchain)
             return
         }
 
         //Шаг 6b
         if (container.childFull != null) {
-            saveAndVerifyNewBlock(container.childFull)
-            return
-        }
-
-        if (container.amount != null) {
-            receivingAmount = container.amount
+            verifyAndSaveNewBlock(container.childFull)
             return
         }
 
         _requiringStatusFlow.update { RequiringStatus.REJECT }
     }
 
-    //Шаг 2-4
-    private fun createAcceptanceBlock(blockchainFromDB: BlockchainFromDB) {
+    //Шаги 2-4
+    private fun acceptance(blockchainFromDB: BlockchainFromDB) {
         _requiringStatusFlow.update { RequiringStatus.ACCEPTANCE }
 
         val blocks = blockchainFromDB.blocks
         val protectedBlockPart = blockchainFromDB.blockchain.protectedBlock
 
+        //Шаг 4
         val childBlocksPair = wallet.acceptanceInit(blocks, protectedBlockPart)
-        sendAcceptanceBlocks(childBlocksPair)
+        val payloadContainer = PayloadContainer(blocks = childBlocksPair)
+        val blockchainJson = serializer.toJson(payloadContainer)
+        p2p.send(blockchainJson.encodeToByteArray())
 
-        //Запоминаем блокчейн для добавления в бд в случае успешной верификации
+        //Шаг 3: Запоминаем блокчейн для добавления в бд в случае успешной верификации
         blockchainToDB = Blockchain(
             bnidKey = blockchainFromDB.blockchain.bnidKey,
             banknote = blockchainFromDB.blockchain.banknote,
@@ -69,14 +73,8 @@ class P2pReceiveUseCase(application: Application): P2pBaseUseCase(application) {
         blocksToDB = blocks
     }
 
-    private fun sendAcceptanceBlocks(acceptanceBlocks: AcceptanceBlocks) {
-        val payloadContainer = PayloadContainer(blocks = acceptanceBlocks)
-        val blockchainJson = serializer.toJson(payloadContainer)
-        p2p.send(blockchainJson.encodeToByteArray())
-    }
-
     //Шаг 6b
-    private fun saveAndVerifyNewBlock(childBlockFull: Block) {
+    private fun verifyAndSaveNewBlock(childBlockFull: Block) {
         if (!childBlockFull.verification(blocksToDB.last().otok)) {
             throw Exception("childBlock некорректно подписан")
         }

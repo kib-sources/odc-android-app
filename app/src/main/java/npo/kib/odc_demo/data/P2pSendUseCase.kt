@@ -33,23 +33,6 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
         sendBlockchain(sendingList.poll())
     }
 
-    override suspend fun onBytesReceive(bytes: ByteArray) {
-        val container = serializer.toObject(bytes.decodeToString())
-
-        if (container.amountRequest != null) {
-            onAmountRequest(container.amountRequest)
-            return
-        }
-
-        //Шаг 5.
-        if (container.blocks != null) {
-            onAcceptanceBlocksReceived(container.blocks)
-            return
-        }
-
-        _requiringStatusFlow.update { RequiringStatus.REJECT }
-    }
-
     private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<BlockchainFromDB> {
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
@@ -92,6 +75,23 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
 
         //Запоминаем отправленный parentBlock для последующей верификации
         sentBlock = blockchainFromDB.blocks.last()
+    }
+
+    override suspend fun onBytesReceive(bytes: ByteArray) {
+        val container = serializer.toObject(bytes.decodeToString())
+
+        if (container.amountRequest != null) {
+            onAmountRequest(container.amountRequest)
+            return
+        }
+
+        //Шаг 5.
+        if (container.blocks != null) {
+            onAcceptanceBlocksReceived(container.blocks)
+            return
+        }
+
+        _requiringStatusFlow.update { RequiringStatus.REJECT }
     }
 
     //Шаг 1
