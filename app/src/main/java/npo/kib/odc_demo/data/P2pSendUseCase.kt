@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.myLogs
 import java.util.ArrayList
 
 open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application) {
@@ -34,16 +35,18 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
         p2p.send(serializer.toJson(PayloadContainer(amount = amount)).encodeToByteArray())
         sendBlockchain(sendingList.poll())
 
-        // Ждем выполнения шагов 2-4
-        val bytes = p2p.receivedBytes.take(1).first()
-        val container = serializer.toObject(bytes.decodeToString())
-        if (container.blocks == null) {
-            _requiringStatusFlow.update { RequiringStatus.REJECT }
-            return
-        }
+        for (i in 0 until blockchainArray.size) {
+            // Ждем выполнения шагов 2-4
+            val bytes = p2p.receivedBytes.take(1).first()
+            val container = serializer.toObject(bytes.decodeToString())
+            if (container.blocks == null) {
+                _requiringStatusFlow.update { RequiringStatus.REJECT }
+                return
+            }
 
-        //Шаг 5
-        onAcceptanceBlocksReceived(container.blocks)
+            //Шаг 5
+            onAcceptanceBlocksReceived(container.blocks)
+        }
     }
 
     private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<BlockchainFromDB> {
