@@ -5,7 +5,7 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import kotlinx.serialization.Serializable
-import npo.kib.odc_demo.data.db.BlockchainConverter
+import npo.kib.odc_demo.db.BlockchainConverter
 
 @Serializable
 @Entity

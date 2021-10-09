@@ -11,12 +11,13 @@ import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
-import npo.kib.odc_demo.data.p2p.P2PConnection
+import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
+import npo.kib.odc_demo.data.p2p.P2PConnectionBidirectionalNearbyImpl
 import java.util.*
 
 abstract class P2pBaseUseCase(application: Application) {
 
-    protected val p2p = P2PConnection(application)
+    protected val p2p: P2pConnectionBidirectional = P2PConnectionBidirectionalNearbyImpl(application)
 
     // public states
 
@@ -37,8 +38,9 @@ abstract class P2pBaseUseCase(application: Application) {
     protected val serializer = ObjectSerializer()
     private var job = Job() as Job
 
-    protected val blockchainDao = BlockchainDatabase.getInstance(application).blockchainDao()
-    protected val blockDao = BlockchainDatabase.getInstance(application).blockDao()
+    private val db = BlockchainDatabase.getInstance(application)
+    protected val blockchainDao = db.blockchainDao()
+    protected val blockDao = db.blockDao()
 
     protected val walletRepository = WalletRepository(application)
     protected lateinit var wallet: Wallet

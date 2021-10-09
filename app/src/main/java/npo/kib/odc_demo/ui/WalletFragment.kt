@@ -14,7 +14,7 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.data.models.ServerConnectionStatus
 import npo.kib.odc_demo.SwitcherInterface
-import npo.kib.odc_demo.makeToast
+import npo.kib.odc_demo.core.makeToast
 import npo.kib.odc_demo.databinding.WalletFragmentBinding
 
 class WalletFragment : Fragment() {

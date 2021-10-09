@@ -13,7 +13,8 @@ import npo.kib.odc_demo.R
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
 
-class P2PConnection(application: Application) {
+// Имплементация расширенного интерфейс p2p соеденений на базе Google Nearby Connections API
+class P2PConnectionBidirectionalNearbyImpl(application: Application) : P2pConnectionBidirectional {
     private val mConnectionsClient = Nearby.getConnectionsClient(application)
     private val serviceId = application.resources.getString(R.string.app_package)
     private lateinit var connectionEndpoint: String
@@ -25,16 +26,16 @@ class P2PConnection(application: Application) {
 
     private val _connectionResult: MutableStateFlow<ConnectingStatus> =
         MutableStateFlow(ConnectingStatus.NoConnection)
-    val connectionResult = _connectionResult.asStateFlow()
+    override val connectionResult = _connectionResult.asStateFlow()
 
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> =
         MutableStateFlow(SearchingStatus.NONE)
-    val searchingStatusFlow = _searchingStatusFlow.asStateFlow()
+    override val searchingStatusFlow = _searchingStatusFlow.asStateFlow()
 
     private val _receivedBytes = MutableSharedFlow<ByteArray>()
-    val receivedBytes = _receivedBytes.asSharedFlow()
+    override val receivedBytes = _receivedBytes.asSharedFlow()
 
-    fun startAdvertising() {
+    override fun startAdvertising() {
         val advertisingOptions =
             AdvertisingOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()
         mConnectionsClient
@@ -51,7 +52,7 @@ class P2PConnection(application: Application) {
             }
     }
 
-    fun startDiscovery() {
+    override fun startDiscovery() {
         val discoveryOptions =
             DiscoveryOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()
         mConnectionsClient
@@ -64,13 +65,13 @@ class P2PConnection(application: Application) {
             }
     }
 
-    fun stopAdvertising() {
+    override fun stopAdvertising() {
         mConnectionsClient.stopAllEndpoints()
         mConnectionsClient.stopAdvertising()
         _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
-    fun stopDiscovery() {
+    override fun stopDiscovery() {
         mConnectionsClient.stopAllEndpoints()
         mConnectionsClient.stopDiscovery()
         _searchingStatusFlow.update { SearchingStatus.NONE }
@@ -115,7 +116,7 @@ class P2PConnection(application: Application) {
         }
 
 
-    fun send(bytes: ByteArray) {
+    override fun send(bytes: ByteArray) {
         val payload = Payload.fromBytes(bytes)
         mConnectionsClient
             .sendPayload(connectionEndpoint, payload)
@@ -130,7 +131,7 @@ class P2PConnection(application: Application) {
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {}
     }
 
-    fun onReceive(endpointId: String, payload: Payload) {
+    override fun onReceive(endpointId: String, payload: Payload) {
         if (payload.type == Payload.Type.BYTES && endpointId == connectionEndpoint) {
             CoroutineScope(Dispatchers.IO).launch {
                 payload.asBytes()?.let { _receivedBytes.emit(it) }
@@ -138,11 +139,11 @@ class P2PConnection(application: Application) {
         }
     }
 
-    fun acceptConnection() {
+    override fun acceptConnection() {
         mConnectionsClient.acceptConnection(connectionEndpoint, mPayloadCallback)
     }
 
-    fun rejectConnection() {
+    override fun rejectConnection() {
         mConnectionsClient.rejectConnection(connectionEndpoint)
     }
 }

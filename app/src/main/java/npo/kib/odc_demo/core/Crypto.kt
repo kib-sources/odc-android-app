@@ -3,7 +3,6 @@ package npo.kib.odc_demo.core
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
-import npo.kib.odc_demo.decodeHex
 import org.bouncycastle.asn1.ASN1Object
 import org.bouncycastle.asn1.DLSequence
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers

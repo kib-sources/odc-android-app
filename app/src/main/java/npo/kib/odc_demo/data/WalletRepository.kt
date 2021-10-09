@@ -9,6 +9,7 @@ import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.core.loadPublicKey
+import npo.kib.odc_demo.data.api.RetrofitFactory
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.WalletRequest
 import java.security.PrivateKey

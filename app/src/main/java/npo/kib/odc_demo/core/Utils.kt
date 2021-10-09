@@ -1,8 +1,4 @@
-/*
-    Вспомогательные функции
- */
-
-package npo.kib.odc_demo
+package npo.kib.odc_demo.core
 
 import android.widget.Toast
 import androidx.fragment.app.Fragment

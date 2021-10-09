@@ -4,9 +4,10 @@ import android.app.Application
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import npo.kib.odc_demo.core.*
-import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
-import npo.kib.odc_demo.decodeHex
+import npo.kib.odc_demo.core.decodeHex
+import npo.kib.odc_demo.data.api.RetrofitFactory
+import npo.kib.odc_demo.data.db.BlockchainDatabase
 import kotlin.collections.ArrayList
 
 class BankRepository(application: Application) {

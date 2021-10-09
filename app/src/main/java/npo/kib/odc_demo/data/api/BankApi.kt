@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.api
 
 import npo.kib.odc_demo.data.models.*
 import retrofit2.http.GET
