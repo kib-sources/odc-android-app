@@ -1,6 +1,8 @@
 package npo.kib.odc_demo.data
 
 import android.app.Application
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
 import java.util.ArrayList
@@ -20,7 +22,7 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
      * @param amount Amount to send
      */
     suspend fun sendBanknotes(amount: Int) {
-        //Шаг 1.
+        // Шаг 1
         _isSendingFlow.update { true }
         val blockchainArray = getBlockchainsByAmount(amount)
 
@@ -28,9 +30,20 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
             sendingList.add(blockchainFromDB)
         }
 
-        //Отправка суммы и первой банкноты
+        // Отправка суммы и первой банкноты
         p2p.send(serializer.toJson(PayloadContainer(amount = amount)).encodeToByteArray())
         sendBlockchain(sendingList.poll())
+
+        // Ждем выполнения шагов 2-4
+        val bytes = p2p.receivedBytes.take(1).first()
+        val container = serializer.toObject(bytes.decodeToString())
+        if (container.blocks == null) {
+            _requiringStatusFlow.update { RequiringStatus.REJECT }
+            return
+        }
+
+        //Шаг 5
+        onAcceptanceBlocksReceived(container.blocks)
     }
 
     private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<BlockchainFromDB> {
@@ -80,18 +93,11 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
     override suspend fun onBytesReceive(bytes: ByteArray) {
         val container = serializer.toObject(bytes.decodeToString())
 
+        // Случай, когда другой юзер запросил у нас купюры
         if (container.amountRequest != null) {
             onAmountRequest(container.amountRequest)
             return
         }
-
-        //Шаг 5.
-        if (container.blocks != null) {
-            onAcceptanceBlocksReceived(container.blocks)
-            return
-        }
-
-        _requiringStatusFlow.update { RequiringStatus.REJECT }
     }
 
     //Шаг 1
