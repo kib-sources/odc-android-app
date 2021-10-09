@@ -27,22 +27,20 @@ class P2pReceiveUseCase(application: Application): P2pBaseUseCase(application) {
         p2p.send(amountJson.encodeToByteArray())
     }
 
-    override suspend fun onBytesReceive(bytes: ByteArray) {
-        val container = serializer.toObject(bytes.decodeToString())
-
-        //Шаг 0
+    override suspend fun onBytesReceive(container: PayloadContainer) {
+        // Другой юзер хочет перевести нам деньги
         if (container.amount != null) {
             receivingAmount = container.amount
             return
         }
 
-        //Шаги 2-4
+        // Шаги 2-4
         if (container.blockchain != null) {
             acceptance(container.blockchain)
             return
         }
 
-        //Шаг 6b
+        //  Шаг 6b
         if (container.childFull != null) {
             verifyAndSaveNewBlock(container.childFull)
             return

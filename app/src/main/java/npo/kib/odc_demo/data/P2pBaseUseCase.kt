@@ -61,7 +61,7 @@ abstract class P2pBaseUseCase(application: Application) {
         }
     }
 
-    protected abstract suspend fun onBytesReceive(bytes: ByteArray)
+    protected abstract suspend fun onBytesReceive(container: PayloadContainer)
 
     fun acceptConnection() {
         p2p.acceptConnection()
@@ -92,6 +92,7 @@ abstract class P2pBaseUseCase(application: Application) {
     }
 
     private fun CoroutineScope.onConnected() = p2p.receivedBytes
+        .map { serializer.toObject(it.decodeToString()) }
         .onEach { bytes -> onBytesReceive(bytes) }
         .launchIn(this)
 

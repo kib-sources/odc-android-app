@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
-import npo.kib.odc_demo.myLogs
 import java.util.ArrayList
 
 open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application) {
@@ -93,9 +92,7 @@ open class P2pSendUseCase(application: Application) : P2pBaseUseCase(application
         sentBlock = blockchainFromDB.blocks.last()
     }
 
-    override suspend fun onBytesReceive(bytes: ByteArray) {
-        val container = serializer.toObject(bytes.decodeToString())
-
+    override suspend fun onBytesReceive(container: PayloadContainer) {
         // Случай, когда другой юзер запросил у нас купюры
         if (container.amountRequest != null) {
             onAmountRequest(container.amountRequest)
