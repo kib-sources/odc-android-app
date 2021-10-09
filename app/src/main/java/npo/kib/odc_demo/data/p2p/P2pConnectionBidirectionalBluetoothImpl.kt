@@ -1,19 +1,19 @@
 package npo.kib.odc_demo.data.p2p
 
 import android.app.Application
-import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import android.bluetooth.BluetoothAdapter
+import android.bluetooth.BluetoothSocket
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
-import java.net.ServerSocket
-import java.net.Socket
+import java.io.InputStream
+import java.util.*
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class P2pConnectionBidirectionalTcpImpl(application: Application, private val ip: String = "192.168.1.134") :
-    P2pConnectionBidirectional {
+class P2pConnectionBidirectionalBluetoothImpl(application: Application) : P2pConnection {
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> = MutableStateFlow(SearchingStatus.NONE)
@@ -22,57 +22,52 @@ class P2pConnectionBidirectionalTcpImpl(application: Application, private val ip
     override val receivedBytes = _receivedBytes.asSharedFlow()
 
     private val scope = CoroutineScope(Dispatchers.IO)
-    private var _serverSocket: ServerSocket? = null
-    private var _clientSocket: Socket? = null
-
-    override fun startAdvertising() {
-        scope.launch {
-            val serverSocket = ServerSocket(14900)
-            _serverSocket = serverSocket
-            _searchingStatusFlow.update { SearchingStatus.ADVERTISING }
-
-            val client = serverSocket.accept()
-            _clientSocket = client
-            _connectionResult.update { ConnectingStatus.ConnectionResult(ConnectionsStatusCodes.STATUS_OK) }
-            readSocket(client)
-        }
-    }
-
-    override fun stopAdvertising() {
-        _serverSocket?.close()
-        _serverSocket = null
-        _searchingStatusFlow.update { SearchingStatus.NONE }
-    }
+    private val serviceUUID = UUID.fromString("133f71c6-b7b6-437e-8fd1-d2f59cc76066")
+    private val adapter = BluetoothAdapter.getDefaultAdapter()
+    private var connectedSocket: BluetoothSocket? = null
 
     override fun startDiscovery() {
         scope.launch {
-            val socket = Socket(ip, 14900)
-            _clientSocket = socket
-            _connectionResult.update { ConnectingStatus.ConnectionResult(ConnectionsStatusCodes.STATUS_OK) }
-            readSocket(socket)
+            if (!adapter.isEnabled) {
+                return@launch
+            }
+
+            val device = adapter.getRemoteDevice("AA:AA:AA:AA:AA:AA")
+            val bondingResult = runCatching { device.createBond() }
+            if (bondingResult.isFailure || !bondingResult.getOrDefault(false)) {
+                return@launch
+            }
+
+            val socket: BluetoothSocket = device.createRfcommSocketToServiceRecord(serviceUUID)
+            val connectionResult = runCatching { socket.connect() }
+            if (connectionResult.isFailure) {
+                return@launch
+            }
+
+            connectedSocket = socket
+            readInputStream(socket.inputStream)
         }
     }
 
     override fun stopDiscovery() {
-        _clientSocket?.close()
-        _clientSocket = null
+        connectedSocket?.close()
+        connectedSocket = null
         _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
     override fun send(bytes: ByteArray) {
-        _clientSocket?.runCatching {
-            val outputStream = getOutputStream()
+        connectedSocket?.runCatching {
             val msg = (bytes.decodeToString() + "\n").encodeToByteArray()
             outputStream.write(msg)
             outputStream.flush()
         }
     }
 
-    private suspend fun readSocket(socket: Socket) {
-        val reader = socket.getInputStream().bufferedReader()
+    private suspend fun readInputStream(inputStream: InputStream) {
+        val reader = inputStream.bufferedReader()
 
         runCatching {
-            while (socket.isConnected) {
+            while (connectedSocket?.isConnected == true) {
                 val line = reader.readLine()
                 _receivedBytes.emit(line.encodeToByteArray())
             }
