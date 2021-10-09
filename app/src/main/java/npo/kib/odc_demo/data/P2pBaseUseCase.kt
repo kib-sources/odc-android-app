@@ -12,14 +12,14 @@ import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
 import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
-import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectionalTcpImpl
+import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 import npo.kib.odc_demo.myLogs
 import java.util.*
 
 @Suppress("LeakingThis")
 abstract class P2pBaseUseCase(context: Context) {
 
-    val p2p: P2pConnectionBidirectional = P2pConnectionBidirectionalTcpImpl(context, "192.168.1.117")
+    val p2p: P2pConnectionBidirectional = P2pConnectionTcpImpl(context, "192.168.1.117")
 
     // public states
 

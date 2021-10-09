@@ -12,8 +12,8 @@ import java.net.ServerSocket
 import java.net.Socket
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class P2pConnectionBidirectionalTcpImpl(context: Context, private val ip: String = "192.168.1.134") :
-    P2pConnectionBidirectional {
+class P2pConnectionTcpImpl(context: Context, private val ip: String = "192.168.1.134") : P2pConnectionBidirectional {
+
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> = MutableStateFlow(SearchingStatus.NONE)

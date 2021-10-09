@@ -3,6 +3,7 @@ package npo.kib.odc_demo.data
 import android.content.Context
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.myLogs
 
 class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
 
@@ -86,6 +87,7 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
 
         if (receivingAmount <= 0) {
             _requiringStatusFlow.update { RequiringStatus.COMPLETED }
+            myLogs("Дело сделано!")
         }
     }
 }

@@ -14,7 +14,7 @@ import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
 
 // Имплементация расширенного интерфейс p2p соеденений на базе Google Nearby Connections API
-class P2PConnectionBidirectionalNearbyImpl(context: Context) : P2pConnectionBidirectional {
+class P2PConnectionNearbyImpl(context: Context) : P2pConnectionBidirectional {
     private val mConnectionsClient = Nearby.getConnectionsClient(context)
     private val serviceId = context.resources.getString(R.string.app_package)
     private lateinit var connectionEndpoint: String

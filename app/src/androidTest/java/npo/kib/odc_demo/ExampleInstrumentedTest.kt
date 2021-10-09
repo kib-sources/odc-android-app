@@ -3,14 +3,12 @@ package npo.kib.odc_demo
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.flow.takeWhile
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import npo.kib.odc_demo.data.P2pReceiveUseCase
-import npo.kib.odc_demo.data.models.ConnectingStatus
-import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectionalTcpImpl
+import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 import org.junit.Test
 import org.junit.runner.RunWith
 
@@ -21,7 +19,7 @@ class ExampleInstrumentedTest {
 
     @Test
     fun serverTest(): Unit = runBlocking {
-        val connection = P2pConnectionBidirectionalTcpImpl(appContext)
+        val connection = P2pConnectionTcpImpl(appContext)
         connection.startAdvertising()
 
         connection.receivedBytes.collect {
@@ -32,7 +30,7 @@ class ExampleInstrumentedTest {
 
     @Test
     fun clientTest(): Unit = runBlocking {
-        val connection = P2pConnectionBidirectionalTcpImpl(appContext, "192.168.1.117")
+        val connection = P2pConnectionTcpImpl(appContext, "192.168.1.117")
         connection.startDiscovery()
 
         connection.receivedBytes.collect {
@@ -45,6 +43,11 @@ class ExampleInstrumentedTest {
     fun p2pUseCaseTest(): Unit = runBlocking {
         val receiveUseCase = P2pReceiveUseCase(appContext)
         receiveUseCase.startDiscovery()
-        receiveUseCase.p2p.receivedBytes.collect { myLogs(it.decodeToString()) }
+
+        val res = receiveUseCase.connectionResult.take(2).last()
+        myLogs(res)
+
+//        receiveUseCase.p2p.receivedBytes.collect { myLogs(it.decodeToString()) }
+        receiveUseCase.requiringStatusFlow.collect { myLogs("status $it") }
     }
 }
