@@ -24,8 +24,7 @@ class P2PConnectionBidirectionalNearbyImpl(application: Application) : P2pConnec
     private val prefs = PreferenceManager.getDefaultSharedPreferences(application)
     private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
-    private val _connectionResult: MutableStateFlow<ConnectingStatus> =
-        MutableStateFlow(ConnectingStatus.NoConnection)
+    private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
 
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> =
@@ -105,7 +104,7 @@ class P2PConnectionBidirectionalNearbyImpl(application: Application) : P2pConnec
             }
 
             override fun onConnectionResult(endpointId: String, result: ConnectionResolution) {
-                _connectionResult.update { ConnectingStatus.ConnectionResult(result) }
+                _connectionResult.update { ConnectingStatus.ConnectionResult(result.status.statusCode) }
             }
 
             override fun onDisconnected(endpointId: String) {
@@ -131,7 +130,7 @@ class P2PConnectionBidirectionalNearbyImpl(application: Application) : P2pConnec
         override fun onPayloadTransferUpdate(endpointId: String, update: PayloadTransferUpdate) {}
     }
 
-    override fun onReceive(endpointId: String, payload: Payload) {
+    private fun onReceive(endpointId: String, payload: Payload) {
         if (payload.type == Payload.Type.BYTES && endpointId == connectionEndpoint) {
             CoroutineScope(Dispatchers.IO).launch {
                 payload.asBytes()?.let { _receivedBytes.emit(it) }

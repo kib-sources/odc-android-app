@@ -8,7 +8,7 @@ sealed class ConnectingStatus {
 
     data class ConnectionInitiated(val info: ConnectionInfo) : ConnectingStatus()
 
-    data class ConnectionResult(val result: ConnectionResolution) : ConnectingStatus()
+    data class ConnectionResult(val statusCode: Int) : ConnectingStatus()
 
     object Disconnected : ConnectingStatus()
 }

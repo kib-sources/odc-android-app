@@ -143,7 +143,7 @@ class SendFragment : Fragment() {
                             showConnectionDialog(it.info)
                         }
                         is ConnectingStatus.ConnectionResult ->
-                            when (it.result.status.statusCode) {
+                            when (it.statusCode) {
                                 ConnectionsStatusCodes.STATUS_OK -> {
                                     binding.sendingStatusView.text =
                                         getString(R.string.connecting_ok)

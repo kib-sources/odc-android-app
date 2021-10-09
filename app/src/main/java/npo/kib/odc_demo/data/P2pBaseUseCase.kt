@@ -79,7 +79,7 @@ abstract class P2pBaseUseCase(application: Application) {
     private fun CoroutineScope.onConnectionStateChanged(connectingStatus: ConnectingStatus) {
         when (connectingStatus) {
             is ConnectingStatus.ConnectionResult -> {
-                if (connectingStatus.result.status.statusCode != ConnectionsStatusCodes.STATUS_OK)
+                if (connectingStatus.statusCode != ConnectionsStatusCodes.STATUS_OK)
                     return
                 job = onConnected()
             }
