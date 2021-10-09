@@ -19,7 +19,7 @@ class BankRepository(application: Application) {
 
     private val bankApi = RetrofitFactory.getBankApi()
 
-    suspend fun getSum() = blockchainDao.getSum()
+    suspend fun getSum() = blockchainDao.getStoredSum()
 
     /**
      * Receiving banknotes from the bank
@@ -27,17 +27,20 @@ class BankRepository(application: Application) {
      */
     suspend fun issueBanknotes(amount: Int): ServerConnectionStatus {
         val wallet = try {
-            walletRepository.getWallet()
+            walletRepository.getOrRegisterWallet()
         } catch (e: Exception) {
             return ServerConnectionStatus.WALLET_ERROR
         }
+
         val request = IssueRequest(amount, wallet.wid)
         val issueResponse = try {
             bankApi.issueBanknotes(request)
         } catch (e: Exception) {
             return ServerConnectionStatus.ERROR
         }
+
         val rawBanknotes = issueResponse.issuedBanknotes
+            ?: return ServerConnectionStatus.WALLET_ERROR
         val banknotes = parseBanknotes(rawBanknotes)
 
         try {

@@ -3,10 +3,13 @@ package npo.kib.odc_demo.data
 import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.preference.PreferenceManager
+import npo.kib.odc_demo.R
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.core.loadPublicKey
+import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.WalletRequest
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -17,25 +20,35 @@ class WalletRepository(application: Application) {
     private val sokSignKey = "SOK_signed"
     private val widKey = "WID"
 
-    private val prefs = application.getSharedPreferences("openKeys", AppCompatActivity.MODE_PRIVATE)
-    private val editor = prefs.edit()
+    private val keysPrefs = application.getSharedPreferences("openKeys", AppCompatActivity.MODE_PRIVATE)
 
+    private val usernameKey = application.resources.getString(R.string.username_key)
+    private val defaultUsername = application.resources.getString(R.string.default_username)
+    private val userPrefs = PreferenceManager.getDefaultSharedPreferences(application)
+    val userName = userPrefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
-    suspend fun getWallet(): Wallet {
+    private val blockchainDao = BlockchainDatabase.getInstance(application).blockchainDao()
+
+    private var _wallet: Wallet? = null
+
+    suspend fun getOrRegisterWallet(): Wallet {
+        _wallet?.let { return it }
+
         //Берём ключи из keyStore или генерируем новые
         var keys: Pair<PublicKey, PrivateKey>
         try {
             keys = Crypto.getSimKeys()
         } catch (e: NullPointerException) {
             keys = Crypto.initSKP()
-            editor.clear().apply()
+            keysPrefs.edit().clear().apply()
         }
+
         val sok = keys.first
         val spk = keys.second
-        var sokSignature = prefs.getString(sokSignKey, null)
-        var wid = prefs.getString(widKey, null)
-        var bin = prefs.getString(binKey, null)
-        var bokString = prefs.getString(bokKey, null)
+        var sokSignature = keysPrefs.getString(sokSignKey, null)
+        var wid = keysPrefs.getString(widKey, null)
+        var bin = keysPrefs.getString(binKey, null)
+        var bokString = keysPrefs.getString(bokKey, null)
 
         if (sokSignature == null || wid == null || bokString == null || bin == null) {
             Log.d("OpenDigitalCash", "getting sok_sign, wid and bok from server")
@@ -48,11 +61,28 @@ class WalletRepository(application: Application) {
             sokSignature = walletResp.sokSignature
             verifySokSign(sok, sokSignature, bokString)
             wid = walletResp.wid
-            editor.putString(binKey, bin).putString(bokKey, bokString).putString(sokSignKey, sokSignature)
-                .putString(widKey, wid).apply()
+
+            keysPrefs.edit().putString(binKey, bin)
+                .putString(bokKey, bokString)
+                .putString(sokSignKey, sokSignature)
+                .putString(widKey, wid)
+                .apply()
         }
-        return Wallet(spk, sok, sokSignature, bokString.loadPublicKey(), bin.toInt(), wid)
+
+        val wallet = Wallet(spk, sok, sokSignature, bokString.loadPublicKey(), bin.toInt(), wid)
+        _wallet = wallet
+        return wallet
     }
+
+    fun isWalletRegistered(): Boolean {
+        val sokSignature = keysPrefs.getString(sokSignKey, null)
+        val wid = keysPrefs.getString(widKey, null)
+        val bin = keysPrefs.getString(binKey, null)
+        val bokString = keysPrefs.getString(bokKey, null)
+        return !(sokSignature == null || wid == null || bokString == null || bin == null)
+    }
+
+    suspend fun getStoredInWalletSum() = blockchainDao.getStoredSum()
 
     private fun verifySokSign(sok: PublicKey, sokSignature: String, bokString: String) {
         val sokHash =
@@ -60,13 +90,5 @@ class WalletRepository(application: Application) {
         if (!Crypto.verifySignature(sokHash, sokSignature, bokString.loadPublicKey())) {
             throw Exception("Подпись SOK недействительна")
         }
-    }
-
-    fun isWalletRegistered(): Boolean {
-        val sokSignature = prefs.getString(sokSignKey, null)
-        val wid = prefs.getString(widKey, null)
-        val bin = prefs.getString(binKey, null)
-        val bokString = prefs.getString(bokKey, null)
-        return !(sokSignature == null || wid == null || bokString == null || bin == null)
     }
 }
