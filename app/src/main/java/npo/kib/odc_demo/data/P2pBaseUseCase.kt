@@ -13,11 +13,12 @@ import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
 import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
 import npo.kib.odc_demo.data.p2p.P2PConnectionBidirectionalNearbyImpl
+import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectionalTcpImpl
 import java.util.*
 
 abstract class P2pBaseUseCase(application: Application) {
 
-    protected val p2p: P2pConnectionBidirectional = P2PConnectionBidirectionalNearbyImpl(application)
+    protected val p2p: P2pConnectionBidirectional = P2pConnectionBidirectionalTcpImpl(application)
 
     // public states
 

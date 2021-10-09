@@ -1,5 +1,6 @@
 package npo.kib.odc_demo.data.p2p
 
+import android.app.Application
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,7 +12,8 @@ import java.net.ServerSocket
 import java.net.Socket
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class P2pConnectionBidirectionalTcpImpl(private val ip: String = "192.168.1.19") : P2pConnectionBidirectional {
+class P2pConnectionBidirectionalTcpImpl(application: Application, private val ip: String = "192.168.1.134") :
+    P2pConnectionBidirectional {
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> = MutableStateFlow(SearchingStatus.NONE)
@@ -52,13 +54,16 @@ class P2pConnectionBidirectionalTcpImpl(private val ip: String = "192.168.1.19")
     }
 
     override fun stopDiscovery() {
-        TODO("Not yet implemented")
+        _clientSocket?.close()
+        _clientSocket = null
+        _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
     override fun send(bytes: ByteArray) {
         _clientSocket?.runCatching {
             val outputStream = getOutputStream()
-            outputStream.write(bytes)
+            val msg = (bytes.decodeToString() + "\n").encodeToByteArray()
+            outputStream.write(msg)
             outputStream.flush()
         }
     }
@@ -66,20 +71,11 @@ class P2pConnectionBidirectionalTcpImpl(private val ip: String = "192.168.1.19")
     private suspend fun readSocket(socket: Socket) {
         val inputStream = socket.getInputStream().bufferedReader()
 
-        while (socket.isConnected) {
-            val data = CharArray(1024 * 4)
-            val count = inputStream.read(data, 0, data.size)
-            if (count == -1) {
-                socket.close()
-                _clientSocket = null
-                _connectionResult.update { ConnectingStatus.Disconnected }
-                break
+        runCatching {
+            while (socket.isConnected) {
+                val line = inputStream.readLine()
+                _receivedBytes.emit(line.encodeToByteArray())
             }
-
-            if (count == 0) continue
-
-            val msg = String(data, 0, count)
-            _receivedBytes.emit(msg.encodeToByteArray())
         }
     }
 
