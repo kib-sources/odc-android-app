@@ -8,7 +8,7 @@ import npo.kib.odc_demo.core.models.Block
 data class PayloadContainer(
     val amountRequest: AmountRequest? = null,
     val amount: Int? = null,
-    val blockchain: BlockchainFromDB? = null,
+    val banknoteWithBlockchain: BanknoteWithBlockchain? = null,
     val blocks: AcceptanceBlocks? = null,
     val childFull: Block? = null
 )

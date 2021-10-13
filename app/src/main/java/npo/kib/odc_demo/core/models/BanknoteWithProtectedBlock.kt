@@ -8,12 +8,9 @@ import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.data.db.BlockchainConverter
 
 @Serializable
-@Entity
+@Entity(tableName = "banknotes", primaryKeys = ["bnid"])
 @TypeConverters(BlockchainConverter::class)
-data class Blockchain(
-    @PrimaryKey
-    val bnidKey: String,
-
+data class BanknoteWithProtectedBlock(
     @Embedded
     val banknote: Banknote,
 

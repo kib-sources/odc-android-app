@@ -21,8 +21,8 @@ import java.util.*
 @Entity(
     tableName = "block",
     foreignKeys = [ForeignKey(
-        entity = Blockchain::class,
-        parentColumns = ["bnidKey"],
+        entity = BanknoteWithProtectedBlock::class,
+        parentColumns = ["bnid"],
         childColumns = ["block_bnid"],
         onDelete = CASCADE
     )],

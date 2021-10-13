@@ -8,7 +8,7 @@ import npo.kib.odc_demo.core.decodeHex
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.core.models.Banknote
 import npo.kib.odc_demo.core.models.Block
-import npo.kib.odc_demo.core.models.Blockchain
+import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.core.models.ProtectedBlock
 import npo.kib.odc_demo.data.api.RetrofitFactory
 import npo.kib.odc_demo.data.db.BlockchainDatabase
@@ -17,7 +17,7 @@ import npo.kib.odc_demo.data.models.*
 class BankRepository(context: Context) {
 
     private val db = BlockchainDatabase.getInstance(context)
-    private val blockchainDao = db.blockchainDao()
+    private val blockchainDao = db.banknotesDao()
     private val blockDao = db.blockDao()
 
     private val walletRepository = WalletRepository(context)
@@ -54,8 +54,7 @@ class BankRepository(context: Context) {
                     wallet.banknoteVerification(banknote)
                     val (block, protectedBlock) = wallet.firstBlock(banknote)
                     async {
-                        Blockchain(
-                            bnidKey = banknote.bnid,
+                        BanknoteWithProtectedBlock(
                             banknote = banknote,
                             protectedBlock = protectedBlock
                         ) to receiveBanknote(wallet, block, protectedBlock)

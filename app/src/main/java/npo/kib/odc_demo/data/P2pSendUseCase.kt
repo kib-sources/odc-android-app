@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.core.models.AcceptanceBlocks
 import npo.kib.odc_demo.core.models.Block
-import npo.kib.odc_demo.data.models.BlockchainFromDB
+import npo.kib.odc_demo.data.models.BanknoteWithBlockchain
 import npo.kib.odc_demo.data.models.*
 import java.util.*
 
@@ -51,20 +51,20 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
         }
     }
 
-    private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<BlockchainFromDB> {
+    private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<BanknoteWithBlockchain> {
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
         val banknoteAmounts = blockchainDao.getBnidsAndAmounts().toCollection(ArrayList())
         banknoteAmounts.sortByDescending { it.amount }
 
-        val blockchainsList = ArrayList<BlockchainFromDB>()
+        val blockchainsList = ArrayList<BanknoteWithBlockchain>()
         for (banknoteAmount in banknoteAmounts) {
             if (amount < banknoteAmount.amount) {
                 continue
             }
 
             blockchainsList.add(
-                BlockchainFromDB(
+                BanknoteWithBlockchain(
                     blockchainDao.getBlockchainByBnid(banknoteAmount.bnid),
                     blockDao.getBlocksByBnid(banknoteAmount.bnid)
                 )
@@ -77,22 +77,22 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
         return blockchainsList
     }
 
-    private fun sendBlockchain(blockchainFromDB: BlockchainFromDB?) {
-        if (blockchainFromDB == null) {
+    private fun sendBlockchain(banknoteWithBlockchain: BanknoteWithBlockchain?) {
+        if (banknoteWithBlockchain == null) {
             _isSendingFlow.update { false }
             return
         }
 
         //Создание нового ProtectedBlock
-        val newProtectedBlock = wallet.initProtectedBlock(blockchainFromDB.blockchain.protectedBlock)
-        blockchainFromDB.blockchain.protectedBlock = newProtectedBlock
+        val newProtectedBlock = wallet.initProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
+        banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock = newProtectedBlock
 
-        val payloadContainer = PayloadContainer(blockchain = blockchainFromDB)
+        val payloadContainer = PayloadContainer(banknoteWithBlockchain = banknoteWithBlockchain)
         val blockchainJson = serializer.toJson(payloadContainer)
         p2p.send(blockchainJson.encodeToByteArray())
 
         //Запоминаем отправленный parentBlock для последующей верификации
-        sentBlock = blockchainFromDB.blocks.last()
+        sentBlock = banknoteWithBlockchain.blocks.last()
     }
 
     override suspend fun onBytesReceive(container: PayloadContainer) {
@@ -121,7 +121,7 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
             acceptanceBlocks.childBlock,
             acceptanceBlocks.protectedBlock
         )
-        blockchainDao.delete(acceptanceBlocks.childBlock.bnid)
+        blockchainDao.deleteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
         sendBlockchain(sendingList.poll())
     }

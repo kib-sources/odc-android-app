@@ -3,8 +3,8 @@ package npo.kib.odc_demo.data
 import android.content.Context
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.core.models.Block
-import npo.kib.odc_demo.core.models.Blockchain
-import npo.kib.odc_demo.data.models.BlockchainFromDB
+import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.data.models.BanknoteWithBlockchain
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.myLogs
 
@@ -39,8 +39,8 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
         }
 
         // Шаги 2-4
-        if (container.blockchain != null) {
-            acceptance(container.blockchain)
+        if (container.banknoteWithBlockchain != null) {
+            acceptance(container.banknoteWithBlockchain)
             return
         }
 
@@ -54,11 +54,11 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
     }
 
     //Шаги 2-4
-    private fun acceptance(blockchainFromDB: BlockchainFromDB) {
+    private fun acceptance(banknoteWithBlockchain: BanknoteWithBlockchain) {
         _requiringStatusFlow.update { RequiringStatus.ACCEPTANCE }
 
-        val blocks = blockchainFromDB.blocks
-        val protectedBlockPart = blockchainFromDB.blockchain.protectedBlock
+        val blocks = banknoteWithBlockchain.blocks
+        val protectedBlockPart = banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock
 
         //Шаг 4
         val childBlocksPair = wallet.acceptanceInit(blocks, protectedBlockPart)
@@ -67,9 +67,8 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
         p2p.send(blockchainJson.encodeToByteArray())
 
         //Шаг 3: Запоминаем блокчейн для добавления в бд в случае успешной верификации
-        blockchainToDB = Blockchain(
-            bnidKey = blockchainFromDB.blockchain.bnidKey,
-            banknote = blockchainFromDB.blockchain.banknote,
+        banknoteWithProtectedBlockToDB = BanknoteWithProtectedBlock(
+            banknote = banknoteWithBlockchain.banknoteWithProtectedBlock.banknote,
             protectedBlock = childBlocksPair.protectedBlock
         )
         blocksToDB = blocks
@@ -81,12 +80,12 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
             throw Exception("childBlock некорректно подписан")
         }
 
-        blockchainDao.insertAll(blockchainToDB)
+        blockchainDao.insertAll(banknoteWithProtectedBlockToDB)
         for (block in blocksToDB) {
             blockDao.insertAll(block)
         }
         blockDao.insertAll(childBlockFull)
-        receivingAmount -= blockchainToDB.banknote.amount
+        receivingAmount -= banknoteWithProtectedBlockToDB.banknote.amount
 
         if (receivingAmount <= 0) {
             _requiringStatusFlow.update { RequiringStatus.COMPLETED }

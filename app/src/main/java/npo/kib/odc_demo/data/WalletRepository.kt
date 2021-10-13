@@ -28,7 +28,7 @@ class WalletRepository(context: Context) {
     private val userPrefs = PreferenceManager.getDefaultSharedPreferences(context)
     val userName = userPrefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
-    private val blockchainDao = BlockchainDatabase.getInstance(context).blockchainDao()
+    private val blockchainDao = BlockchainDatabase.getInstance(context).banknotesDao()
 
     private var _wallet: Wallet? = null
 

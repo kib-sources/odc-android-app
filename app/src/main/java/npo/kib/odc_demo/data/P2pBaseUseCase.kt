@@ -9,8 +9,8 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.core.models.Block
-import npo.kib.odc_demo.core.models.Blockchain
-import npo.kib.odc_demo.data.models.BlockchainFromDB
+import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.data.models.BanknoteWithBlockchain
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
@@ -44,16 +44,16 @@ abstract class P2pBaseUseCase(context: Context) {
     private var job = Job() as Job
 
     private val db = BlockchainDatabase.getInstance(context)
-    protected val blockchainDao = db.blockchainDao()
+    protected val blockchainDao = db.banknotesDao()
     protected val blockDao = db.blockDao()
 
     protected val walletRepository = WalletRepository(context)
     protected lateinit var wallet: Wallet
 
-    protected val sendingList = LinkedList<BlockchainFromDB>()
+    protected val sendingList = LinkedList<BanknoteWithBlockchain>()
     protected lateinit var sentBlock: Block
 
-    protected lateinit var blockchainToDB: Blockchain
+    protected lateinit var banknoteWithProtectedBlockToDB: BanknoteWithProtectedBlock
     protected lateinit var blocksToDB: List<Block>
     protected var receivingAmount: Int = 0
 
