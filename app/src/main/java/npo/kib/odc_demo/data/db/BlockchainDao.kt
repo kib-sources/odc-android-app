@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
 import npo.kib.odc_demo.data.models.Amounts
-import npo.kib.odc_demo.data.models.Blockchain
+import npo.kib.odc_demo.core.models.Blockchain
 
 @Dao
 interface BlockchainDao {

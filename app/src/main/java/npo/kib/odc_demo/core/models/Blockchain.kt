@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.data.models
+package npo.kib.odc_demo.core.models
 
 import androidx.room.Embedded
 import androidx.room.Entity

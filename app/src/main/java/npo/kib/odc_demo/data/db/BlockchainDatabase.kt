@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
-import npo.kib.odc_demo.data.models.Block
-import npo.kib.odc_demo.data.models.Blockchain
+import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.core.models.Blockchain
 
 @Database(entities = [Blockchain::class, Block::class], version = 1)
 abstract class BlockchainDatabase : RoomDatabase() {

@@ -8,6 +8,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.core.Wallet
+import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.core.models.Blockchain
+import npo.kib.odc_demo.data.models.BlockchainFromDB
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer

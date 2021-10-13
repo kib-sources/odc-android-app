@@ -10,10 +10,10 @@ package npo.kib.odc_demo.core
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
-import npo.kib.odc_demo.data.models.Banknote
-import npo.kib.odc_demo.data.models.Block
-import npo.kib.odc_demo.data.models.AcceptanceBlocks
-import npo.kib.odc_demo.data.models.ProtectedBlock
+import npo.kib.odc_demo.core.models.Banknote
+import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.core.models.AcceptanceBlocks
+import npo.kib.odc_demo.core.models.ProtectedBlock
 
 class Wallet(
     private val spk: PrivateKey,
