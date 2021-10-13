@@ -4,27 +4,29 @@ import android.content.Context
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import npo.kib.odc_demo.core.Wallet
-import npo.kib.odc_demo.core.decodeHex
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.core.models.Banknote
-import npo.kib.odc_demo.core.models.Block
 import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.core.models.Block
 import npo.kib.odc_demo.core.models.ProtectedBlock
 import npo.kib.odc_demo.data.api.RetrofitFactory
 import npo.kib.odc_demo.data.db.BlockchainDatabase
-import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.data.models.BanknoteRaw
+import npo.kib.odc_demo.data.models.IssueRequest
+import npo.kib.odc_demo.data.models.ReceiveRequest
+import npo.kib.odc_demo.data.models.ServerConnectionStatus
 
 class BankRepository(context: Context) {
 
     private val db = BlockchainDatabase.getInstance(context)
-    private val blockchainDao = db.banknotesDao()
+    private val banknotesDao = db.banknotesDao()
     private val blockDao = db.blockDao()
 
     private val walletRepository = WalletRepository(context)
 
     private val bankApi = RetrofitFactory.getBankApi()
 
-    suspend fun getSum() = blockchainDao.getStoredSum()
+    suspend fun getSum() = banknotesDao.getStoredSum()
 
     /**
      * Receiving banknotes from the bank
@@ -61,8 +63,8 @@ class BankRepository(context: Context) {
                     }
                 }.forEach {
                     val registered = it.await()
-                    blockchainDao.insertAll(registered.first)
-                    blockDao.insertAll(registered.second)
+                    banknotesDao.insert(registered.first)
+                    blockDao.insert(registered.second)
                 }
             }
         } catch (e: Exception) {
@@ -93,28 +95,24 @@ class BankRepository(context: Context) {
             otok = block.otok,
             time = block.time,
             magic = response.magic,
-            transactionHashValue = response.transactionHash.decodeHex(),
+            transactionHash = response.transactionHash,
             transactionHashSignature = response.transactionHashSigned
         )
         wallet.firstBlockVerification(fullBlock)
         return fullBlock
     }
 
-    private fun parseBanknotes(raw: List<BanknoteRaw>): List<Banknote> {
-        val banknotes = ArrayList<Banknote>()
-        var banknote: Banknote
-        for (r in raw) {
-            banknote = Banknote(
-                bin = r.bin.toInt(),
-                amount = r.amount,
-                currencyCode = r.code,
-                bnid = r.bnid,
-                signature = r.signature,
-                time = r.time
+    private fun parseBanknotes(banknotesRaw: List<BanknoteRaw>): List<Banknote> {
+        return banknotesRaw.map {
+            Banknote(
+                bin = it.bin.toInt(),
+                amount = it.amount,
+                code = it.code,
+                bnid = it.bnid,
+                signature = it.signature,
+                time = it.time
             )
-            banknotes.add(banknote)
         }
-        return banknotes
     }
 
     fun isWalletRegistered() = walletRepository.isWalletRegistered()

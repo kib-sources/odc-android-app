@@ -46,7 +46,7 @@ class Wallet(
             otok = otok,
             time = banknote.time,
             magic = null,
-            transactionHashValue = null,
+            transactionHash = null,
             transactionHashSignature = null,
         )
 
@@ -135,7 +135,7 @@ class Wallet(
             otok = otok,
             time = protectedBlock.time,
             magic = null,
-            transactionHashValue = null,
+            transactionHash = null,
             transactionHashSignature = null,
         )
 
@@ -192,7 +192,7 @@ class Wallet(
             otok = childBlock.otok,
             time = childBlock.time,
             magic = magic,
-            transactionHashValue = hashValue,
+            transactionHash = hashValue.decodeToString(),
             transactionHashSignature = signature,
         )
     }

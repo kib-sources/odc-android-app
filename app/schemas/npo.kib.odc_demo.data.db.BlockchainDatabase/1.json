@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "63892d1ba95cc1ae331d9198222a37d4",
+    "identityHash": "bf01beaa00cb2a5a7ce96eccf6213337",
     "entities": [
       {
         "tableName": "banknotes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`bin` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `currencyCode` INTEGER NOT NULL, `bnid` TEXT NOT NULL, `signature` TEXT NOT NULL, `time` INTEGER NOT NULL, `parentSok` TEXT, `parentSokSignature` TEXT, `parentOtokSignature` TEXT, `refUuid` TEXT, `sok` TEXT, `sokSignature` TEXT, `otokSignature` TEXT NOT NULL, `transactionSignature` TEXT NOT NULL, `protected_time` INTEGER NOT NULL, PRIMARY KEY(`bnid`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`bin` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `code` INTEGER NOT NULL, `bnid` TEXT NOT NULL, `signature` TEXT NOT NULL, `time` INTEGER NOT NULL, `parentSok` TEXT, `parentSokSignature` TEXT, `parentOtokSignature` TEXT, `refUuid` TEXT, `sok` TEXT, `sokSignature` TEXT, `otokSignature` TEXT NOT NULL, `transactionSignature` TEXT NOT NULL, `protected_time` INTEGER NOT NULL, PRIMARY KEY(`bnid`))",
         "fields": [
           {
             "fieldPath": "banknote.bin",
@@ -21,8 +21,8 @@
             "notNull": true
           },
           {
-            "fieldPath": "banknote.currencyCode",
-            "columnName": "currencyCode",
+            "fieldPath": "banknote.code",
+            "columnName": "code",
             "affinity": "INTEGER",
             "notNull": true
           },
@@ -110,7 +110,7 @@
       },
       {
         "tableName": "block",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `parentUuid` TEXT, `block_bnid` TEXT NOT NULL, `otok` TEXT NOT NULL, `time` INTEGER NOT NULL, `magic` TEXT, `transactionHashValue` BLOB, `transactionHashSignature` TEXT, PRIMARY KEY(`uuid`), FOREIGN KEY(`block_bnid`) REFERENCES `banknotes`(`bnid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `parentUuid` TEXT, `block_bnid` TEXT NOT NULL, `otok` TEXT NOT NULL, `time` INTEGER NOT NULL, `magic` TEXT, `transactionHash` TEXT, `transactionHashSignature` TEXT, PRIMARY KEY(`uuid`), FOREIGN KEY(`block_bnid`) REFERENCES `banknotes`(`bnid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "uuid",
@@ -149,9 +149,9 @@
             "notNull": false
           },
           {
-            "fieldPath": "transactionHashValue",
-            "columnName": "transactionHashValue",
-            "affinity": "BLOB",
+            "fieldPath": "transactionHash",
+            "columnName": "transactionHash",
+            "affinity": "TEXT",
             "notNull": false
           },
           {
@@ -195,7 +195,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '63892d1ba95cc1ae331d9198222a37d4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'bf01beaa00cb2a5a7ce96eccf6213337')"
     ]
   }
 }

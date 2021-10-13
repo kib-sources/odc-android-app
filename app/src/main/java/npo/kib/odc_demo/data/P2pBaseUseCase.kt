@@ -43,9 +43,8 @@ abstract class P2pBaseUseCase(context: Context) {
     protected val serializer = ObjectSerializer()
     private var job = Job() as Job
 
-    private val db = BlockchainDatabase.getInstance(context)
-    protected val blockchainDao = db.banknotesDao()
-    protected val blockDao = db.blockDao()
+    protected val banknotesDao = BlockchainDatabase.getInstance(context).banknotesDao()
+    protected val blockDao = BlockchainDatabase.getInstance(context).blockDao()
 
     protected val walletRepository = WalletRepository(context)
     protected lateinit var wallet: Wallet
@@ -53,7 +52,7 @@ abstract class P2pBaseUseCase(context: Context) {
     protected val sendingList = LinkedList<BanknoteWithBlockchain>()
     protected lateinit var sentBlock: Block
 
-    protected lateinit var banknoteWithProtectedBlockToDB: BanknoteWithProtectedBlock
+    protected lateinit var banknoteToDB: BanknoteWithProtectedBlock
     protected lateinit var blocksToDB: List<Block>
     protected var receivingAmount: Int = 0
 

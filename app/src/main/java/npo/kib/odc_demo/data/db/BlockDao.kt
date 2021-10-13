@@ -8,7 +8,7 @@ import npo.kib.odc_demo.core.models.Block
 @Dao
 interface BlockDao {
     @Insert
-    fun insertAll(block: Block)
+    fun insert(block: Block)
 
     @Query("SELECT * FROM block WHERE block_bnid = :requiredBnid")
     suspend fun getBlocksByBnid(requiredBnid: String): List<Block>

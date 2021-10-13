@@ -50,7 +50,7 @@ data class Block(
 
     val time: Int,
     val magic: String?,
-    val transactionHashValue: ByteArray?,
+    val transactionHash: String?,
     val transactionHashSignature: String?,
 ) {
     fun makeBlockHashValue(): ByteArray {
@@ -70,7 +70,7 @@ data class Block(
         if (magic == null) {
             throw Exception("Блок не до конца определён. Не задан magic")
         }
-        if (transactionHashValue == null) {
+        if (transactionHash == null) {
             throw Exception("Блок не до конца определён. Не задан hashValue")
         }
         if (transactionHashSignature == null) {
@@ -78,10 +78,10 @@ data class Block(
         }
 
         val hashValueCheck = makeBlockHashValue()
-        if (!checkHashes(hashValueCheck, transactionHashValue)) {
+        if (!checkHashes(hashValueCheck, transactionHash.encodeToByteArray())) {
             throw Exception("Некорректно подсчитан hashValue")
         }
-        return Crypto.verifySignature(transactionHashValue, transactionHashSignature, publicKey)
+        return Crypto.verifySignature(transactionHash.encodeToByteArray(), transactionHashSignature, publicKey)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -96,10 +96,10 @@ data class Block(
         if (otok != other.otok) return false
         if (time != other.time) return false
         if (magic != other.magic) return false
-        if (transactionHashValue != null) {
-            if (other.transactionHashValue == null) return false
-            if (!transactionHashValue.contentEquals(other.transactionHashValue)) return false
-        } else if (other.transactionHashValue != null) return false
+        if (transactionHash != null) {
+            if (other.transactionHash == null) return false
+            if (!transactionHash.contentEquals(other.transactionHash)) return false
+        } else if (other.transactionHash != null) return false
         if (transactionHashSignature != other.transactionHashSignature) return false
 
         return true
@@ -112,7 +112,7 @@ data class Block(
         result = 31 * result + otok.hashCode()
         result = 31 * result + time
         result = 31 * result + (magic?.hashCode() ?: 0)
-        result = 31 * result + (transactionHashValue?.contentHashCode() ?: 0)
+        result = 31 * result + (transactionHash?.encodeToByteArray()?.contentHashCode() ?: 0)
         result = 31 * result + (transactionHashSignature?.hashCode() ?: 0)
         return result
     }

@@ -27,7 +27,7 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
     suspend fun sendBanknotes(amount: Int) {
         // Шаг 1
         _isSendingFlow.update { true }
-        val blockchainArray = getBlockchainsByAmount(amount)
+        val blockchainArray = getBanknotesByAmount(amount)
 
         for (blockchainFromDB in blockchainArray) {
             sendingList.add(blockchainFromDB)
@@ -35,7 +35,7 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
 
         // Отправка суммы и первой банкноты
         p2p.send(serializer.toJson(PayloadContainer(amount = amount)).encodeToByteArray())
-        sendBlockchain(sendingList.poll())
+        sendBanknoteWithBlockchain(sendingList.poll())
 
         for (i in 0 until blockchainArray.size) {
             // Ждем выполнения шагов 2-4
@@ -51,10 +51,10 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
         }
     }
 
-    private suspend fun getBlockchainsByAmount(requiredAmount: Int): ArrayList<BanknoteWithBlockchain> {
+    private suspend fun getBanknotesByAmount(requiredAmount: Int): ArrayList<BanknoteWithBlockchain> {
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
-        val banknoteAmounts = blockchainDao.getBnidsAndAmounts().toCollection(ArrayList())
+        val banknoteAmounts = banknotesDao.getBnidsAndAmounts().toCollection(ArrayList())
         banknoteAmounts.sortByDescending { it.amount }
 
         val blockchainsList = ArrayList<BanknoteWithBlockchain>()
@@ -65,7 +65,7 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
 
             blockchainsList.add(
                 BanknoteWithBlockchain(
-                    blockchainDao.getBlockchainByBnid(banknoteAmount.bnid),
+                    banknotesDao.getBlockchainByBnid(banknoteAmount.bnid),
                     blockDao.getBlocksByBnid(banknoteAmount.bnid)
                 )
             )
@@ -77,7 +77,7 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
         return blockchainsList
     }
 
-    private fun sendBlockchain(banknoteWithBlockchain: BanknoteWithBlockchain?) {
+    private fun sendBanknoteWithBlockchain(banknoteWithBlockchain: BanknoteWithBlockchain?) {
         if (banknoteWithBlockchain == null) {
             _isSendingFlow.update { false }
             return
@@ -121,9 +121,9 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
             acceptanceBlocks.childBlock,
             acceptanceBlocks.protectedBlock
         )
-        blockchainDao.deleteByBnid(acceptanceBlocks.childBlock.bnid)
+        banknotesDao.deleteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
-        sendBlockchain(sendingList.poll())
+        sendBanknoteWithBlockchain(sendingList.poll())
     }
 
     private fun sendChildBlockFull(childBlock: Block) {

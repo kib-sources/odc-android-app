@@ -10,7 +10,7 @@ import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
 @Dao
 interface BanknotesDao {
     @Insert
-    fun insertAll(banknoteWithProtectedBlock: BanknoteWithProtectedBlock)
+    fun insert(banknoteWithProtectedBlock: BanknoteWithProtectedBlock)
 
     @Query("SELECT bnid, amount FROM banknotes")
     suspend fun getBnidsAndAmounts(): List<Amounts>

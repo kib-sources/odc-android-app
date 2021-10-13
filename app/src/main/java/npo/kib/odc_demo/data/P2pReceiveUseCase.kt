@@ -67,7 +67,7 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
         p2p.send(blockchainJson.encodeToByteArray())
 
         //Шаг 3: Запоминаем блокчейн для добавления в бд в случае успешной верификации
-        banknoteWithProtectedBlockToDB = BanknoteWithProtectedBlock(
+        banknoteToDB = BanknoteWithProtectedBlock(
             banknote = banknoteWithBlockchain.banknoteWithProtectedBlock.banknote,
             protectedBlock = childBlocksPair.protectedBlock
         )
@@ -80,12 +80,12 @@ class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
             throw Exception("childBlock некорректно подписан")
         }
 
-        blockchainDao.insertAll(banknoteWithProtectedBlockToDB)
+        banknotesDao.insert(banknoteToDB)
         for (block in blocksToDB) {
-            blockDao.insertAll(block)
+            blockDao.insert(block)
         }
-        blockDao.insertAll(childBlockFull)
-        receivingAmount -= banknoteWithProtectedBlockToDB.banknote.amount
+        blockDao.insert(childBlockFull)
+        receivingAmount -= banknoteToDB.banknote.amount
 
         if (receivingAmount <= 0) {
             _requiringStatusFlow.update { RequiringStatus.COMPLETED }
