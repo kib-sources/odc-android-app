@@ -6,11 +6,18 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.core.models.AcceptanceBlocks
 import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.data.models.AmountRequest
 import npo.kib.odc_demo.data.models.BanknoteWithBlockchain
-import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.data.models.PayloadContainer
+import npo.kib.odc_demo.data.models.RequiringStatus
+import npo.kib.odc_demo.data.p2p.P2PConnectionNearbyImpl
+import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
 import java.util.*
 
-open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
+open class P2pSendUseCase(
+    context: Context,
+    override val p2p: P2pConnectionBidirectional = P2PConnectionNearbyImpl(context),
+) : P2pBaseUseCase(context) {
 
     fun startAdvertising() {
         p2p.startAdvertising()
@@ -84,7 +91,8 @@ open class P2pSendUseCase(context: Context) : P2pBaseUseCase(context) {
         }
 
         //Создание нового ProtectedBlock
-        val newProtectedBlock = wallet.initProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
+        val newProtectedBlock =
+            wallet.initProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
         banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock = newProtectedBlock
 
         val payloadContainer = PayloadContainer(banknoteWithBlockchain = banknoteWithBlockchain)

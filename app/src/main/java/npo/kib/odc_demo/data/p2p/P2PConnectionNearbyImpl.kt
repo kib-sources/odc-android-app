@@ -15,6 +15,7 @@ import npo.kib.odc_demo.data.models.SearchingStatus
 
 // Имплементация расширенного интерфейс p2p соеденений на базе Google Nearby Connections API
 class P2PConnectionNearbyImpl(context: Context) : P2pConnectionBidirectional {
+
     private val mConnectionsClient = Nearby.getConnectionsClient(context)
     private val serviceId = context.resources.getString(R.string.app_package)
     private lateinit var connectionEndpoint: String
@@ -24,36 +25,34 @@ class P2PConnectionNearbyImpl(context: Context) : P2pConnectionBidirectional {
     private val prefs = PreferenceManager.getDefaultSharedPreferences(context)
     private val userName = prefs.getString(usernameKey, defaultUsername) ?: defaultUsername
 
-    private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
+    private val _connectionResult = MutableStateFlow<ConnectingStatus>(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
 
-    private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> =
-        MutableStateFlow(SearchingStatus.NONE)
+    private val _searchingStatusFlow = MutableStateFlow(SearchingStatus.NONE)
     override val searchingStatusFlow = _searchingStatusFlow.asStateFlow()
 
     private val _receivedBytes = MutableSharedFlow<ByteArray>()
     override val receivedBytes = _receivedBytes.asSharedFlow()
 
     override fun startAdvertising() {
-        val advertisingOptions =
-            AdvertisingOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()
+        val advertisingOptions = AdvertisingOptions.Builder()
+            .setStrategy(Strategy.P2P_POINT_TO_POINT)
+            .build()
+
         mConnectionsClient
-            .startAdvertising(
-                userName, serviceId, connectionLifecycleCallback, advertisingOptions
-            )
+            .startAdvertising(userName, serviceId, connectionLifecycleCallback, advertisingOptions)
             .addOnSuccessListener {
-                // We're advertising!
                 _searchingStatusFlow.update { SearchingStatus.ADVERTISING }
-            }
-            .addOnFailureListener {
-                // We were unable to start advertising.
+            }.addOnFailureListener {
                 _searchingStatusFlow.update { SearchingStatus.FAILURE }
             }
     }
 
     override fun startDiscovery() {
-        val discoveryOptions =
-            DiscoveryOptions.Builder().setStrategy(Strategy.P2P_POINT_TO_POINT).build()
+        val discoveryOptions = DiscoveryOptions.Builder()
+            .setStrategy(Strategy.P2P_POINT_TO_POINT)
+            .build()
+
         mConnectionsClient
             .startDiscovery(serviceId, endpointDiscoveryCallback, discoveryOptions)
             .addOnSuccessListener {
@@ -76,43 +75,40 @@ class P2PConnectionNearbyImpl(context: Context) : P2pConnectionBidirectional {
         _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
-    private val endpointDiscoveryCallback =
-        object : EndpointDiscoveryCallback() {
-            override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
-                // An endpoint was found. We request a connection to it.
-                mConnectionsClient
-                    .requestConnection(userName, endpointId, connectionLifecycleCallback)
-                    .addOnSuccessListener {
-                        // We successfully requested a connection. Now both sides
-                        // must accept before the connection is established.
-                    }
-                    .addOnFailureListener {
-                        // Nearby Connections failed to request the connection.})
-                    }
-            }
-
-            override fun onEndpointLost(endpointId: String) {
-                // A previously discovered endpoint has gone away.
-            }
+    private val endpointDiscoveryCallback = object : EndpointDiscoveryCallback() {
+        // An endpoint was found. We request a connection to it.
+        override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
+            mConnectionsClient
+                .requestConnection(userName, endpointId, connectionLifecycleCallback)
+                .addOnSuccessListener {
+                    // We successfully requested a connection. Now both sides
+                    // must accept before the connection is established.
+                }
+                .addOnFailureListener {
+                    // Nearby Connections failed to request the connection.})
+                }
         }
 
-    private val connectionLifecycleCallback =
-        object : ConnectionLifecycleCallback() {
-            override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
-                connectionEndpoint = endpointId
-                _connectionResult.update { ConnectingStatus.ConnectionInitiated(info) }
-            }
+        // A previously discovered endpoint has gone away.
+        override fun onEndpointLost(endpointId: String) = Unit
+    }
 
-            override fun onConnectionResult(endpointId: String, result: ConnectionResolution) {
-                _connectionResult.update { ConnectingStatus.ConnectionResult(result.status.statusCode) }
-            }
-
-            override fun onDisconnected(endpointId: String) {
-                // We've been disconnected from this endpoint. No more data can be
-                // sent or received.
-                _connectionResult.update { ConnectingStatus.Disconnected }
-            }
+    private val connectionLifecycleCallback = object : ConnectionLifecycleCallback() {
+        override fun onConnectionInitiated(endpointId: String, info: ConnectionInfo) {
+            connectionEndpoint = endpointId
+            _connectionResult.update { ConnectingStatus.ConnectionInitiated(info) }
         }
+
+        override fun onConnectionResult(endpointId: String, result: ConnectionResolution) {
+            _connectionResult.update { ConnectingStatus.ConnectionResult(result.status.statusCode) }
+        }
+
+        override fun onDisconnected(endpointId: String) {
+            // We've been disconnected from this endpoint. No more data can be
+            // sent or received.
+            _connectionResult.update { ConnectingStatus.Disconnected }
+        }
+    }
 
 
     override fun send(bytes: ByteArray) {

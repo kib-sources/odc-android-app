@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
 import npo.kib.odc_demo.data.P2pReceiveUseCase
+import npo.kib.odc_demo.data.p2p.P2pConnection
 import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -41,7 +42,8 @@ class P2pInstrumentedTest {
 
     @Test
     fun p2pUseCaseTest(): Unit = runBlocking {
-        val receiveUseCase = P2pReceiveUseCase(appContext)
+        val p2p: P2pConnection = P2pConnectionTcpImpl(appContext, "192.168.1.117")
+        val receiveUseCase = P2pReceiveUseCase(appContext, p2p)
         receiveUseCase.startDiscovery()
 
         val res = receiveUseCase.connectionResult.take(2).last()

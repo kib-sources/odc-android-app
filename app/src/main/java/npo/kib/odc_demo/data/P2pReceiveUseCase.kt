@@ -2,13 +2,21 @@ package npo.kib.odc_demo.data
 
 import android.content.Context
 import kotlinx.coroutines.flow.update
-import npo.kib.odc_demo.core.models.Block
 import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.data.models.AmountRequest
 import npo.kib.odc_demo.data.models.BanknoteWithBlockchain
-import npo.kib.odc_demo.data.models.*
+import npo.kib.odc_demo.data.models.PayloadContainer
+import npo.kib.odc_demo.data.models.RequiringStatus
+import npo.kib.odc_demo.data.p2p.P2PConnectionNearbyImpl
+import npo.kib.odc_demo.data.p2p.P2pConnection
+import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 import npo.kib.odc_demo.myLogs
 
-class P2pReceiveUseCase(context: Context) : P2pBaseUseCase(context) {
+class P2pReceiveUseCase(
+    context: Context,
+    override val p2p: P2pConnection = P2PConnectionNearbyImpl(context),
+) : P2pBaseUseCase(context) {
 
     fun startDiscovery() {
         p2p.startDiscovery()

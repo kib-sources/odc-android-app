@@ -8,34 +8,31 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.core.Wallet
-import npo.kib.odc_demo.core.models.Block
 import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.data.models.BanknoteWithBlockchain
+import npo.kib.odc_demo.core.models.Block
 import npo.kib.odc_demo.data.db.BlockchainDatabase
 import npo.kib.odc_demo.data.models.*
 import npo.kib.odc_demo.data.p2p.ObjectSerializer
-import npo.kib.odc_demo.data.p2p.P2pConnectionBidirectional
-import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
+import npo.kib.odc_demo.data.p2p.P2pConnection
 import npo.kib.odc_demo.myLogs
 import java.util.*
 
 @Suppress("LeakingThis")
 abstract class P2pBaseUseCase(context: Context) {
 
-    val p2p: P2pConnectionBidirectional = P2pConnectionTcpImpl(context, "192.168.1.117")
+    abstract val p2p: P2pConnection
 
     // public states
+    val connectionResult by lazy { p2p.connectionResult }
+    val searchingStatusFlow by lazy { p2p.searchingStatusFlow }
 
-    val connectionResult = p2p.connectionResult
-    val searchingStatusFlow = p2p.searchingStatusFlow
-
-    protected val _isSendingFlow: MutableStateFlow<Boolean?> = MutableStateFlow(null)
+    protected val _isSendingFlow = MutableStateFlow<Boolean?>(null)
     val isSendingFlow = _isSendingFlow.asStateFlow()
 
     protected val _requiringStatusFlow = MutableStateFlow(RequiringStatus.NONE)
     val requiringStatusFlow = _requiringStatusFlow.asStateFlow()
 
-    protected val _amountRequestFlow: MutableStateFlow<AmountRequest?> = MutableStateFlow(null)
+    protected val _amountRequestFlow = MutableStateFlow<AmountRequest?>(null)
     val amountRequestFlow = _amountRequestFlow.asStateFlow()
 
     // protected fields
