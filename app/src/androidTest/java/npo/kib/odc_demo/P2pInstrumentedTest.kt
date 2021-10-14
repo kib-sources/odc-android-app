@@ -47,7 +47,7 @@ class P2pInstrumentedTest {
         val res = receiveUseCase.connectionResult.take(2).last()
         myLogs(res)
 
-        receiveUseCase.p2p.receivedBytes.collect { myLogs(it.decodeToString()) }
-//        receiveUseCase.requiringStatusFlow.collect { myLogs("status $it") }
+//        receiveUseCase.p2p.receivedBytes.collect { myLogs(it.decodeToString()) }
+        receiveUseCase.requiringStatusFlow.collect { myLogs("status $it") }
     }
 }

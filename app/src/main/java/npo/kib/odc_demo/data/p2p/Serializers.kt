@@ -15,12 +15,17 @@ import java.security.PublicKey
 import java.util.*
 
 class ObjectSerializer {
+
+    val json = Json {
+        ignoreUnknownKeys = true
+    }
+
     fun toObject(stringValue: String): PayloadContainer {
-        return Json.decodeFromString(stringValue)
+        return json.decodeFromString(stringValue,)
     }
 
     fun toJson(payloadContainer: PayloadContainer): String {
-        return Json.encodeToString(payloadContainer)
+        return json.encodeToString(payloadContainer)
     }
 }
 

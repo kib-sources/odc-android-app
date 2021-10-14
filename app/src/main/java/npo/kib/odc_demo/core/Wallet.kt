@@ -95,7 +95,8 @@ class Wallet(
 
     //B
     fun acceptanceInit(blocks: List<Block>, protectedBlock: ProtectedBlock): AcceptanceBlocks {
-        blockchainVerification(blocks)
+        // TODO verification disabled for demo
+//        blockchainVerification(blocks)
 
         if (protectedBlock.parentSokSignature == null) {
             throw Exception("protectedBlock.parentSokSignature == null")
@@ -107,22 +108,23 @@ class Wallet(
             throw Exception("protectedBlock.parentOtokSignature == null")
         }
 
-        val parentSokHash =
-            Crypto.hash(protectedBlock.parentSok.getStringPem())
-        if (!Crypto.verifySignature(parentSokHash, protectedBlock.parentSokSignature, bok)) {
-            throw Exception("Некорректный soc")
-        }
+        val parentSokHash = Crypto.hash(protectedBlock.parentSok.getStringPem())
+        // TODO verification disabled for demo
+//        if (!Crypto.verifySignature(parentSokHash, protectedBlock.parentSokSignature, bok)) {
+//            throw Exception("Некорректный soc")
+//        }
 
         val parentBlock = blocks.last()
-        val otokHash = Crypto.hash(parentBlock.otok.getStringPem())
-        if (!Crypto.verifySignature(
-                otokHash,
-                protectedBlock.parentOtokSignature,
-                protectedBlock.parentSok
-            )
-        ) {
-            throw Exception("Некорректный parent otok")
-        }
+        // TODO verification disabled for demo
+//        val otokHash = Crypto.hash(parentBlock.otok.getStringPem())
+//        if (!Crypto.verifySignature(
+//                otokHash,
+//                protectedBlock.parentOtokSignature,
+//                protectedBlock.parentSok
+//            )
+//        ) {
+//            throw Exception("Некорректный parent otok")
+//        }
 
         // ------------------------------------------------------------------------------------------------------------
         // Теперь нужно создать новый блок
