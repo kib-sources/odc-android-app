@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.data.P2pSendUseCase
 import npo.kib.odc_demo.data.WalletRepository
 
-class SendViewModel(application: Application) : AndroidViewModel(application) {
+class SendViewModel(application: Application) : AndroidViewModel(application), NearbyViewModel {
     private val repository = P2pSendUseCase(application)
     private val walletRepository = WalletRepository(application)
 
@@ -21,9 +21,9 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
     val isSendingFlow = repository.isSendingFlow
 
     private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
-    val sum: StateFlow<Int?> = _sum
+    override val sum: StateFlow<Int?> = _sum
 
-    fun getSum() {
+    override fun getCurrentSum() {
         viewModelScope.launch(Dispatchers.IO) {
             _sum.update { walletRepository.getStoredInWalletSum() }
         }
@@ -37,11 +37,11 @@ class SendViewModel(application: Application) : AndroidViewModel(application) {
         repository.stopAdvertising()
     }
 
-    fun acceptConnection() {
+    override fun acceptConnection() {
         repository.acceptConnection()
     }
 
-    fun rejectConnection() {
+    override fun rejectConnection() {
         repository.rejectConnection()
     }
 

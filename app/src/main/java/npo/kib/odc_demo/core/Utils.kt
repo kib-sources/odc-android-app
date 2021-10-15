@@ -31,7 +31,3 @@ fun String.decodeHex(): ByteArray {
         .map { it.toInt(16).toByte() }
         .toByteArray()
 }
-
-fun Fragment.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
-    Toast.makeText(requireActivity(), text, duration).show()
-}
