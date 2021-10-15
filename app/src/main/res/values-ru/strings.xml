@@ -3,6 +3,7 @@
     <string name="receive">Принять</string>
     <string name="wallet_send">Отдать</string>
     <string name="issue_banknotes">Выпустить банкноты</string>
+    <string name="get_banknotes_from_atm">Снять с банкомата</string>
     <string name="settings">Настройки</string>
     <string name="base_header">Базовые</string>
     <string name="username_title">Имя пользователя</string>

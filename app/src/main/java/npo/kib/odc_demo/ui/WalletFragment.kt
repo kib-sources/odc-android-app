@@ -49,7 +49,7 @@ class WalletFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[WalletViewModel::class.java]
-        viewModel.getSum()
+        viewModel.updateSum()
 
         viewLifecycleOwner.collectFlow(viewModel.sum) {
             val amount = it ?: 0
@@ -64,12 +64,12 @@ class WalletFragment : Fragment() {
                 ServerConnectionStatus.ERROR -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     makeToast(getString(R.string.connection_error))
-                    viewModel.getSum()
+                    viewModel.updateSum()
                 }
                 ServerConnectionStatus.WALLET_ERROR -> makeToast(getString(R.string.wallet_not_registered))
                 ServerConnectionStatus.SUCCESS -> {
                     binding.progressBar.visibility = View.INVISIBLE
-                    viewModel.getSum()
+                    viewModel.updateSum()
                 }
             }
         }
@@ -82,6 +82,10 @@ class WalletFragment : Fragment() {
             }
 
             if (amount > 0) viewModel.issueBanknotes(amount)
+        }
+
+        binding.buttonGetFromATM.setOnClickListener {
+            viewModel.getBanknotesFromATM()
         }
 
         binding.buttonRequireBanknotes.setOnClickListener {
