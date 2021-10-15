@@ -19,7 +19,7 @@ import npo.kib.odc_demo.SwitcherInterface
 // базовый класс для фрагментов, где предполагается использование Nearby Connections API
 abstract class BaseNearbyFragment : Fragment() {
 
-    protected abstract val viewModel: NearbyViewModel
+    protected abstract val viewModel: BaseNearbyViewModel
 
     protected lateinit var mController: SwitcherInterface
 

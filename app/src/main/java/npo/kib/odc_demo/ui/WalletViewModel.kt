@@ -15,10 +15,8 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
     private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
     val sum: StateFlow<Int?> = _sum
 
-    private val _serverConnectionStatus: MutableStateFlow<ServerConnectionStatus> =
-        MutableStateFlow(ServerConnectionStatus.SUCCESS)
+    private val _serverConnectionStatus = MutableStateFlow(ServerConnectionStatus.SUCCESS)
     val serverConnectionStatus: StateFlow<ServerConnectionStatus> = _serverConnectionStatus
-
 
     fun getSum() {
         viewModelScope.launch(Dispatchers.IO) {
@@ -29,8 +27,7 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
     fun issueBanknotes(amount: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             _serverConnectionStatus.update { ServerConnectionStatus.LOADING }
-            val result = repository.issueBanknotes(amount)
-            _serverConnectionStatus.update { result }
+            _serverConnectionStatus.update { repository.issueBanknotes(amount) }
         }
     }
 
