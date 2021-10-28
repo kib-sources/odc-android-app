@@ -29,13 +29,13 @@ data class WalletResponse(
 
 data class IssueResponse(
     @SerializedName("code")
-    val code: Int,
+    val code: Int?,
 
     @SerializedName("issued_banknotes")
-    val issuedBanknotes: List<BanknoteRaw>,
+    val issuedBanknotes: List<BanknoteRaw>?,
 
     @SerializedName("message")
-    val message: String
+    val message: String?
 )
 
 data class BanknoteRaw(

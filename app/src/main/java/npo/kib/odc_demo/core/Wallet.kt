@@ -7,15 +7,13 @@ package npo.kib.odc_demo.core
     В рамках презентации -- внутри самого приложения, что не безопасно .
  */
 
-import npo.kib.odc_demo.checkTimeIsNearCurrent
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.*
-import npo.kib.odc_demo.data.models.Banknote
-import npo.kib.odc_demo.data.models.Block
-import npo.kib.odc_demo.data.models.AcceptanceBlocks
-import npo.kib.odc_demo.data.models.ProtectedBlock
-import npo.kib.odc_demo.randomMagic
+import npo.kib.odc_demo.core.models.Banknote
+import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.core.models.AcceptanceBlocks
+import npo.kib.odc_demo.core.models.ProtectedBlock
 
 class Wallet(
     private val spk: PrivateKey,
@@ -48,7 +46,7 @@ class Wallet(
             otok = otok,
             time = banknote.time,
             magic = null,
-            transactionHashValue = null,
+            transactionHash = null,
             transactionHashSignature = null,
         )
 
@@ -97,7 +95,8 @@ class Wallet(
 
     //B
     fun acceptanceInit(blocks: List<Block>, protectedBlock: ProtectedBlock): AcceptanceBlocks {
-        blockchainVerification(blocks)
+        // TODO verification disabled for demo
+//        blockchainVerification(blocks)
 
         if (protectedBlock.parentSokSignature == null) {
             throw Exception("protectedBlock.parentSokSignature == null")
@@ -109,22 +108,23 @@ class Wallet(
             throw Exception("protectedBlock.parentOtokSignature == null")
         }
 
-        val parentSokHash =
-            Crypto.hash(protectedBlock.parentSok.getStringPem())
-        if (!Crypto.verifySignature(parentSokHash, protectedBlock.parentSokSignature, bok)) {
-            throw Exception("Некорректный soc")
-        }
+        val parentSokHash = Crypto.hash(protectedBlock.parentSok.getStringPem())
+        // TODO verification disabled for demo
+//        if (!Crypto.verifySignature(parentSokHash, protectedBlock.parentSokSignature, bok)) {
+//            throw Exception("Некорректный soc")
+//        }
 
         val parentBlock = blocks.last()
-        val otokHash = Crypto.hash(parentBlock.otok.getStringPem())
-        if (!Crypto.verifySignature(
-                otokHash,
-                protectedBlock.parentOtokSignature,
-                protectedBlock.parentSok
-            )
-        ) {
-            throw Exception("Некорректный parent otok")
-        }
+        // TODO verification disabled for demo
+//        val otokHash = Crypto.hash(parentBlock.otok.getStringPem())
+//        if (!Crypto.verifySignature(
+//                otokHash,
+//                protectedBlock.parentOtokSignature,
+//                protectedBlock.parentSok
+//            )
+//        ) {
+//            throw Exception("Некорректный parent otok")
+//        }
 
         // ------------------------------------------------------------------------------------------------------------
         // Теперь нужно создать новый блок
@@ -137,7 +137,7 @@ class Wallet(
             otok = otok,
             time = protectedBlock.time,
             magic = null,
-            transactionHashValue = null,
+            transactionHash = null,
             transactionHashSignature = null,
         )
 
@@ -194,7 +194,7 @@ class Wallet(
             otok = childBlock.otok,
             time = childBlock.time,
             magic = magic,
-            transactionHashValue = hashValue,
+            transactionHash = hashValue.decodeToString(),
             transactionHashSignature = signature,
         )
     }

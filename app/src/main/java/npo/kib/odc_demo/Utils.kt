@@ -1,41 +1,27 @@
-/*
-    Вспомогательные функции
- */
-
 package npo.kib.odc_demo
 
+import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import java.util.*
-import kotlin.random.Random
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
-fun randomMagic(): String = (1..15).asSequence()
-    .map { Random.nextInt(0, 10) }
-    .map { it.toString() }
-    .reduce { acc, it -> acc + it }
-
-
-fun checkHashes(hash1: ByteArray, hash2: ByteArray): Boolean {
-    if (hash1.count() != hash2.count()) {
-        return false
-    }
-    return hash1.zip(hash2).all { (first, second) -> first == second }
-}
-
-fun checkTimeIsNearCurrent(t: Int, epsilon: Int): Boolean {
-    val timestamp = Calendar.getInstance().timeInMillis / 1000
-    val diff = timestamp - t
-    return (diff in 0..epsilon)
-}
-
-fun String.decodeHex(): ByteArray {
-    check(length % 2 == 0) { "Must have an even length" }
-
-    return chunked(2)
-        .map { it.toInt(16).toByte() }
-        .toByteArray()
-}
+fun myLogs(msg: Any?) = Log.d("myLogs", msg.toString())
 
 fun Fragment.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(requireActivity(), text, duration).show()
+}
+
+
+inline fun <T> LifecycleOwner.collectFlow(flow: Flow<T>, crossinline block: suspend (T) -> Unit) {
+    lifecycleScope.launch {
+        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            flow.collect(block)
+        }
+    }
 }

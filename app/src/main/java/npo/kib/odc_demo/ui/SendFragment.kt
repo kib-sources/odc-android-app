@@ -1,30 +1,23 @@
 package npo.kib.odc_demo.ui
 
-import androidx.lifecycle.ViewModelProvider
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.google.android.gms.nearby.connection.ConnectionInfo
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.SwitcherInterface
-import npo.kib.odc_demo.makeToast
+import npo.kib.odc_demo.collectFlow
 import npo.kib.odc_demo.data.models.AmountRequest
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
 import npo.kib.odc_demo.databinding.SendFragmentBinding
+import npo.kib.odc_demo.makeToast
 
-class SendFragment : Fragment() {
+class SendFragment : BaseNearbyFragment() {
 
     companion object {
         fun newInstance() = SendFragment()
@@ -37,26 +30,12 @@ class SendFragment : Fragment() {
     private val binding get() = _binding!!
 
 
-    private lateinit var viewModel: SendViewModel
-    private lateinit var mController: SwitcherInterface
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        if (context is SwitcherInterface) {
-            mController = context as SwitcherInterface
-        } else {
-            throw RuntimeException(
-                context.toString()
-                        + " must implement SwitcherInterface"
-            )
-        }
-    }
+    override lateinit var viewModel: SendViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = SendFragmentBinding.inflate(inflater, container, false)
         return binding.root
@@ -65,27 +44,19 @@ class SendFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[SendViewModel::class.java]
-        viewModel.getSum()
+        viewModel.getCurrentSum()
         var currentAmount = 0
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.amountRequestFlow.collect { request: AmountRequest? ->
-                    if (request != null) {
-                        showRequestDialog(request.amount, request.userName, request.wid)
-                    }
-                }
+        viewLifecycleOwner.collectFlow(viewModel.amountRequestFlow) { request: AmountRequest? ->
+            if (request != null) {
+                showRequestDialog(request.amount, request.userName, request.wid)
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.sum.collect {
-                    currentAmount = it ?: 0
-                    binding.textViewBalanceSend.text =
-                        String.format(getString(R.string.your_balance_rubles), currentAmount)
-                }
-            }
+
+        viewLifecycleOwner.collectFlow(viewModel.sum) {
+            currentAmount = it ?: 0
+            binding.textViewBalanceSend.text = String.format(getString(R.string.your_balance_rubles), currentAmount)
         }
 
         binding.buttonSend.setOnClickListener {
@@ -98,82 +69,69 @@ class SendFragment : Fragment() {
                     } else makeToast(getString(R.string.insufficient_funds))
                 }
             } else makeToast(getString(R.string.enter_sum))
-
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.searchingStatusFlow.collect {
-                    when (it) {
-                        SearchingStatus.NONE -> viewModel.startAdvertising()
-                        SearchingStatus.FAILURE -> binding.sendingStatusView.text =
-                            getString(R.string.searching_failure)
-                        SearchingStatus.DISCOVERING -> binding.sendingStatusView.text =
-                            getString(R.string.searching_device)
-                        SearchingStatus.ADVERTISING -> binding.sendingStatusView.text =
-                            getString(R.string.searching_device)
-                    }
-                }
+        viewLifecycleOwner.collectFlow(viewModel.searchingStatusFlow) {
+            when (it) {
+                SearchingStatus.NONE -> viewModel.startAdvertising()
+                SearchingStatus.FAILURE -> binding.sendingStatusView.text =
+                    getString(R.string.searching_failure)
+                SearchingStatus.DISCOVERING -> binding.sendingStatusView.text =
+                    getString(R.string.searching_device)
+                SearchingStatus.ADVERTISING -> binding.sendingStatusView.text =
+                    getString(R.string.searching_device)
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.isSendingFlow.collect { isSending: Boolean? ->
-                    if (isSending != null) {
-                        if (isSending) {
-                            makeVisible(false)
-                            binding.sendingStatusView.text = getString(R.string.sending_is_going)
-                        } else {
-                            makeToast(getString(R.string.sending_completed))
-                            mController.openWalletFragment()
-                        }
-                    }
-                }
+        viewLifecycleOwner.collectFlow(viewModel.isSendingFlow) { isSending: Boolean? ->
+            isSending ?: return@collectFlow
+
+            if (isSending) {
+                makeVisible(false)
+                binding.sendingStatusView.text = getString(R.string.sending_is_going)
+            } else {
+                makeToast(getString(R.string.sending_completed))
+                mController.openWalletFragment()
             }
         }
 
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewLifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.connectionResult.collect {
-                    when (it) {
-                        is ConnectingStatus.ConnectionInitiated -> {
+        viewLifecycleOwner.collectFlow(viewModel.connectionResult) {
+            when (it) {
+                is ConnectingStatus.ConnectionInitiated -> {
+                    binding.sendingStatusView.text =
+                        getString(R.string.connecting_initiated)
+                    showConnectionDialog(it.info)
+                }
+                is ConnectingStatus.ConnectionResult ->
+                    when (it.statusCode) {
+                        ConnectionsStatusCodes.STATUS_OK -> {
                             binding.sendingStatusView.text =
-                                getString(R.string.connecting_initiated)
-                            showConnectionDialog(it.info)
+                                getString(R.string.connecting_ok)
+                            binding.buttonSend.isEnabled = true
                         }
-                        is ConnectingStatus.ConnectionResult ->
-                            when (it.result.status.statusCode) {
-                                ConnectionsStatusCodes.STATUS_OK -> {
-                                    binding.sendingStatusView.text =
-                                        getString(R.string.connecting_ok)
-                                    binding.buttonSend.isEnabled = true
-                                }
-                                ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
-                                    binding.sendingStatusView.text =
-                                        getString(R.string.connecting_rejected)
-                                }
-                                ConnectionsStatusCodes.STATUS_ERROR -> {
-                                    binding.sendingStatusView.text =
-                                        getString(R.string.connecting_error)
-                                }
-                                else -> {
-                                    binding.sendingStatusView.text =
-                                        getString(R.string.connecting_undefined_error)
-                                }
-                            }
-                        ConnectingStatus.Disconnected -> {
-                            viewModel.getSum()
-                            makeVisible(true)
+                        ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
                             binding.sendingStatusView.text =
-                                getString(R.string.connecting_disconnected)
-                            binding.buttonSend.isEnabled = false
+                                getString(R.string.connecting_rejected)
                         }
-                        ConnectingStatus.NoConnection -> {
-                            binding.buttonSend.isEnabled = false
-                            binding.sendingStatusView.text = getString(R.string.searching_device)
+                        ConnectionsStatusCodes.STATUS_ERROR -> {
+                            binding.sendingStatusView.text =
+                                getString(R.string.connecting_error)
+                        }
+                        else -> {
+                            binding.sendingStatusView.text =
+                                getString(R.string.connecting_undefined_error)
                         }
                     }
+                ConnectingStatus.Disconnected -> {
+                    viewModel.getCurrentSum()
+                    makeVisible(true)
+                    binding.sendingStatusView.text =
+                        getString(R.string.connecting_disconnected)
+                    binding.buttonSend.isEnabled = false
+                }
+                ConnectingStatus.NoConnection -> {
+                    binding.buttonSend.isEnabled = false
+                    binding.sendingStatusView.text = getString(R.string.searching_device)
                 }
             }
         }
@@ -203,25 +161,6 @@ class SendFragment : Fragment() {
         }
     }
 
-    private fun showConnectionDialog(info: ConnectionInfo) {
-        AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.accept_connection_to) + info.endpointName)
-            .setMessage(getString(R.string.make_sure) + info.authenticationDigits)
-            .setPositiveButton(
-                getString(R.string.receive)
-            ) { _, _ ->  // The user confirmed, so we can accept the connection.
-                viewModel.acceptConnection()
-            }
-            .setNegativeButton(
-                getString(R.string.cancel)
-            ) { _, _ ->  // The user canceled, so we should reject the connection.
-                viewModel.rejectConnection()
-            }
-            //           .setIcon(ContextCompat.getDrawable(view.context, R.drawable.ic_dialog_alert))
-            .show()
-            .setCanceledOnTouchOutside(false)
-    }
-
     private fun showRequestDialog(amount: Int, userName: String, wid: String) {
         val dialogView = layoutInflater.inflate(R.layout.request_dialog, null)
         dialogView.setBackgroundResource(R.drawable.border_radius)
@@ -246,5 +185,14 @@ class SendFragment : Fragment() {
             alert.cancel()
         }
         alert.show()
+    }
+
+    //Runtime permissions
+    override fun onPermissionGranted() {
+        viewModel.startAdvertising()
+    }
+
+    override fun onPermissionRejected() {
+        binding.sendingStatusView.text = getString(R.string.permission_rejected)
     }
 }

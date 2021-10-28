@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.data
+package npo.kib.odc_demo.data.api
 
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,6 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitFactory {
 
     private const val URL = "http://31.186.250.158:80"
+//    private const val URL = "http://192.168.1.102:5000"
 
     private var bankApi: BankApi? = null
 

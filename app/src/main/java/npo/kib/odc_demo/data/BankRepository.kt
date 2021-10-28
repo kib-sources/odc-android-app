@@ -1,25 +1,32 @@
 package npo.kib.odc_demo.data
 
-import android.app.Application
+import android.content.Context
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import npo.kib.odc_demo.core.*
+import npo.kib.odc_demo.core.Wallet
+import npo.kib.odc_demo.core.getStringPem
+import npo.kib.odc_demo.core.models.Banknote
+import npo.kib.odc_demo.core.models.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.core.models.Block
+import npo.kib.odc_demo.core.models.ProtectedBlock
+import npo.kib.odc_demo.data.api.RetrofitFactory
 import npo.kib.odc_demo.data.db.BlockchainDatabase
-import npo.kib.odc_demo.data.models.*
-import npo.kib.odc_demo.decodeHex
-import kotlin.collections.ArrayList
+import npo.kib.odc_demo.data.models.BanknoteRaw
+import npo.kib.odc_demo.data.models.IssueRequest
+import npo.kib.odc_demo.data.models.ReceiveRequest
+import npo.kib.odc_demo.data.models.ServerConnectionStatus
 
-class BankRepository(application: Application) {
+class BankRepository(context: Context) {
 
-    private val db = BlockchainDatabase.getInstance(application)
-    private val blockchainDao = db.blockchainDao()
+    private val db = BlockchainDatabase.getInstance(context)
+    private val banknotesDao = db.banknotesDao()
     private val blockDao = db.blockDao()
 
-    private val walletRepository = WalletRepository(application)
+    private val walletRepository = WalletRepository(context)
 
     private val bankApi = RetrofitFactory.getBankApi()
 
-    suspend fun getSum() = blockchainDao.getSum()
+    suspend fun getSum() = banknotesDao.getStoredSum()
 
     /**
      * Receiving banknotes from the bank
@@ -27,17 +34,20 @@ class BankRepository(application: Application) {
      */
     suspend fun issueBanknotes(amount: Int): ServerConnectionStatus {
         val wallet = try {
-            walletRepository.getWallet()
+            walletRepository.getOrRegisterWallet()
         } catch (e: Exception) {
             return ServerConnectionStatus.WALLET_ERROR
         }
+
         val request = IssueRequest(amount, wallet.wid)
         val issueResponse = try {
             bankApi.issueBanknotes(request)
         } catch (e: Exception) {
             return ServerConnectionStatus.ERROR
         }
+
         val rawBanknotes = issueResponse.issuedBanknotes
+            ?: return ServerConnectionStatus.WALLET_ERROR
         val banknotes = parseBanknotes(rawBanknotes)
 
         try {
@@ -46,16 +56,15 @@ class BankRepository(application: Application) {
                     wallet.banknoteVerification(banknote)
                     val (block, protectedBlock) = wallet.firstBlock(banknote)
                     async {
-                        Blockchain(
-                            bnidKey = banknote.bnid,
+                        BanknoteWithProtectedBlock(
                             banknote = banknote,
                             protectedBlock = protectedBlock
                         ) to receiveBanknote(wallet, block, protectedBlock)
                     }
                 }.forEach {
                     val registered = it.await()
-                    blockchainDao.insertAll(registered.first)
-                    blockDao.insertAll(registered.second)
+                    banknotesDao.insert(registered.first)
+                    blockDao.insert(registered.second)
                 }
             }
         } catch (e: Exception) {
@@ -86,28 +95,24 @@ class BankRepository(application: Application) {
             otok = block.otok,
             time = block.time,
             magic = response.magic,
-            transactionHashValue = response.transactionHash.decodeHex(),
+            transactionHash = response.transactionHash,
             transactionHashSignature = response.transactionHashSigned
         )
         wallet.firstBlockVerification(fullBlock)
         return fullBlock
     }
 
-    private fun parseBanknotes(raw: List<BanknoteRaw>): List<Banknote> {
-        val banknotes = ArrayList<Banknote>()
-        var banknote: Banknote
-        for (r in raw) {
-            banknote = Banknote(
-                bin = r.bin.toInt(),
-                amount = r.amount,
-                currencyCode = r.code,
-                bnid = r.bnid,
-                signature = r.signature,
-                time = r.time
+    private fun parseBanknotes(banknotesRaw: List<BanknoteRaw>): List<Banknote> {
+        return banknotesRaw.map {
+            Banknote(
+                bin = it.bin.toInt(),
+                amount = it.amount,
+                code = it.code,
+                bnid = it.bnid,
+                signature = it.signature,
+                time = it.time
             )
-            banknotes.add(banknote)
         }
-        return banknotes
     }
 
     fun isWalletRegistered() = walletRepository.isWalletRegistered()
