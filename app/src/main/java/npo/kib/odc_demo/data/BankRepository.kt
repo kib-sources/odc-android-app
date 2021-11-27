@@ -1,6 +1,7 @@
 package npo.kib.odc_demo.data
 
 import android.content.Context
+import android.util.Log
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import npo.kib.odc_demo.core.Wallet
@@ -36,6 +37,7 @@ class BankRepository(context: Context) {
         val wallet = try {
             walletRepository.getOrRegisterWallet()
         } catch (e: Exception) {
+            Log.e("myLogs", "getOrRegisterWallet() $e.message")
             return ServerConnectionStatus.WALLET_ERROR
         }
 
@@ -43,6 +45,7 @@ class BankRepository(context: Context) {
         val issueResponse = try {
             bankApi.issueBanknotes(request)
         } catch (e: Exception) {
+            Log.e("myLogs", "issueBanknotes() $e.message")
             return ServerConnectionStatus.ERROR
         }
 
@@ -53,7 +56,7 @@ class BankRepository(context: Context) {
         try {
             coroutineScope {
                 banknotes.map { banknote ->
-                    wallet.banknoteVerification(banknote)
+//                    wallet.banknoteVerification(banknote)
                     val (block, protectedBlock) = wallet.firstBlock(banknote)
                     async {
                         BanknoteWithProtectedBlock(
@@ -68,6 +71,7 @@ class BankRepository(context: Context) {
                 }
             }
         } catch (e: Exception) {
+            Log.e("myLogs", "banknoteVerification() ${e.stackTrace.joinToString()}")
             return ServerConnectionStatus.ERROR
         }
         return ServerConnectionStatus.SUCCESS
@@ -98,7 +102,7 @@ class BankRepository(context: Context) {
             transactionHash = response.transactionHash,
             transactionHashSignature = response.transactionHashSigned
         )
-        wallet.firstBlockVerification(fullBlock)
+//        wallet.firstBlockVerification(fullBlock)
         return fullBlock
     }
 
