@@ -4,7 +4,10 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.data.BankRepository
 import npo.kib.odc_demo.data.P2pReceiveUseCase
@@ -16,7 +19,7 @@ import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 class WalletViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = BankRepository(application)
 
-    private val p2p: P2pConnection = P2pConnectionTcpImpl(application, "192.168.1.117")
+    private val p2p: P2pConnection = P2pConnectionTcpImpl()
     private val p2pUseCase = P2pReceiveUseCase(application, p2p)
 
     private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)

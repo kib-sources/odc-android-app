@@ -1,18 +1,22 @@
 package npo.kib.odc_demo.data.p2p
 
-import android.content.Context
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
+import npo.kib.odc_demo.myLogs
 import java.net.ServerSocket
 import java.net.Socket
 
 @Suppress("BlockingMethodInNonBlockingContext")
-class P2pConnectionTcpImpl(context: Context, private val ip: String = "192.168.1.134") : P2pConnectionBidirectional {
+class P2pConnectionTcpImpl(
+    private val ip: String = "192.168.43.116"
+//    private val ip: String = "raspberrypi.local"
+) : P2pConnectionBidirectional {
 
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(ConnectingStatus.NoConnection)
     override val connectionResult = _connectionResult.asStateFlow()
@@ -45,7 +49,11 @@ class P2pConnectionTcpImpl(context: Context, private val ip: String = "192.168.1
     }
 
     override fun startDiscovery() {
-        scope.launch {
+        val handler = CoroutineExceptionHandler { _, exception ->
+            myLogs("CoroutineExceptionHandler got $exception")
+        }
+
+        scope.launch(handler) {
             val socket = Socket(ip, 14900)
             _clientSocket = socket
             _connectionResult.update { ConnectingStatus.ConnectionResult(ConnectionsStatusCodes.STATUS_OK) }

@@ -20,7 +20,7 @@ class P2pInstrumentedTest {
 
     @Test
     fun serverTest(): Unit = runBlocking {
-        val connection = P2pConnectionTcpImpl(appContext)
+        val connection = P2pConnectionTcpImpl()
         connection.startAdvertising()
 
         connection.receivedBytes.collect {
@@ -31,7 +31,7 @@ class P2pInstrumentedTest {
 
     @Test
     fun clientTest(): Unit = runBlocking {
-        val connection = P2pConnectionTcpImpl(appContext, "192.168.1.117")
+        val connection = P2pConnectionTcpImpl("192.168.1.117")
         connection.startDiscovery()
 
         connection.receivedBytes.collect {
@@ -42,7 +42,7 @@ class P2pInstrumentedTest {
 
     @Test
     fun p2pUseCaseTest(): Unit = runBlocking {
-        val p2p: P2pConnection = P2pConnectionTcpImpl(appContext, "192.168.1.117")
+        val p2p: P2pConnection = P2pConnectionTcpImpl("192.168.1.117")
         val receiveUseCase = P2pReceiveUseCase(appContext, p2p)
         receiveUseCase.startDiscovery()
 
