@@ -10,7 +10,6 @@ import npo.kib.odc_demo.data.models.PayloadContainer
 import npo.kib.odc_demo.data.models.RequiringStatus
 import npo.kib.odc_demo.data.p2p.P2PConnectionNearbyImpl
 import npo.kib.odc_demo.data.p2p.P2pConnection
-import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 import npo.kib.odc_demo.myLogs
 
 class P2pReceiveUseCase(

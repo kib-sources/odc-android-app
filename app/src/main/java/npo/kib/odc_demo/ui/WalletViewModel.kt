@@ -15,6 +15,7 @@ import npo.kib.odc_demo.data.models.RequiringStatus
 import npo.kib.odc_demo.data.models.ServerConnectionStatus
 import npo.kib.odc_demo.data.p2p.P2pConnection
 import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
+import npo.kib.odc_demo.myLogs
 
 class WalletViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = BankRepository(application)
@@ -47,13 +48,13 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
         p2pUseCase.startDiscovery()
         viewModelScope.launch(Dispatchers.IO) {
             p2pUseCase.requiringStatusFlow.collect {
+                myLogs("requiringStatus: $it")
                 when(it) {
                     RequiringStatus.NONE -> Unit
                     RequiringStatus.REQUEST -> Unit
                     RequiringStatus.REJECT -> Unit
                     RequiringStatus.ACCEPTANCE -> Unit
                     RequiringStatus.COMPLETED -> {
-                        p2pUseCase.stopDiscovery()
                         updateSum()
                     }
                 }
