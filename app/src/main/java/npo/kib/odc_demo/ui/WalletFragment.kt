@@ -85,7 +85,7 @@ class WalletFragment : Fragment() {
         }
 
         binding.buttonGetFromATM.setOnClickListener {
-            viewModel.getBanknotesFromATM()
+            getBanknotesFromATM()
         }
 
         binding.buttonRequireBanknotes.setOnClickListener {
@@ -97,6 +97,18 @@ class WalletFragment : Fragment() {
             if (viewModel.isWalletRegistered()) mController.openSendFragment()
             else makeToast(getString(R.string.wallet_not_registered))
         }
+    }
+
+    private fun getBanknotesFromATM() {
+        viewModel.getBanknotesFromATM()
+
+        val myDialogFragment = AtmDialogFragment()
+        myDialogFragment.addOnCloseHandler {
+            viewModel.disconnectFromATM()
+        }
+
+        val transaction = requireActivity().supportFragmentManager.beginTransaction()
+        myDialogFragment.show(transaction, "dialog")
     }
 
     override fun onDestroyView() {

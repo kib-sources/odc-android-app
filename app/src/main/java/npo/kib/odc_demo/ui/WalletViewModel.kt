@@ -61,4 +61,8 @@ class WalletViewModel(application: Application) : AndroidViewModel(application) 
             }
         }
     }
+
+    fun disconnectFromATM() {
+        p2pUseCase.stopDiscovery()
+    }
 }
