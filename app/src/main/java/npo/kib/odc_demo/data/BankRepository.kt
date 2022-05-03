@@ -1,8 +1,11 @@
 package npo.kib.odc_demo.data
 
 import android.content.Context
+import android.util.Log
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.stateIn
 import npo.kib.odc_demo.core.Wallet
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.core.models.Banknote
@@ -15,6 +18,7 @@ import npo.kib.odc_demo.data.models.BanknoteRaw
 import npo.kib.odc_demo.data.models.IssueRequest
 import npo.kib.odc_demo.data.models.ReceiveRequest
 import npo.kib.odc_demo.data.models.ServerConnectionStatus
+import npo.kib.odc_demo.myLogs
 
 class BankRepository(context: Context) {
 
@@ -27,6 +31,8 @@ class BankRepository(context: Context) {
     private val bankApi = RetrofitFactory.getBankApi()
 
     suspend fun getSum() = banknotesDao.getStoredSum()
+
+    fun getSumAsFlow() = banknotesDao.getStoredSumAsFlow()
 
     /**
      * Receiving banknotes from the bank
@@ -68,6 +74,7 @@ class BankRepository(context: Context) {
                 }
             }
         } catch (e: Exception) {
+            myLogs(e)
             return ServerConnectionStatus.ERROR
         }
         return ServerConnectionStatus.SUCCESS

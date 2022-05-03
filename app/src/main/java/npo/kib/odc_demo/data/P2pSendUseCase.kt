@@ -41,13 +41,13 @@ open class P2pSendUseCase(
         }
 
         // Отправка суммы и первой банкноты
-        p2p.send(serializer.toJson(PayloadContainer(amount = amount)).encodeToByteArray())
+        p2p.send(serializer.toCbor(PayloadContainer(amount = amount)))
         sendBanknoteWithBlockchain(sendingList.poll())
 
         for (i in 0 until blockchainArray.size) {
             // Ждем выполнения шагов 2-4
             val bytes = p2p.receivedBytes.take(1).first()
-            val container = serializer.toObject(bytes.decodeToString())
+            val container = serializer.toObject(bytes)
             if (container.blocks == null) {
                 _requiringStatusFlow.update { RequiringStatus.REJECT }
                 return
@@ -96,8 +96,8 @@ open class P2pSendUseCase(
         banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock = newProtectedBlock
 
         val payloadContainer = PayloadContainer(banknoteWithBlockchain = banknoteWithBlockchain)
-        val blockchainJson = serializer.toJson(payloadContainer)
-        p2p.send(blockchainJson.encodeToByteArray())
+        val blockchainJson = serializer.toCbor(payloadContainer)
+        p2p.send(blockchainJson)
 
         //Запоминаем отправленный parentBlock для последующей верификации
         sentBlock = banknoteWithBlockchain.blocks.last()
@@ -136,7 +136,7 @@ open class P2pSendUseCase(
 
     private fun sendChildBlockFull(childBlock: Block) {
         val payloadContainer = PayloadContainer(childFull = childBlock)
-        val blockchainJson = serializer.toJson(payloadContainer)
-        p2p.send(blockchainJson.encodeToByteArray())
+        val blockchainJson = serializer.toCbor(payloadContainer)
+        p2p.send(blockchainJson)
     }
 }

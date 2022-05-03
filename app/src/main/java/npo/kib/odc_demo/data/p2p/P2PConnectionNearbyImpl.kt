@@ -3,6 +3,7 @@ package npo.kib.odc_demo.data.p2p
 import android.content.Context
 import android.util.Log
 import androidx.preference.PreferenceManager
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.nearby.Nearby
 import com.google.android.gms.nearby.connection.*
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +13,7 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
+import npo.kib.odc_demo.myLogs
 
 // Имплементация расширенного интерфейс p2p соеденений на базе Google Nearby Connections API
 class P2PConnectionNearbyImpl(context: Context) : P2pConnectionBidirectional {
@@ -44,6 +46,8 @@ class P2PConnectionNearbyImpl(context: Context) : P2pConnectionBidirectional {
             .addOnSuccessListener {
                 _searchingStatusFlow.update { SearchingStatus.ADVERTISING }
             }.addOnFailureListener {
+                val exception = it as ApiException
+                myLogs(exception.status)
                 _searchingStatusFlow.update { SearchingStatus.FAILURE }
             }
     }

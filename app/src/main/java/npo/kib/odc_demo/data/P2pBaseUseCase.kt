@@ -73,7 +73,7 @@ abstract class P2pBaseUseCase(context: Context) {
     }
 
     fun sendRejection() {
-        p2p.send(serializer.toJson(PayloadContainer()).encodeToByteArray())
+        p2p.send(serializer.toCbor(PayloadContainer()))
         _amountRequestFlow.update { null }
     }
 
@@ -93,7 +93,7 @@ abstract class P2pBaseUseCase(context: Context) {
     }
 
     private fun CoroutineScope.onConnected() = p2p.receivedBytes
-        .map { serializer.toObject(it.decodeToString()) }
+        .map { serializer.toObject(it) }
         .onEach { myLogs(it) }
         .onEach { bytes -> onBytesReceive(bytes) }
         .launchIn(this)

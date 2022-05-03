@@ -1,10 +1,9 @@
 package npo.kib.odc_demo.data.p2p
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.decodeFromString
+import com.upokecenter.cbor.CBORObject
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
@@ -16,16 +15,20 @@ import java.util.*
 
 class ObjectSerializer {
 
-    val json = Json {
+    private val json = Json {
         ignoreUnknownKeys = true
     }
 
-    fun toObject(stringValue: String): PayloadContainer {
-        return json.decodeFromString(stringValue,)
+    //Kotlin Cbor serializer не преобразовывал вложенные классы в PayloadContainer,
+    // поэтому используется сторонняя библиотека
+    fun toObject(bytes: ByteArray): PayloadContainer {
+        val cbor = CBORObject.DecodeFromBytes(bytes)
+        return json.decodeFromString(cbor.ToJSONString())
     }
 
-    fun toJson(payloadContainer: PayloadContainer): String {
-        return json.encodeToString(payloadContainer)
+    fun toCbor(payloadContainer: PayloadContainer): ByteArray {
+        val jsonString = json.encodeToString(payloadContainer)
+        return CBORObject.FromJSONString(jsonString).EncodeToBytes()
     }
 }
 

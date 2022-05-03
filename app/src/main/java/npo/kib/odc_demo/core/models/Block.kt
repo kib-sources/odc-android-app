@@ -8,12 +8,15 @@ import androidx.room.*
 import androidx.room.ForeignKey.CASCADE
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
+import npo.kib.odc_demo.core.Crypto.sha256
+import npo.kib.odc_demo.core.Crypto.toHex
 import npo.kib.odc_demo.core.checkHashes
 import npo.kib.odc_demo.core.getStringPem
 import npo.kib.odc_demo.data.db.BlockchainConverter
 import npo.kib.odc_demo.data.p2p.PublicKeySerializerNotNull
 import npo.kib.odc_demo.data.p2p.UUIDSerializer
 import npo.kib.odc_demo.data.p2p.UUIDSerializerNotNull
+import npo.kib.odc_demo.myLogs
 import java.security.PublicKey
 import java.util.*
 

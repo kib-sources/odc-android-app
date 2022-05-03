@@ -2,8 +2,8 @@
     <string name="cancel">Отмена</string>
     <string name="receive">Принять</string>
     <string name="wallet_send">Отдать</string>
-    <string name="issue_banknotes">Выпустить банкноты</string>
-    <string name="get_banknotes_from_atm">Снять с банкомата</string>
+    <string name="issue_banknotes">Выпустить банкноты с сервера</string>
+    <string name="get_banknotes_from_atm">Снять с банкомата по Wi-FI</string>
     <string name="settings">Настройки</string>
     <string name="base_header">Базовые</string>
     <string name="username_title">Имя пользователя</string>
@@ -18,7 +18,7 @@
     <string name="connection_error">Ошибка подключения</string>
     <string name="accept_connection_to">"Принять подключение к пользователю "</string>
     <string name="make_sure">"Убедитесь, что код совпадает на обоих устройствах: "</string>
-    <string name="location_denied">Необходимо разрешение на определение местоположения</string>
+    <string name="permissions_denied">Для передачи банкнот необходимо разрешения</string>
     <string name="allow_perm_in_settings">Пожалуйста, предоставьте его в Настройках</string>
     <string name="permission_rejected">Вы не сможете обмениваться банкнотами, пока не предоставите разрешение на местоположение</string>
     <string name="insufficient_funds">Недостаточно средств</string>
@@ -39,4 +39,6 @@
     <string name="your_balance_rubles">Ваш баланс: %1$d ₽</string>
     <string name="receive_title">Получить банкноты или отправить запрос</string>
     <string name="request_banknotes_description">Пользователь %1$s (wid: %2$s) хочет принять у вас</string>
+    <string name="get_banknotes_from_atm_by_nfc">Снять с банкомата по NFC</string>
+    <string name="serviceDescription">Получение банкнот с банкомата по NFC</string>
 </resources>
