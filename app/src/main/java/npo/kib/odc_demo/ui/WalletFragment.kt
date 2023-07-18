@@ -85,7 +85,11 @@ class WalletFragment : Fragment() {
         }
 
         binding.buttonGetFromATM.setOnClickListener {
-            viewModel.getBanknotesFromATM()
+            viewModel.getBanknotesFromAtmByTcp()
+        }
+
+        binding.buttonGetByNfc.setOnClickListener {
+            viewModel.getBanknotesFromAtmByNfc()
         }
 
         binding.buttonRequireBanknotes.setOnClickListener {

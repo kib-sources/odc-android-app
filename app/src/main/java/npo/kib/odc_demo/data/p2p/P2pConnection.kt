@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import npo.kib.odc_demo.data.models.ConnectingStatus
 import npo.kib.odc_demo.data.models.SearchingStatus
 
-// Базоый интерфейс для p2p соеденений
+// Базовый интерфейс для p2p соеденений
 interface P2pConnection {
     val connectionResult: StateFlow<ConnectingStatus>
     val searchingStatusFlow: StateFlow<SearchingStatus>

@@ -4,8 +4,8 @@
     <string name="cancel">Cancel</string>
     <string name="receive">Receive</string>
     <string name="wallet_send">Give away</string>
-    <string name="issue_banknotes">Issue banknotes</string>
-    <string name="get_banknotes_from_atm">Get from atm</string>
+    <string name="issue_banknotes">Issue banknotes from server</string>
+    <string name="get_banknotes_from_atm">Get from ATM via Wi-Fi</string>
     <string name="settings">Settings</string>
 
     <string name="base_header">Base</string>
@@ -38,7 +38,7 @@
     <string name="your_balance_rubles">Ваш баланс: %1$d ₽</string>
     <string name="accept_connection_to">Accept user connection</string>
     <string name="make_sure">Make sure the code is the same on both devices:</string>
-    <string name="location_denied">Location permission required</string>
+    <string name="permissions_denied">Permissions required</string>
     <string name="allow_perm_in_settings">Please provide it in Settings</string>
     <string name="permission_rejected">You will not be able to exchange banknotes until you provide location permission</string>
     <string name="insufficient_funds">Insufficient funds</string>
@@ -46,4 +46,7 @@
     <string name="sending_completed">Банкноты успешно отправлены</string>
     <string name="request_banknotes_description">User %1$s (wid: %2$s) wants to accept</string>
     <string name="default_username" translatable="false">User</string>
+    <string name="title_activity_compose" translatable="false">ComposeActivity</string>
+    <string name="serviceDescription">Receiving banknotes from ATM</string>
+    <string name="get_banknotes_from_atm_by_nfc">Get from ATM via NFC</string>
 </resources>

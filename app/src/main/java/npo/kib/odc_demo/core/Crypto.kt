@@ -81,10 +81,10 @@ object Crypto {
         return publicSignature.verify(signatureBytes)
     }
 
-    private fun String.sha256(): ByteArray =
+    fun String.sha256(): ByteArray =
         MessageDigest.getInstance("SHA-256").digest(toByteArray())
 
-    private fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
+    fun ByteArray.toHex(): String = joinToString("") { "%02x".format(it) }
 }
 
 /**

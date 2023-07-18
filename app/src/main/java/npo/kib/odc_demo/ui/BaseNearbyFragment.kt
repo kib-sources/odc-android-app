@@ -57,16 +57,33 @@ abstract class BaseNearbyFragment : Fragment() {
     protected abstract fun onPermissionRejected()
 
     protected fun askForPermissions(): Boolean {
-        val permission =
+        val locationPermission =
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) Manifest.permission.ACCESS_FINE_LOCATION
             else Manifest.permission.ACCESS_COARSE_LOCATION
 
+        val permissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val bluetoothAdvertisePermission = Manifest.permission.BLUETOOTH_ADVERTISE
+            val bluetoothConnectPermission = Manifest.permission.BLUETOOTH_CONNECT
+            val bluetoothScanPermission = Manifest.permission.BLUETOOTH_SCAN
+            arrayOf(
+                locationPermission,
+                bluetoothAdvertisePermission,
+                bluetoothConnectPermission,
+                bluetoothScanPermission
+            )
+        } else {
+            arrayOf(locationPermission)
+        }
+
+
         if (!isPermissionsAllowed()) {
-            if (shouldShowRequestPermissionRationale(permission)) {
-                showPermissionDeniedDialog()
-            } else {
-                activityResultLauncher.launch(arrayOf(permission))
+            permissions.forEach { permission ->
+                if (shouldShowRequestPermissionRationale(permission)) {
+                    showPermissionDeniedDialog()
+                    return false
+                }
             }
+            activityResultLauncher.launch(permissions)
             return false
         }
         return true
@@ -74,7 +91,7 @@ abstract class BaseNearbyFragment : Fragment() {
 
     private fun showPermissionDeniedDialog() {
         AlertDialog.Builder(requireContext())
-            .setTitle(getString(R.string.location_denied))
+            .setTitle(getString(R.string.permissions_denied))
             .setMessage(getString(R.string.allow_perm_in_settings))
             .setPositiveButton(getString(R.string.settings)) { _, _ ->
                 val intent = Intent()
@@ -99,9 +116,25 @@ abstract class BaseNearbyFragment : Fragment() {
         }
 
     private fun isPermissionsAllowed(): Boolean {
-        return ContextCompat.checkSelfPermission(
+        var isAllowed = ContextCompat.checkSelfPermission(
             requireActivity(),
             Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            isAllowed = isAllowed &&
+                    ContextCompat.checkSelfPermission(
+                        requireActivity(),
+                        Manifest.permission.BLUETOOTH_ADVERTISE
+                    ) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(
+                        requireActivity(),
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ) == PackageManager.PERMISSION_GRANTED &&
+                    ContextCompat.checkSelfPermission(
+                        requireActivity(),
+                        Manifest.permission.BLUETOOTH_SCAN
+                    ) == PackageManager.PERMISSION_GRANTED
+        }
+        return isAllowed
     }
 }

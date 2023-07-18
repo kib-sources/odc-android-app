@@ -10,7 +10,6 @@ import npo.kib.odc_demo.data.models.PayloadContainer
 import npo.kib.odc_demo.data.models.RequiringStatus
 import npo.kib.odc_demo.data.p2p.P2PConnectionNearbyImpl
 import npo.kib.odc_demo.data.p2p.P2pConnection
-import npo.kib.odc_demo.data.p2p.P2pConnectionTcpImpl
 import npo.kib.odc_demo.myLogs
 
 class P2pReceiveUseCase(
@@ -35,8 +34,8 @@ class P2pReceiveUseCase(
                 wid = wallet.wid
             )
         )
-        val amountJson = serializer.toJson(payloadContainer)
-        p2p.send(amountJson.encodeToByteArray())
+        val amountJson = serializer.toCbor(payloadContainer)
+        p2p.send(amountJson)
     }
 
     override suspend fun onBytesReceive(container: PayloadContainer) {
@@ -71,8 +70,8 @@ class P2pReceiveUseCase(
         //Шаг 4
         val childBlocksPair = wallet.acceptanceInit(blocks, protectedBlockPart)
         val payloadContainer = PayloadContainer(blocks = childBlocksPair)
-        val blockchainJson = serializer.toJson(payloadContainer)
-        p2p.send(blockchainJson.encodeToByteArray())
+        val blockchainJson = serializer.toCbor(payloadContainer)
+        p2p.send(blockchainJson)
 
         //Шаг 3: Запоминаем блокчейн для добавления в бд в случае успешной верификации
         banknoteToDB = BanknoteWithProtectedBlock(
