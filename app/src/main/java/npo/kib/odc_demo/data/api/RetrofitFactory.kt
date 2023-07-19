@@ -7,8 +7,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitFactory {
 
-//    private const val URL = "http://31.186.250.158:80"
-    private const val URL = "http://192.168.0.101"
+    private const val URL = "http://10.0.2.2:80"
 
     private var bankApi: BankApi? = null
 
