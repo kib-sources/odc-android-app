@@ -5,7 +5,7 @@
 package npo.kib.odc_demo.core.models
 
 import androidx.room.*
-import androidx.room.ForeignKey.CASCADE
+import androidx.room.ForeignKey.Companion.CASCADE
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.core.Crypto
 import npo.kib.odc_demo.core.Crypto.sha256

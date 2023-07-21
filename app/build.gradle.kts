@@ -3,17 +3,18 @@ plugins {
     id("kotlin-android")
     id("org.jetbrains.kotlin.kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
+//    id("com.google.dagger.hilt.android")
 }
 
-val compose_version = "1.1.1"
 
 android {
-    compileSdk = 31
+    namespace = "npo.kib.odc_demo"
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "npo.kib.odc_demo"
-        minSdk = 23
-        targetSdk = 31
+        minSdk = 25
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -53,7 +54,7 @@ android {
         jvmTarget = "1.8"
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = compose_version
+        kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtensionVersion
     }
     packagingOptions {
         resources {
@@ -63,65 +64,99 @@ android {
 }
 
 dependencies {
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.0-alpha06")
-    implementation("androidx.lifecycle:lifecycle-extensions:2.2.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.5.0-alpha06")
-    implementation("androidx.preference:preference-ktx:1.2.0")
+    //AndroidX
+    implementation(AndroidX.lifecycleViewmodel)
+    implementation(AndroidX.lifecycleExtensions)
+    implementation(AndroidX.lifecycleRuntime)
+    implementation(AndroidX.preferenceKtx)
+    implementation(AndroidX.legacySupport)
+    implementation(AndroidX.coreKtx)
+    implementation(AndroidX.appCompat)
+    implementation(AndroidX.constraintLayout)
+//
+//    //Compose
+    implementation(platform(Compose.composeBOM))
+//
+    implementation(Compose.ui)
+    implementation(Compose.uiToolingPreview)
+    implementation(Compose.activity)
+    implementation(Compose.navigation)
+    //Material
+    implementation(Compose.material2)
+//    implementation(Compose.material3)
+    implementation (Google.material)
+//
+    debugImplementation(Compose.uiTooling)
+//
+    //Coroutines
+    implementation(Coroutines.coroutinesAndroid)
 
-    //Compose
-    implementation("androidx.compose.ui:ui:$compose_version")
-    implementation("androidx.compose.material:material:$compose_version")
-    implementation("androidx.compose.ui:ui-tooling-preview:$compose_version")
-    implementation("androidx.activity:activity-compose:1.3.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:$compose_version")
-    //implementation "npo.kib.odc:odc-kotlin-core:0.2"
-
-    val nav_version = "2.4.2"
-
-    implementation("androidx.navigation:navigation-compose:$nav_version")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.0")
+    //Serialization
+    implementation(Serialization.serialization)
+    implementation(Serialization.googleGson)
 
     //CBOR
-    implementation("com.upokecenter:cbor:4.5.2")
+    implementation(CBOR.cbor)
 
-    implementation("androidx.core:core-ktx:1.7.0")
-    implementation("androidx.appcompat:appcompat:1.4.1")
-    implementation("com.google.android.material:material:1.5.0")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.3")
-
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.9.2")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.5.0")
+    //Retrofit
+    implementation(Retrofit.retrofit)
+    implementation(Retrofit.gsonConverter)
+    implementation(Retrofit.okHttp)
+    implementation(Retrofit.okHttpLoggingInterfceptor)
 
     //Nearby
-    implementation("com.google.android.gms:play-services-nearby:18.1.0")
+    implementation(Google.playServicesNearby)
 
-    implementation("com.github.kittinunf.fuel:fuel:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-android:2.3.1")
-    implementation("com.github.kittinunf.fuel:fuel-coroutines:2.3.1")
-    implementation("com.google.code.gson:gson:2.8.6")
+    //HTTP networking
+    implementation(Kittinunf.fuel)
+    implementation(Kittinunf.fuelAndroid)
+    implementation(Kittinunf.fuelCoroutines)
 
-    implementation("org.bouncycastle:bcprov-jdk15on:1.56")
-    implementation("org.bouncycastle:bcpkix-jdk15on:1.56")
-    debugImplementation("androidx.compose.ui:ui-tooling:$compose_version")
+    //Cryptography. Check vulnerability reports on Maven periodically.
+    implementation(BouncyCastle.bcprov)
+    implementation(BouncyCastle.bcpkix)
 
-    val room_version = "2.4.2"
-    implementation("androidx.room:room-runtime:$room_version")
-    implementation("androidx.room:room-ktx:$room_version")
-    annotationProcessor("androidx.room:room-compiler:$room_version")
+    //Room
+    implementation(Room.roomRuntime)
+    implementation(Room.roomKtx)
+    kapt(Room.roomCompiler)
 
-    // optional - Test helpers
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.3")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.4.0")
-    kapt("androidx.room:room-compiler:$room_version")
+//    //Dagger-Hilt
+//    implementation(DaggerHilt.hiltAndroid)
+//    kapt(DaggerHilt.hiltCompiler)
+//
+//    // Testing
+//    testImplementation(Compose.composeBOM)
+//    androidTestImplementation(Compose.composeBOM)
+//
+//    // Hilt testing dependency
+//    androidTestImplementation (Testing.hiltTesting)
+//    // Make Hilt generate code in the androidTest folder
+//    kaptAndroidTest(DaggerHilt.hiltCompiler)
+//
+//
+//    testImplementation(Testing.junit4)
+//    testImplementation(Testing.junitAndroidExt)
+//    testImplementation(Testing.truth)
+//    testImplementation(Testing.coroutines)
+//    testImplementation(Testing.turbine)
+//    testImplementation(Testing.composeUiTest)
+//    testImplementation(Testing.mockk)
+//    testImplementation(Testing.mockWebServer)
+//
+//    androidTestImplementation(Testing.junit4)
+//    androidTestImplementation(Testing.junitAndroidExt)
+//    androidTestImplementation(Testing.truth)
+//    androidTestImplementation(Testing.coroutines)
+//    androidTestImplementation(Testing.turbine)
+//    androidTestImplementation(Testing.composeUiTest)
+//    androidTestImplementation(Testing.mockkAndroid)
+//    androidTestImplementation(Testing.mockWebServer)
+//
+//
+//    androidTestImplementation(Testing.testRunner)
 }
 
-kapt {
-    correctErrorTypes = true
-}
+//kapt {
+//    correctErrorTypes = true
+//}

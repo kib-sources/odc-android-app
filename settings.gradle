@@ -15,3 +15,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "OpenDigitalCash"
 include ':app'
+//include ':p2p'
