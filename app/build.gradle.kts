@@ -2,21 +2,21 @@ plugins {
     id("com.android.application")
     id("kotlin-android")
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
-//    id("com.google.dagger.hilt.android")
 }
 
 
 android {
     namespace = "npo.kib.odc_demo"
-    compileSdk = 34
+    compileSdk = ProjectConfig.compileSdk
 
     defaultConfig {
-        applicationId = "npo.kib.odc_demo"
-        minSdk = 25
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        applicationId = ProjectConfig.appId
+        minSdk = ProjectConfig.minSdk
+        targetSdk = ProjectConfig.targetSdk
+        versionCode = ProjectConfig.versionCode
+        versionName = ProjectConfig.versionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -54,7 +54,7 @@ android {
         jvmTarget = "1.8"
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtensionVersion
+        kotlinCompilerExtensionVersion = Compose.kotlinCompilerExtensionVersion
     }
     packagingOptions {
         resources {
@@ -73,21 +73,25 @@ dependencies {
     implementation(AndroidX.coreKtx)
     implementation(AndroidX.appCompat)
     implementation(AndroidX.constraintLayout)
-//
-//    //Compose
+
+    //Compose
     implementation(platform(Compose.composeBOM))
-//
+
     implementation(Compose.ui)
     implementation(Compose.uiToolingPreview)
-    implementation(Compose.activity)
+    implementation(Compose.activityCompose)
+    implementation(Compose.viewModelCompose)
+    implementation(Compose.runtime)
     implementation(Compose.navigation)
-    //Material
+    implementation(Compose.hiltNavigationCompose)
     implementation(Compose.material2)
-//    implementation(Compose.material3)
+    implementation(Compose.material3)
+
+    //Material
     implementation (Google.material)
-//
+
     debugImplementation(Compose.uiTooling)
-//
+
     //Coroutines
     implementation(Coroutines.coroutinesAndroid)
 
@@ -121,9 +125,9 @@ dependencies {
     implementation(Room.roomKtx)
     kapt(Room.roomCompiler)
 
-//    //Dagger-Hilt
-//    implementation(DaggerHilt.hiltAndroid)
-//    kapt(DaggerHilt.hiltCompiler)
+    //Dagger-Hilt
+    implementation(DaggerHilt.hiltAndroid)
+    kapt(DaggerHilt.hiltCompiler)
 //
 //    // Testing
 //    testImplementation(Compose.composeBOM)

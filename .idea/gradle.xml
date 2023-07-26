@@ -12,6 +12,33 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
             <option value="$PROJECT_DIR$/buildSrc" />
+            <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/core/design_system" />
+            <option value="$PROJECT_DIR$/core/p2p" />
+            <option value="$PROJECT_DIR$/core/p2p/generic" />
+            <option value="$PROJECT_DIR$/core/p2p/implementations" />
+            <option value="$PROJECT_DIR$/core/p2p/implementations/bluetooth" />
+            <option value="$PROJECT_DIR$/core/p2p/implementations/nearby" />
+            <option value="$PROJECT_DIR$/core/p2p/implementations/nfc" />
+            <option value="$PROJECT_DIR$/core/remote_server" />
+            <option value="$PROJECT_DIR$/core/remote_server/domain" />
+            <option value="$PROJECT_DIR$/core/ui" />
+            <option value="$PROJECT_DIR$/core/util" />
+            <option value="$PROJECT_DIR$/feature" />
+            <option value="$PROJECT_DIR$/feature/history" />
+            <option value="$PROJECT_DIR$/feature/history/presentation" />
+            <option value="$PROJECT_DIR$/feature/home_screen" />
+            <option value="$PROJECT_DIR$/feature/home_screen/presentation" />
+            <option value="$PROJECT_DIR$/feature/log_in" />
+            <option value="$PROJECT_DIR$/feature/log_in/presentation" />
+            <option value="$PROJECT_DIR$/feature/request_money" />
+            <option value="$PROJECT_DIR$/feature/request_money/presentation" />
+            <option value="$PROJECT_DIR$/feature/send_money" />
+            <option value="$PROJECT_DIR$/feature/send_money/presentation" />
+            <option value="$PROJECT_DIR$/feature/settings" />
+            <option value="$PROJECT_DIR$/feature/settings/presentation" />
+            <option value="$PROJECT_DIR$/feature/top_up" />
+            <option value="$PROJECT_DIR$/feature/top_up/presentation" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />
