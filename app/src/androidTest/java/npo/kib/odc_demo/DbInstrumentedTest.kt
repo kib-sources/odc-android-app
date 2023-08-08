@@ -4,7 +4,8 @@ import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.runBlocking
-import npo.kib.odc_demo.data.db.BlockchainDatabase
+import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
+import npo.kib.odc_demo.common.util.myLogs
 import org.junit.Test
 import org.junit.runner.RunWith
 
