@@ -82,8 +82,8 @@ dependencies {
     implementation(Compose.activity)
     implementation(Compose.navigation)
     //Material
-    implementation(Compose.material2)
-//    implementation(Compose.material3)
+//    implementation(Compose.material2)
+    implementation(Compose.material3)
     implementation (Google.material)
 //
     debugImplementation(Compose.uiTooling)
@@ -121,9 +121,9 @@ dependencies {
     implementation(Room.roomKtx)
     kapt(Room.roomCompiler)
 
-//    //Dagger-Hilt
-//    implementation(DaggerHilt.hiltAndroid)
-//    kapt(DaggerHilt.hiltCompiler)
+    //Dagger-Hilt
+    implementation(DaggerHilt.hiltAndroid)
+    kapt(DaggerHilt.hiltCompiler)
 //
 //    // Testing
 //    testImplementation(Compose.composeBOM)
