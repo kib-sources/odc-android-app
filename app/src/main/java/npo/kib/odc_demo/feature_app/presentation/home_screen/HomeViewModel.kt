@@ -3,19 +3,22 @@ package npo.kib.odc_demo.feature_app.presentation.home_screen
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.data.BankRepository
+import npo.kib.odc_demo.feature_app.data.repositories.BankRepository
 import npo.kib.odc_demo.feature_app.data.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.data.models.types.RequiringStatus
-import npo.kib.odc_demo.feature_app.data.models.types.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.P2PConnectionNfcImpl
+import javax.inject.Inject
 
-class HomeViewModel(application: Application) : AndroidViewModel(application) {
+@HiltViewModel
+class HomeViewModel @Inject constructor(application: Application) : AndroidViewModel(application) {
     private val repository = BankRepository(application)
 
 //    private val p2pTcp: P2PConnection = P2PConnectionTcpImpl(application, "192.168.0.105")

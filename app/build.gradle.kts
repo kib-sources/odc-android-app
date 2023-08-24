@@ -3,7 +3,7 @@ plugins {
     id("kotlin-android")
     id("org.jetbrains.kotlin.kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
-//    id("com.google.dagger.hilt.android")
+    id("com.google.dagger.hilt.android")
 }
 
 
@@ -47,11 +47,11 @@ android {
         compose = true
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     composeOptions {
         kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtensionVersion
@@ -81,6 +81,10 @@ dependencies {
     implementation(Compose.uiToolingPreview)
     implementation(Compose.activity)
     implementation(Compose.navigation)
+
+    //ConstraintLayout
+    implementation(Compose.constraintLayoutCompose)
+
     //Material
 //    implementation(Compose.material2)
     implementation(Compose.material3)
@@ -124,6 +128,7 @@ dependencies {
     //Dagger-Hilt
     implementation(DaggerHilt.hiltAndroid)
     kapt(DaggerHilt.hiltCompiler)
+    implementation(DaggerHilt.hiltNavigationCompose)
 //
 //    // Testing
 //    testImplementation(Compose.composeBOM)

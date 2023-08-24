@@ -2,12 +2,15 @@ package npo.kib.odc_demo.feature_app.presentation.send_screen
 
 import android.app.Application
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.data.P2PSendUseCase
 import npo.kib.odc_demo.feature_app.presentation.nearby_screen.BaseNearbyViewModel
+import javax.inject.Inject
 
-class SendViewModel(application: Application) : BaseNearbyViewModel(application) {
+@HiltViewModel
+class SendViewModel @Inject constructor(application: Application) : BaseNearbyViewModel(application) {
     override val p2pUseCase = P2PSendUseCase(application)
     val amountRequestFlow = p2pUseCase.amountRequestFlow
     val isSendingFlow = p2pUseCase.isSendingFlow

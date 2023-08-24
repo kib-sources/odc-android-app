@@ -5,6 +5,7 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import npo.kib.odc_demo.feature_app.domain.use_cases.p2p.P2PUseCases
 import javax.inject.Singleton
 
 @Module
@@ -16,11 +17,8 @@ object AppModule {
     fun provideWallet() {
     }
 
-//    @Singleton
-//    @Provides
-//    fun provideRetrofitFactory() {
-//    }
-//
+
+
 
 
     //BlockchainDatabase with BlockDao, BanknotesDao
@@ -39,6 +37,11 @@ object AppModule {
     @Singleton
     @Provides
     fun provideBankApi() {
+    }
+
+    @Singleton
+    @Provides
+    fun provideRetrofitFactory() {
     }
     @Singleton
     @Provides
@@ -74,13 +77,19 @@ object AppModule {
 
     ){}
 
+    @Singleton
+    @Provides
+    fun provideP2PUseCases() {
+        return P2PUseCases(openP2PConnection(),
+            closeP2PConnection())
+    }
 
     @Provides
     @Singleton
     fun provideAppUseCases(repository: someRepository): FeatureAppUseCases {
         return FeatureAppUseCases(
-            openP2PConnection(),
-            closeP2PConnection()
+
         )
     }
-}*/
+}
+*/

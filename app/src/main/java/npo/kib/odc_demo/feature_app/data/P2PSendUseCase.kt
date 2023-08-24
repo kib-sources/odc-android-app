@@ -6,10 +6,10 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
 import npo.kib.odc_demo.common.core.models.Block
-import npo.kib.odc_demo.feature_app.data.models.AmountRequest
-import npo.kib.odc_demo.feature_app.data.models.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.data.models.PayloadContainer
-import npo.kib.odc_demo.feature_app.data.models.types.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
 import npo.kib.odc_demo.feature_app.data.p2p.P2PConnectionBidirectional
 import npo.kib.odc_demo.feature_app.data.p2p.nearby.P2PConnectionNearbyImpl
 

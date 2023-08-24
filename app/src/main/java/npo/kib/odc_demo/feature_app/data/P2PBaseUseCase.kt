@@ -17,13 +17,14 @@ import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.util.myLogs
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
-import npo.kib.odc_demo.feature_app.data.models.AmountRequest
-import npo.kib.odc_demo.feature_app.data.models.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.data.models.ConnectingStatus
-import npo.kib.odc_demo.feature_app.data.models.PayloadContainer
-import npo.kib.odc_demo.feature_app.data.models.types.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
+import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
 import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer
+import npo.kib.odc_demo.feature_app.data.repositories.WalletRepository
 import java.util.LinkedList
 
 abstract class P2PBaseUseCase(context: Context) {

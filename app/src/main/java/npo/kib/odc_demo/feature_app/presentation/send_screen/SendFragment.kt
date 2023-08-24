@@ -11,9 +11,9 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.common.util.collectFlow
-import npo.kib.odc_demo.feature_app.data.models.AmountRequest
-import npo.kib.odc_demo.feature_app.data.models.ConnectingStatus
-import npo.kib.odc_demo.feature_app.data.models.types.SearchingStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
 import npo.kib.odc_demo.databinding.SendFragmentBinding
 import npo.kib.odc_demo.common.util.makeToast
 import npo.kib.odc_demo.feature_app.presentation.nearby_screen.BaseNearbyFragment

@@ -9,7 +9,7 @@ import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
 import npo.kib.odc_demo.common.core.getString
 import npo.kib.odc_demo.common.core.loadPublicKey
-import npo.kib.odc_demo.feature_app.data.models.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
 import java.security.PublicKey
 import java.util.*
 

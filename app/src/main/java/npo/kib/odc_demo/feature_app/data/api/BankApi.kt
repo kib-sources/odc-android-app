@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.feature_app.data.api
 
-import npo.kib.odc_demo.feature_app.data.models.*
+import npo.kib.odc_demo.feature_app.domain.model.serialization.*
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
@@ -18,3 +18,4 @@ interface BankApi {
     @POST("/receive-banknote")
     suspend fun receiveBanknote(@Body ir: ReceiveRequest): ReceiveResponse
 }
+

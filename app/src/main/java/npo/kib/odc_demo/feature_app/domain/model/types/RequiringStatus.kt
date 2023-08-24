@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data.models.types
+package npo.kib.odc_demo.feature_app.domain.model.types
 
 enum class RequiringStatus {
     NONE,

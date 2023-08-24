@@ -2,6 +2,7 @@ package npo.kib.odc_demo.ui.theme
 
 
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.material3.darkColorScheme
@@ -75,8 +76,9 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun ODCAppTheme(
-    useDarkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable() () -> Unit
+//    useDarkTheme: Boolean = isSystemInDarkTheme(),
+    useDarkTheme: Boolean = false,
+    content: @Composable () -> Unit
 ) {
     val colors = if (useDarkTheme) {
         DarkColors
@@ -87,7 +89,7 @@ fun ODCAppTheme(
     MaterialTheme(
         colorScheme = colors,
         typography = Typography,
-        shapes = Shapes ,
+        shapes = Shapes,
         content = content
     )
 }

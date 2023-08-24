@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data
+package npo.kib.odc_demo.feature_app.data.repositories
 
 import android.content.Context
 import kotlinx.coroutines.async
@@ -11,10 +11,10 @@ import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.core.models.ProtectedBlock
 import npo.kib.odc_demo.feature_app.data.api.RetrofitFactory
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
-import npo.kib.odc_demo.feature_app.data.models.BanknoteRaw
-import npo.kib.odc_demo.feature_app.data.models.IssueRequest
-import npo.kib.odc_demo.feature_app.data.models.ReceiveRequest
-import npo.kib.odc_demo.feature_app.data.models.types.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.BanknoteRaw
+import npo.kib.odc_demo.feature_app.domain.model.serialization.IssueRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.ReceiveRequest
+import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
 import npo.kib.odc_demo.common.util.myLogs
 
 class BankRepository(context: Context) {

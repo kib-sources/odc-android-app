@@ -4,10 +4,10 @@ import android.content.Context
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.common.core.models.Block
-import npo.kib.odc_demo.feature_app.data.models.AmountRequest
-import npo.kib.odc_demo.feature_app.data.models.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.data.models.PayloadContainer
-import npo.kib.odc_demo.feature_app.data.models.types.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
 import npo.kib.odc_demo.feature_app.data.p2p.nearby.P2PConnectionNearbyImpl
 import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
 import npo.kib.odc_demo.common.util.myLogs

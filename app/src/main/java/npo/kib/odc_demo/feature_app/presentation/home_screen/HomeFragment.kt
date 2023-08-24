@@ -9,9 +9,10 @@ import androidx.lifecycle.ViewModelProvider
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.feature_app.presentation.SwitcherInterface
 import npo.kib.odc_demo.common.util.collectFlow
-import npo.kib.odc_demo.feature_app.data.models.types.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
 import npo.kib.odc_demo.databinding.WalletFragmentBinding
 import npo.kib.odc_demo.common.util.makeToast
+import javax.inject.Inject
 
 class HomeFragment : Fragment() {
 
@@ -25,7 +26,10 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    private lateinit var viewModel: HomeViewModel
+    //    private lateinit var viewModel: HomeViewModel
+    @Inject
+    lateinit var viewModel: HomeViewModel
+
     private lateinit var mController: SwitcherInterface
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -61,11 +65,13 @@ class HomeFragment : Fragment() {
                 ServerConnectionStatus.LOADING -> {
                     binding.progressBar.visibility = View.VISIBLE
                 }
+
                 ServerConnectionStatus.ERROR -> {
                     binding.progressBar.visibility = View.INVISIBLE
                     makeToast(getString(R.string.connection_error))
                     viewModel.updateSum()
                 }
+
                 ServerConnectionStatus.WALLET_ERROR -> makeToast(getString(R.string.wallet_not_registered))
                 ServerConnectionStatus.SUCCESS -> {
                     binding.progressBar.visibility = View.INVISIBLE

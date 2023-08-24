@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import kotlinx.coroutines.flow.Flow
-import npo.kib.odc_demo.feature_app.data.models.Amounts
+import npo.kib.odc_demo.feature_app.domain.model.room.Amounts
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 
 @Dao

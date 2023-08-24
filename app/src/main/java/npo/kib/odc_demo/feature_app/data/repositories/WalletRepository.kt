@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data
+package npo.kib.odc_demo.feature_app.data.repositories
 
 import android.content.Context
 import android.util.Log
@@ -11,7 +11,7 @@ import npo.kib.odc_demo.common.core.getStringPem
 import npo.kib.odc_demo.common.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.data.api.RetrofitFactory
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
-import npo.kib.odc_demo.feature_app.data.models.WalletRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.WalletRequest
 import java.security.PrivateKey
 import java.security.PublicKey
 

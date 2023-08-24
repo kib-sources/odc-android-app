@@ -7,7 +7,9 @@ sealed class Screen(val route: String) {
         object RequestNFC : P2PScreen("request_nfc")
         object TopUpNFC : P2PScreen("top_up_nfc")
     }
-    object SettingsScreen : Screen(route = "settings")
+    object SettingsScreen : Screen(route = "settings_sreen")
+
+    object HistoryScreen : Screen(route = "history_screen")
 }
 
 val requestNFC = Screen.P2PScreen.RequestNFC.route
