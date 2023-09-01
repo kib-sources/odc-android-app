@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import dagger.hilt.android.AndroidEntryPoint
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.feature_app.presentation.request_screen.RequestFragment
-import npo.kib.odc_demo.feature_app.presentation.send_screen.SendFragment
-import npo.kib.odc_demo.feature_app.presentation.settings_screen.SettingsFragment
-import npo.kib.odc_demo.feature_app.presentation.home_screen.HomeFragment
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.request_screen.RequestFragment
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.send_screen.SendFragment
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_screen.SettingsFragment
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeFragment
 
 //@AndroidEntryPoint
 class MainActivity : AppCompatActivity(), SwitcherInterface {

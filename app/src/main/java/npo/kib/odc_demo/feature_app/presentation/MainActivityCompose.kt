@@ -11,7 +11,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,11 +21,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import dagger.hilt.android.AndroidEntryPoint
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.AppTopBar
-import npo.kib.odc_demo.feature_app.presentation.home_screen.HomeScreen
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeScreen
 import npo.kib.odc_demo.feature_app.presentation.navigation.BottomNavigationBar
-import npo.kib.odc_demo.feature_app.presentation.navigation.Screen
-import npo.kib.odc_demo.feature_app.presentation.send_screen.SendScreen
-import npo.kib.odc_demo.feature_app.presentation.settings_screen.SettingsScreen
+import npo.kib.odc_demo.feature_app.presentation.navigation.ScreenRoutes
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.send_screen.SendScreen
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_screen.SettingsScreen
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 
@@ -37,7 +37,7 @@ class MainActivityCompose : ComponentActivity() {
             ODCAppTheme {
                 val navController = rememberNavController()
 
-                var bottomBarSelectedItem by remember { mutableStateOf(Screen.HomeScreen.route) }
+                var bottomBarSelectedItem by rememberSaveable { mutableStateOf(ScreenRoutes.HomeScreen.route) }
 
                 BoxWithConstraints {
                     val topBarHeightPercentage = maxHeight * 0.1f
@@ -46,17 +46,14 @@ class MainActivityCompose : ComponentActivity() {
                     Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
                         AppTopBar(modifier = Modifier.height(topBarHeightPercentage))
                     }, bottomBar = {
-                        BottomNavigationBar(/*getCurrentDestination =
-                                            navController::getCurrentDestination,*/
-//                                            { Screen.SettingsScreen.route },
-                                            selectedItem = bottomBarSelectedItem,
-                                            updateSelectedItem = { bottomBarSelectedItem = it},
-                            onClickHome = {
+                        BottomNavigationBar(selectedItem = bottomBarSelectedItem,
+                                            updateSelectedItem = { bottomBarSelectedItem = it },
+                                            onClickHome = {
+                                                navController.navigateToScreenOnce(
+                                                    ScreenRoutes.HomeScreen.route)
+                                            }, onClickSettings = {
                                 navController.navigateToScreenOnce(
-                                    Screen.HomeScreen.route)
-                            }, onClickSettings = {
-                                navController.navigateToScreenOnce(
-                                    Screen.SettingsScreen.route)
+                                    ScreenRoutes.SettingsScreen.route)
                             }, modifier = Modifier.height(
                                 bottomBarHeightPercentage))
                     }) { paddingValues ->
@@ -64,36 +61,34 @@ class MainActivityCompose : ComponentActivity() {
 
                             NavHost(
                                 navController = navController,
-                                startDestination = Screen.HomeScreen.route) {
-                                composable(Screen.HomeScreen.route) {
-                                    HomeScreen(onClickButton3 = {
-                                        bottomBarSelectedItem = Screen.P2PScreen.SendNFC.route
+                                startDestination = ScreenRoutes.HomeScreen.route) {
+                                composable(ScreenRoutes.HomeScreen.route) {
+                                    HomeScreen(navController = navController, onClickButton3 = {
+                                        bottomBarSelectedItem = ScreenRoutes.P2PScreen.SendNFC.route
                                         navController.navigateToScreenOnce(
-                                            route = Screen.P2PScreen.SendNFC.route)
+                                            route = ScreenRoutes.P2PScreen.SendNFC.route)
                                     })
                                 }
-                                composable(Screen.SettingsScreen.route) {
+                                composable(ScreenRoutes.SettingsScreen.route) {
                                     SettingsScreen(onBackClick = navController::navigateUp)
                                 }
-                                composable(Screen.HistoryScreen.route) {
+                                composable(ScreenRoutes.HistoryScreen.route) {
 
                                 }
-                                composable(Screen.P2PScreen.SendNFC.route) {
+                                composable(ScreenRoutes.P2PScreen.SendNFC.route) {
                                     SendScreen(
                                         onClick = navController::navigateUp)
                                 }
 
-                            composable(Screen.P2PScreen.RequestNFC.route) {
+                                composable(ScreenRoutes.P2PScreen.RequestNFC.route) {
 
-                            }
-                            composable(Screen.P2PScreen.TopUpNFC.route) {
+                                }
+                                composable(ScreenRoutes.P2PScreen.ATM.route) {
 
-                            }
+                                }
                             }
                             //log in/register todo
-//                        composable(Screen.P2PScreen.SendNFC.route) {
-//                            SettingsScreen(onBackClick = {})
-//                        }
+//
                         }
                     }
                 }
@@ -109,9 +104,8 @@ private fun NavController.navigateToScreenOnce(route: String) {
 }
 
 
-private fun NavController.getCurrentDestination(): String {
-    return if (currentDestination?.route == null) "null_route" else currentDestination!!.route!!
-}
+private fun NavController.getCurrentDestination(): String =
+    currentDestination?.route ?: "null_route"
 
 
 @Preview(showSystemUi = false)
@@ -129,8 +123,8 @@ fun HomeScreenPreview() {
 //                            .padding(15.dp)
                          )
             }, bottomBar = {
-                BottomNavigationBar(/*getCurrentDestination = { Screen.HomeScreen.route },*/
-                                    selectedItem = Screen.HomeScreen.route,
+                BottomNavigationBar(/*getCurrentDestination = { ScreenRoutes.HomeScreen.route },*/
+                                    selectedItem = ScreenRoutes.HomeScreen.route,
                                     updateSelectedItem = {},
                                     modifier = Modifier.height(bottomBarHeightPercentage),
                                     onClickHome = {},

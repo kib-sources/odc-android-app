@@ -5,9 +5,10 @@
     <string name="issue_banknotes">Выпустить банкноты с сервера</string>
     <string name="get_banknotes_from_atm">Снять с банкомата по Wi-FI</string>
     <string name="settings">Настройки</string>
+    <string name="home">Главная страница</string>
     <string name="base_header">Базовые</string>
     <string name="username_title">Имя пользователя</string>
-    <string name="send_title">Отправить банкноты или ответить на запрос</string>
+    <string name="send_screen_title">Отправить банкноты или ответить на запрос</string>
     <string name="require">Запросить</string>
     <string name="send">Отправить</string>
     <string name="enter_sum_to_receive">Введите сумму для получения</string>
@@ -37,8 +38,9 @@
     <string name="connecting_disconnected">Соединение разорвано. Поиск нового устройства</string>
     <string name="wallet_not_registered">Кошелёк не зарегистрирован</string>
     <string name="your_balance_rubles">Ваш баланс: %1$d ₽</string>
-    <string name="receive_title">Получить банкноты или отправить запрос</string>
+    <string name="receive_screen_title">Получить банкноты или отправить запрос</string>
     <string name="request_banknotes_description">Пользователь %1$s (wid: %2$s) хочет принять у вас</string>
     <string name="get_banknotes_from_atm_by_nfc">Снять с банкомата по NFC</string>
     <string name="serviceDescription">Получение банкнот с банкомата по NFC</string>
+    <string name="atm_screen_title">Пополнить с банкомата</string>
 </resources>

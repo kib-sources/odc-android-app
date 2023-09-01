@@ -6,14 +6,16 @@
     <string name="wallet_send">Give away</string>
     <string name="issue_banknotes">Issue banknotes from server</string>
     <string name="get_banknotes_from_atm">Get from ATM via Wi-Fi</string>
+    <string name="atm_screen_title">Top up</string>
     <string name="settings">Settings</string>
+    <string name="home">Home</string>
 
     <string name="base_header">Base</string>
     <string name="username_title">Username</string>
 
     <string name="username_key" translatable="false">username</string>
-    <string name="send_title">Send banknotes or respond to a request</string>
-    <string name="receive_title">Receive banknotes or send a request</string>
+    <string name="send_screen_title">Send banknotes or respond to a request</string>
+    <string name="receive_screen_title">Receive banknotes or send a request</string>
     <string name="require">Request</string>
     <string name="send">Send</string>
     <string name="enter_sum_to_receive">Enter the amount to receive</string>

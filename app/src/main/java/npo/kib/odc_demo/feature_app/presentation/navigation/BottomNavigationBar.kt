@@ -10,10 +10,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -21,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.ui.theme.CustomColors
 
@@ -47,10 +42,10 @@ fun BottomNavigationBar(selectedItem: String,
                     end = Offset.Infinite)), containerColor = Color.Transparent) {
             //Home
             NavigationBarItem(modifier = Modifier.weight(1f),
-                              selected = (selectedItem == Screen.HomeScreen.route),
+                              selected = (selectedItem == ScreenRoutes.HomeScreen.route),
                               onClick = {
-//                                  selectedItem = Screen.HomeScreen.route
-                                  updateSelectedItem(Screen.HomeScreen.route)
+//                                  selectedItem = ScreenRoutes.HomeScreen.route
+                                  updateSelectedItem(ScreenRoutes.HomeScreen.route)
                                   onClickHome()
                               },
                               alwaysShowLabel = false,
@@ -66,10 +61,10 @@ fun BottomNavigationBar(selectedItem: String,
             }
             //Settings
             NavigationBarItem(modifier = Modifier.weight(1f),
-                              selected = (selectedItem == Screen.SettingsScreen.route),
+                              selected = (selectedItem == ScreenRoutes.SettingsScreen.route),
                               onClick = {
-//                                  selectedItem = Screen.SettingsScreen.route
-                                  updateSelectedItem(Screen.SettingsScreen.route)
+//                                  selectedItem = ScreenRoutes.SettingsScreen.route
+                                  updateSelectedItem(ScreenRoutes.SettingsScreen.route)
                                   onClickSettings()
                               },
                               alwaysShowLabel = false,
@@ -88,7 +83,7 @@ fun BottomNavigationBar(selectedItem: String,
 @Composable
 fun BottomNavigationBarPreview() {
     BottomNavigationBar(
-        selectedItem = Screen.HomeScreen.route,
+        selectedItem = ScreenRoutes.HomeScreen.route,
         updateSelectedItem = {},
         onClickHome = {},
         onClickSettings = {},
