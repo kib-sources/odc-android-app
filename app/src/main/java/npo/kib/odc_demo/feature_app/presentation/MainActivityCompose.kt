@@ -77,7 +77,7 @@ class MainActivityCompose : ComponentActivity() {
                                 }
                                 composable(ScreenRoutes.P2PScreen.SendNFC.route) {
                                     SendScreen(
-                                        onClick = navController::navigateUp)
+                                        /*onClick = navController::navigateUp*/)
                                 }
 
                                 composable(ScreenRoutes.P2PScreen.RequestNFC.route) {
@@ -114,6 +114,7 @@ fun HomeScreenPreview() {
     ODCAppTheme {
         BoxWithConstraints(propagateMinConstraints = false) {
             val topBarHeightPercentage = maxHeight * 0.1f
+            val topBarWithBalanceBlockHeightPercentage = maxHeight * 0.25f
             val bottomBarHeightPercentage = maxHeight * 0.07f
 
 
@@ -122,6 +123,8 @@ fun HomeScreenPreview() {
                     modifier = Modifier.height(topBarHeightPercentage)
 //                            .padding(15.dp)
                          )
+//            AppTopBarWithBalanceBlock(modifier = Modifier.height(topBarWithBalanceBlockHeightPercentage))
+
             }, bottomBar = {
                 BottomNavigationBar(/*getCurrentDestination = { ScreenRoutes.HomeScreen.route },*/
                                     selectedItem = ScreenRoutes.HomeScreen.route,

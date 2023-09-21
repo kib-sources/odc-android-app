@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
 import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnectionBidirectional
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectional
 import npo.kib.odc_demo.common.util.myLogs
 
 // Имплементация расширенного интерфейс p2p соеденений на базе Google Nearby Connections API

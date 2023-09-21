@@ -6,8 +6,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.runBlocking
-import npo.kib.odc_demo.feature_app.data.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.data.p2p.tcp.P2PConnectionTcpImpl
 import npo.kib.odc_demo.common.util.myLogs
 import org.junit.Test

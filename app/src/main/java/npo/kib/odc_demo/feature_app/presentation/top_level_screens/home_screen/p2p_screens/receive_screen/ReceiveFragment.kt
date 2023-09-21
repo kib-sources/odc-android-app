@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.request_screen
+package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.receive_screen
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -15,10 +15,10 @@ import npo.kib.odc_demo.databinding.ReceiveFragmentBinding
 import npo.kib.odc_demo.common.util.makeToast
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.nearby_screen.BaseNearbyFragment
 
-class RequestFragment : BaseNearbyFragment() {
+class ReceiveFragment : BaseNearbyFragment() {
 
     companion object {
-        fun newInstance() = RequestFragment()
+        fun newInstance() = ReceiveFragment()
     }
 
     private var _binding: ReceiveFragmentBinding? = null
@@ -27,7 +27,7 @@ class RequestFragment : BaseNearbyFragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    override lateinit var viewModel: RequestViewModel
+    override lateinit var viewModel: ReceiveViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,7 +40,7 @@ class RequestFragment : BaseNearbyFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel = ViewModelProvider(this)[RequestViewModel::class.java]
+        viewModel = ViewModelProvider(this)[ReceiveViewModel::class.java]
         viewModel.getCurrentSum()
 
         viewLifecycleOwner.collectFlow(viewModel.sum) {

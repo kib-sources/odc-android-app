@@ -2,22 +2,20 @@ package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.data.P2PBaseUseCase
-import npo.kib.odc_demo.feature_app.data.repositories.WalletRepository
-import javax.inject.Inject
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 
-
-abstract class BaseNearbyViewModel(application: Application) : AndroidViewModel(application) {
+// TODO: Read about Hilt's @AssistedInject
+abstract class BaseNearbyViewModel(private val walletRepository: WalletRepository) : ViewModel() {
 
     protected abstract val p2pUseCase: P2PBaseUseCase
-    private val walletRepository = WalletRepository(application)
 
     val connectionResult by lazy { p2pUseCase.connectionResult }
     val searchingStatusFlow by lazy { p2pUseCase.searchingStatusFlow }

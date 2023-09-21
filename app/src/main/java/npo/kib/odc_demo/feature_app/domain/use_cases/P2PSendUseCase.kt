@@ -1,22 +1,23 @@
-package npo.kib.odc_demo.feature_app.data
+package npo.kib.odc_demo.feature_app.domain.use_cases
 
-import android.content.Context
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
 import npo.kib.odc_demo.common.core.models.Block
+import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnectionBidirectional
-import npo.kib.odc_demo.feature_app.data.p2p.nearby.P2PConnectionNearbyImpl
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectional
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
-open class P2PSendUseCase(
-    context: Context,
-    override val p2p: P2PConnectionBidirectional = P2PConnectionNearbyImpl(context),
-) : P2PBaseUseCase(context) {
+class P2PSendUseCase(
+    blockchainDatabase: BlockchainDatabase, walletRepository: WalletRepository,
+    override val p2p: P2PConnectionBidirectional,
+    /*override val p2p: P2PConnectionBidirectional = P2PConnectionNearbyImpl(context)*/
+                    ) : P2PBaseUseCase(blockchainDatabase, walletRepository) {
 
     fun startAdvertising() {
         p2p.startAdvertising()
@@ -73,8 +74,8 @@ open class P2PSendUseCase(
                 BanknoteWithBlockchain(
                     banknotesDao.getBlockchainByBnid(banknoteAmount.bnid),
                     blockDao.getBlocksByBnid(banknoteAmount.bnid)
-                )
-            )
+                                      )
+                               )
 
             amount -= banknoteAmount.amount
             if (amount <= 0) break
@@ -116,7 +117,8 @@ open class P2PSendUseCase(
         val currentAmount = walletRepository.getStoredInWalletSum() ?: 0
         if (requiredAmount <= currentAmount) {
             _amountRequestFlow.update { amountRequest }
-        } else {
+        }
+        else {
             sendRejection()
         }
     }
@@ -127,7 +129,7 @@ open class P2PSendUseCase(
             sentBlock,
             acceptanceBlocks.childBlock,
             acceptanceBlocks.protectedBlock
-        )
+                                             )
         banknotesDao.deleteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
         sendBanknoteWithBlockchain(sendingList.poll())

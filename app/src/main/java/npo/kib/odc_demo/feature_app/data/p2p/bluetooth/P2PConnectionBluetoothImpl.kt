@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
 import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import java.io.InputStream
 import java.util.*
 

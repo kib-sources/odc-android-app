@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model.room
+package npo.kib.odc_demo.feature_app.data.db
 
 import androidx.room.ColumnInfo
 

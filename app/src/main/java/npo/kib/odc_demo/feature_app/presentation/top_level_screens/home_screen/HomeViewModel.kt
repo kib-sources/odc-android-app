@@ -2,6 +2,7 @@ package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -9,23 +10,24 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.data.repositories.BankRepository
-import npo.kib.odc_demo.feature_app.data.P2PReceiveUseCase
+import npo.kib.odc_demo.feature_app.data.repositories.BankRepositoryImpl
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
 import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
 import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.P2PConnectionNfcImpl
+import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(application: Application) : AndroidViewModel(application) {
-    private val repository = BankRepository(application)
+class HomeViewModel @Inject constructor(private val repository: BankRepository,) : ViewModel() {
 
 //    private val p2pTcp: P2PConnection = P2PConnectionTcpImpl(application, "192.168.0.105")
 //    private val p2pTcpUseCase = P2PReceiveUseCase(application, p2pTcp)
 
+    //create separate useCase for NFC and add to FeatureAppUseCases
     private val p2pNfc: P2PConnection = P2PConnectionNfcImpl(application)
-    private val p2pNfcUseCase = P2PReceiveUseCase(application, p2pNfc)
+    private val p2pNfcUseCase = P2PReceiveUseCase(p2pNfc)
 
     private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
    // val sum: StateFlow<Int?> = _sum

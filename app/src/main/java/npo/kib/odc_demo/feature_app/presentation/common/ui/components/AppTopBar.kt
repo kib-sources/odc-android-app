@@ -3,19 +3,14 @@ package npo.kib.odc_demo.feature_app.presentation.common.ui.components
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,7 +23,9 @@ import npo.kib.odc_demo.R
 @Composable
 fun AppTopBar(modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.fillMaxWidth().padding(16.dp)
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp)
 
        ) {
         Column(
@@ -60,3 +57,13 @@ fun AppTopBar(modifier: Modifier = Modifier) {
                 .align(Alignment.CenterVertically)) {}
     }
 }
+
+//@Preview
+//@Composable
+//fun AppTopBarWithBalanceBlock(modifier: Modifier = Modifier) {
+//    Column(modifier = modifier, verticalArrangement = Arrangement.SpaceEvenly) {
+//        AppTopBar(modifier = Modifier.weight(1f))
+////        Spacer(modifier = Modifier.weight(0.5f))
+//        BalanceBlock(modifier = Modifier.align(CenterHorizontally).weight(1f))
+//    }
+//}

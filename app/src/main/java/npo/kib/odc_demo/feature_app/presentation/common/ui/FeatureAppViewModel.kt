@@ -9,6 +9,8 @@ import javax.inject.Inject
 @HiltViewModel
 class FeatureAppViewModel @Inject constructor() : ViewModel(){
 
+    //todo: balance and AppUser states for the balance block
+
 
 
 }

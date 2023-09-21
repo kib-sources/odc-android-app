@@ -1,6 +1,5 @@
 package npo.kib.odc_demo.feature_app.data.repositories
 
-import android.content.Context
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import npo.kib.odc_demo.common.core.Wallet
@@ -9,33 +8,32 @@ import npo.kib.odc_demo.common.core.models.Banknote
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.core.models.ProtectedBlock
-import npo.kib.odc_demo.feature_app.data.api.RetrofitFactory
+import npo.kib.odc_demo.common.util.myLogs
+import npo.kib.odc_demo.feature_app.data.api.BankApi
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BanknoteRaw
 import npo.kib.odc_demo.feature_app.domain.model.serialization.IssueRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.ReceiveRequest
 import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
-import npo.kib.odc_demo.common.util.myLogs
+import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
-class BankRepository(context: Context) {
+class BankRepositoryImpl(blockchainDatabase: BlockchainDatabase,
+                         private val walletRepository: WalletRepository,
+                         private val bankApi: BankApi) : BankRepository {
 
-    private val db = BlockchainDatabase.getInstance(context)
-    private val banknotesDao = db.banknotesDao()
-    private val blockDao = db.blockDao()
+    private val banknotesDao = blockchainDatabase.banknotesDao
+    private val blockDao = blockchainDatabase.blockDao
 
-    private val walletRepository = WalletRepository(context)
+    override suspend fun getSum() = banknotesDao.getStoredSum()
 
-    private val bankApi = RetrofitFactory.getBankApi()
-
-    suspend fun getSum() = banknotesDao.getStoredSum()
-
-    fun getSumAsFlow() = banknotesDao.getStoredSumAsFlow()
+    override fun getSumAsFlow() = banknotesDao.getStoredSumAsFlow()
 
     /**
      * Receiving banknotes from the bank
      * @param amount Required amount of banknotes
      */
-    suspend fun issueBanknotes(amount: Int): ServerConnectionStatus {
+    override suspend fun issueBanknotes(amount: Int): ServerConnectionStatus {
         val wallet = try {
             walletRepository.getOrRegisterWallet()
         } catch (e: Exception) {
@@ -62,7 +60,10 @@ class BankRepository(context: Context) {
                         BanknoteWithProtectedBlock(
                             banknote = banknote,
                             protectedBlock = protectedBlock
-                        ) to receiveBanknote(wallet, block, protectedBlock)
+                                                  ) to receiveBanknote(
+                            wallet,
+                            block,
+                            protectedBlock)
                     }
                 }.forEach {
                     val registered = it.await()
@@ -77,11 +78,13 @@ class BankRepository(context: Context) {
         return ServerConnectionStatus.SUCCESS
     }
 
+    override fun isWalletRegistered() = walletRepository.isWalletRegistered()
+
     private suspend fun receiveBanknote(
         wallet: Wallet,
         block: Block,
         protectedBlock: ProtectedBlock
-    ): Block {
+                                       ): Block {
         val request = ReceiveRequest(
             bnid = block.bnid,
             otok = block.otok.getStringPem(),
@@ -90,7 +93,7 @@ class BankRepository(context: Context) {
             transactionSign = protectedBlock.transactionSignature,
             uuid = block.uuid.toString(),
             wid = wallet.wid
-        )
+                                    )
         val response = bankApi.receiveBanknote(request)
         val fullBlock = Block(
             uuid = block.uuid,
@@ -101,7 +104,7 @@ class BankRepository(context: Context) {
             magic = response.magic,
             transactionHash = response.transactionHash,
             transactionHashSignature = response.transactionHashSigned
-        )
+                             )
         wallet.firstBlockVerification(fullBlock)
         return fullBlock
     }
@@ -115,9 +118,8 @@ class BankRepository(context: Context) {
                 bnid = it.bnid,
                 signature = it.signature,
                 time = it.time
-            )
+                    )
         }
     }
 
-    fun isWalletRegistered() = walletRepository.isWalletRegistered()
 }

@@ -12,7 +12,7 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.common.core.Crypto.toHex
 import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
 import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.model.NfcService
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceCommands
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceKeys

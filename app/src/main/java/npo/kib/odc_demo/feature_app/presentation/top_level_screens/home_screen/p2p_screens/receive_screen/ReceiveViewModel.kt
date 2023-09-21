@@ -1,16 +1,16 @@
-package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.request_screen
+package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.receive_screen
 
-import android.app.Application
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.data.P2PReceiveUseCase
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.use_cases.FeatureAppUseCases
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.nearby_screen.BaseNearbyViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class RequestViewModel @Inject constructor(application: Application) : BaseNearbyViewModel(application) {
-    override val p2pUseCase = P2PReceiveUseCase(application)
+class ReceiveViewModel @Inject constructor(walletRepository: WalletRepository, appUseCases: FeatureAppUseCases) : BaseNearbyViewModel(walletRepository) {
+    override val p2pUseCase = appUseCases.p2pReceiveUseCase
     val requiringStatusFlow = p2pUseCase.requiringStatusFlow
 
     fun startDiscovery() {

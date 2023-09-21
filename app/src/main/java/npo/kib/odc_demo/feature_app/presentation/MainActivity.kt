@@ -5,9 +5,8 @@ import android.view.Menu
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
-import dagger.hilt.android.AndroidEntryPoint
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.request_screen.RequestFragment
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.receive_screen.ReceiveFragment
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.p2p_screens.send_screen.SendFragment
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_screen.SettingsFragment
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeFragment
@@ -52,7 +51,7 @@ class MainActivity : AppCompatActivity(), SwitcherInterface {
 
     override fun openRequireFragment() {
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, RequestFragment.newInstance())
+            .replace(R.id.fragment_container, ReceiveFragment.newInstance())
             .addToBackStack(null)
             .commit()
     }

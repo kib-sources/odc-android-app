@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data
+package npo.kib.odc_demo.feature_app.domain.use_cases
 
 import android.content.Context
 import kotlinx.coroutines.flow.update
@@ -9,13 +9,18 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
 import npo.kib.odc_demo.feature_app.data.p2p.nearby.P2PConnectionNearbyImpl
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.common.util.myLogs
+import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectional
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import javax.inject.Inject
 
 class P2PReceiveUseCase(
-    context: Context,
-    override val p2p: P2PConnection = P2PConnectionNearbyImpl(context),
-) : P2PBaseUseCase(context) {
+    blockchainDatabase: BlockchainDatabase, walletRepository: WalletRepository,
+    override val p2p: P2PConnection,
+    /*override val p2p: P2PConnection = P2PConnectionNearbyImpl(context)*/
+                       ) : P2PBaseUseCase(blockchainDatabase, walletRepository) {
 
     fun startDiscovery() {
         p2p.startDiscovery()
@@ -32,8 +37,8 @@ class P2PReceiveUseCase(
                 amount = amount,
                 userName = walletRepository.userName,
                 wid = wallet.wid
-            )
-        )
+                                         )
+                                               )
         val amountJson = serializer.toCbor(payloadContainer)
         p2p.send(amountJson)
     }
@@ -77,7 +82,7 @@ class P2PReceiveUseCase(
         banknoteToDB = BanknoteWithProtectedBlock(
             banknote = banknoteWithBlockchain.banknoteWithProtectedBlock.banknote,
             protectedBlock = childBlocksPair.protectedBlock
-        )
+                                                 )
         blocksToDB = blocks
     }
 

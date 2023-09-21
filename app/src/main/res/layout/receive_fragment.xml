@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".feature_app.presentation.top_level_screens.home_screen.p2p_screens.request_screen.RequestFragment">
+    tools:context=".feature_app.presentation.top_level_screens.home_screen.p2p_screens.receive_screen.ReceiveFragment">
 
     <TextView
         android:id="@+id/billTitle"

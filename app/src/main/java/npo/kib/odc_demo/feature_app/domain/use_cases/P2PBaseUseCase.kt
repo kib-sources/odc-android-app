@@ -1,6 +1,5 @@
-package npo.kib.odc_demo.feature_app.data
+package npo.kib.odc_demo.feature_app.domain.use_cases
 
-import android.content.Context
 import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,17 +16,19 @@ import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.util.myLogs
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
+import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
 import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
-import npo.kib.odc_demo.feature_app.data.p2p.P2PConnection
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer
-import npo.kib.odc_demo.feature_app.data.repositories.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import java.util.LinkedList
 
-abstract class P2PBaseUseCase(context: Context) {
+//todo : Decouple domain from data by changing blockhainDatabase to an interface in domain.
+// BlockchainDatabase is currently referenced from data as a room db
+abstract class P2PBaseUseCase(blockchainDatabase: BlockchainDatabase, protected val walletRepository: WalletRepository) {
 
     abstract val p2p: P2PConnection
 
@@ -48,11 +49,12 @@ abstract class P2PBaseUseCase(context: Context) {
 
     protected val serializer = ObjectSerializer()
     private var job = Job() as Job
-    //I think it is better to inject BankRepository in the UseCase constructor and work with it
-    protected val banknotesDao = BlockchainDatabase.getInstance(context).banknotesDao()
-    protected val blockDao = BlockchainDatabase.getInstance(context).blockDao()
 
-    protected val walletRepository = WalletRepository(context)
+    //Using injected by Hilt BlockchainDatabase
+    protected val banknotesDao = blockchainDatabase.banknotesDao
+    protected val blockDao = blockchainDatabase.blockDao
+
+    //Using injected by Hilt WalletRepository to get the wallet later
     protected lateinit var wallet: Wallet
 
     protected val sendingList = LinkedList<BanknoteWithBlockchain>()
