@@ -29,7 +29,9 @@ buildscript{
 plugins {
     id("com.android.application") version Build.androidBuildToolsVersion apply false
     id("org.jetbrains.kotlin.android") version Kotlin.version apply false
-    id("org.jetbrains.kotlin.kapt") version Kotlin.version apply false
+//    id("org.jetbrains.kotlin.kapt") version Kotlin.version apply false
+    //KSP instead of Kapt for faster builds
+    id("com.google.devtools.ksp") version Build.KSPVersion apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "1.6.10" apply false
     id("com.google.dagger.hilt.android") version "2.47" apply false
 

@@ -1,7 +1,9 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    id("org.jetbrains.kotlin.kapt")
+//    id("org.jetbrains.kotlin.kapt")
+    //KSP instead of Kapt for faster builds
+    id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
 }
@@ -56,7 +58,7 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtensionVersion
     }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
@@ -86,7 +88,6 @@ dependencies {
     implementation(Compose.constraintLayoutCompose)
 
     //Material
-//    implementation(Compose.material2)
     implementation(Compose.material3)
     implementation (Google.material)
 //
@@ -123,11 +124,15 @@ dependencies {
     //Room
     implementation(Room.roomRuntime)
     implementation(Room.roomKtx)
-    kapt(Room.roomCompiler)
+    //KSP instead of Kapt for faster builds
+//    kapt(Room.roomCompiler)
+    ksp(Room.roomCompiler)
 
     //Dagger-Hilt
     implementation(DaggerHilt.hiltAndroid)
-    kapt(DaggerHilt.hiltCompiler)
+    //KSP instead of Kapt for faster builds
+//    kapt(DaggerHilt.hiltCompiler)
+    ksp(DaggerHilt.hiltCompiler)
     implementation(DaggerHilt.hiltNavigationCompose)
 //
 //    // Testing
@@ -164,4 +169,5 @@ dependencies {
 
 //kapt {
 //    correctErrorTypes = true
+//    useBuildCache = true
 //}
