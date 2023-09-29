@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.feature_app.presentation.SwitcherInterface
+import npo.kib.odc_demo.feature_app.presentation.common.SwitcherInterface
 import npo.kib.odc_demo.common.util.collectFlow
 import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
 import npo.kib.odc_demo.databinding.WalletFragmentBinding
@@ -94,9 +94,10 @@ class HomeFragment : Fragment() {
 //            viewModel.getBanknotesFromAtmByTcp()
 //        }
 
-        binding.buttonGetByNfc.setOnClickListener {
+        //todo uncomment
+        /*binding.buttonGetByNfc.setOnClickListener {
             viewModel.getBanknotesFromAtmByNfc()
-        }
+        }*/
 
         binding.buttonRequireBanknotes.setOnClickListener {
             if (viewModel.isWalletRegistered()) mController.openRequireFragment()

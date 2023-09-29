@@ -41,7 +41,7 @@ fun HomeScreen(modifier: Modifier = Modifier,
 
 @Preview(showSystemUi = false)
 @Composable
-fun HomePreview() {
+private fun HomePreview() {
     ODCAppTheme {
         HomeScreen()
     }

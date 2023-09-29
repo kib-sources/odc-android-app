@@ -23,7 +23,7 @@
         android:required="true" />
 
     <application
-        android:name=".ODCApp"
+        android:name=".feature_app.presentation.common.ODCApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
@@ -46,7 +46,7 @@
         </service>
 
         <activity
-            android:name=".feature_app.presentation.MainActivityCompose"
+            android:name=".feature_app.presentation.common.MainActivityCompose"
             android:exported="true"
             android:label="@string/title_activity_compose"
             android:theme="@style/Theme.Material3.Dark">

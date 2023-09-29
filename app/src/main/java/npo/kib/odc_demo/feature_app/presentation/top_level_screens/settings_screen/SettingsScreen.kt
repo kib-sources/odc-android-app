@@ -19,34 +19,37 @@ import androidx.compose.ui.unit.dp
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 import npo.kib.odc_demo.ui.theme.Shapes
 
+//todo create @Composable SettingsRoute() like in NIA (?)
 @Composable
 fun SettingsScreen(onBackClick: () -> Unit) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.surface) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Box(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.Center)
+                .fillMaxWidth()
+                .requiredHeight(50.dp)
+                .clip(shape = Shapes.medium)
+                .background(
+                    MaterialTheme.colorScheme.primaryContainer
+                )
+                .clickable(onClick = onBackClick)
+        ) {
+            Text(
+                text = "Settings", textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .fillMaxWidth(),
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
+            Text(
+                text = "Back", textAlign = TextAlign.Center,
                 modifier = Modifier
                     .align(Alignment.Center)
-                    .fillMaxWidth()
-                    .requiredHeight(50.dp)
-                    .clip(shape = Shapes.medium)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer
-                               )
-                    .clickable(onClick = onBackClick)
-               ) {
-                Text(
-                    text = "Back", textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                    )
-            }
+                    .fillMaxWidth(),
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
         }
     }
-
 }
 
 

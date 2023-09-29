@@ -23,4 +23,10 @@ object AndroidX {
     private const val constraintLayoutVer = "2.2.0-alpha10"
     const val constraintLayout = "androidx.constraintlayout:constraintlayout:$constraintLayoutVer"
 
+
+    //added for the enableEdgeToEdge() essentially, replacement for https://google.github.io/accompanist/systemuicontroller
+    private const val activityVer = "1.8.0-rc01"
+    const val activity = "androidx.activity:activity:$activityVer"
+
+
 }

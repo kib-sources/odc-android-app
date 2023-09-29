@@ -76,8 +76,7 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun ODCAppTheme(
-//    useDarkTheme: Boolean = isSystemInDarkTheme(),
-    useDarkTheme: Boolean = false,
+    useDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
     val colors = if (useDarkTheme) {

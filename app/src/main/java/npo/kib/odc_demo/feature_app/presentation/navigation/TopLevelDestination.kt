@@ -9,20 +9,17 @@ enum class TopLevelDestination(
     val unselectedIcon: Icon,
     val iconTextId: Int,
     val titleTextId: Int,
-    val route : String
-                              ) {
+) {
     HOME(
-        selectedIcon = Icon.DrawableResourceIcon(ODCIcons.HomeIcon),
-        unselectedIcon = Icon.DrawableResourceIcon(ODCIcons.HomeIconSelected),
+        unselectedIcon = Icon.DrawableResourceIcon(ODCIcons.HomeIcon),
+        selectedIcon = Icon.DrawableResourceIcon(ODCIcons.HomeIconSelected),
         iconTextId = R.string.home,
-        titleTextId = R.string.app_name,
-        route = ScreenRoutes.HomeScreen.route
-        ),
+        titleTextId = R.string.app_name
+    ),
     SETTINGS(
-        selectedIcon = Icon.DrawableResourceIcon(ODCIcons.SettingsIcon),
-        unselectedIcon = Icon.DrawableResourceIcon(ODCIcons.SettingsIconSelected),
+        unselectedIcon = Icon.DrawableResourceIcon(ODCIcons.SettingsIcon),
+        selectedIcon = Icon.DrawableResourceIcon(ODCIcons.SettingsIconSelected),
         iconTextId = R.string.settings,
-        titleTextId = R.string.settings,
-        route = ScreenRoutes.SettingsScreen.route
-            )
+        titleTextId = R.string.settings
+    )
 }

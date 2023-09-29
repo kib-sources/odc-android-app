@@ -75,24 +75,24 @@ dependencies {
     implementation(AndroidX.coreKtx)
     implementation(AndroidX.appCompat)
     implementation(AndroidX.constraintLayout)
-//
-//    //Compose
+    implementation(AndroidX.activity)
+
+    //Compose
     implementation(platform(Compose.composeBOM))
-//
+
     implementation(Compose.ui)
     implementation(Compose.uiToolingPreview)
     implementation(Compose.activity)
     implementation(Compose.navigation)
-
-    //ConstraintLayout
+    implementation(Compose.windowSizeClass)
     implementation(Compose.constraintLayoutCompose)
 
     //Material
     implementation(Compose.material3)
     implementation (Google.material)
-//
+
     debugImplementation(Compose.uiTooling)
-//
+
     //Coroutines
     implementation(Coroutines.coroutinesAndroid)
 
@@ -125,17 +125,19 @@ dependencies {
     implementation(Room.roomRuntime)
     implementation(Room.roomKtx)
     //KSP instead of Kapt for faster builds
-//    kapt(Room.roomCompiler)
+    //kapt(Room.roomCompiler)
     ksp(Room.roomCompiler)
 
     //Dagger-Hilt
     implementation(DaggerHilt.hiltAndroid)
     //KSP instead of Kapt for faster builds
-//    kapt(DaggerHilt.hiltCompiler)
+    //kapt(DaggerHilt.hiltCompiler)
     ksp(DaggerHilt.hiltCompiler)
     implementation(DaggerHilt.hiltNavigationCompose)
-//
-//    // Testing
+
+
+//    Testing
+
 //    testImplementation(Compose.composeBOM)
 //    androidTestImplementation(Compose.composeBOM)
 //
