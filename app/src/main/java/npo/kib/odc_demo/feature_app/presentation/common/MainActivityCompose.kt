@@ -19,7 +19,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import npo.kib.odc_demo.feature_app.presentation.common.ui.ODCApp
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCTopBar
-import npo.kib.odc_demo.feature_app.presentation.navigation.TopLevelDestination
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeScreen
 import npo.kib.odc_demo.ui.DevicePreviews
 import npo.kib.odc_demo.ui.ThemePreviews
@@ -88,7 +88,7 @@ private fun HomeScreenPreview() {
                 )
             }) { paddingValues ->
                 BoxWithConstraints(modifier = Modifier.padding(paddingValues = paddingValues)) {
-                    HomeScreen(modifier = Modifier)
+                    HomeScreen(modifier = Modifier, onHistoryClick = {})
 
                 }
             }

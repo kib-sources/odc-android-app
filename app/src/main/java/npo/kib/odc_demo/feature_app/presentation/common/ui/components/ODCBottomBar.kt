@@ -16,7 +16,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
-import npo.kib.odc_demo.feature_app.presentation.navigation.TopLevelDestination
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
 import npo.kib.odc_demo.ui.DevicePreviews
 import npo.kib.odc_demo.ui.Icon
 import npo.kib.odc_demo.ui.ThemePreviews

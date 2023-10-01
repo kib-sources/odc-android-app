@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCPlainBackground
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCTopBar
-import npo.kib.odc_demo.feature_app.presentation.navigation.ODCNavHost
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.ODCNavHost
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -37,7 +37,11 @@ fun ODCApp(
         BoxWithConstraints {
             val topBarHeightPercentage = maxHeight * 0.1f
             val bottomBarHeightPercentage = maxHeight * 0.11f
-
+            //fixme . LAST WORK FINISHED HERE
+            //todo read here https://developer.android.com/jetpack/compose/layouts/insets
+            // understand insets, and adapt the bottom bar size correctly.
+            // Need to have some background behind the system navigation, which will
+            // adapt if it collapses (gesture navigation)
             Scaffold(containerColor = Color.Transparent,
                      contentColor = MaterialTheme.colorScheme.onBackground,
                      contentWindowInsets = WindowInsets(0, 0, 0, 0),

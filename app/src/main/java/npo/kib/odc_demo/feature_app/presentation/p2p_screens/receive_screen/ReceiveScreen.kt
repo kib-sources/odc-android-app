@@ -1,7 +1,13 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.hilt.navigation.compose.hiltViewModel
 
 
@@ -13,6 +19,11 @@ fun ReceiveRoute(
 ){
     val receiveScreenUiState: ReceiveUiState = viewModel.receiveUiState
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        Surface(color = Color.Green, modifier = Modifier.fillMaxSize()) {
+        }
+        Text(text = "RECEIVE_SCREEN! ", modifier = Modifier.align(Alignment.Center))
+    }
 //    ReceiveScreen(receiveScreenUiState = )
 }
 

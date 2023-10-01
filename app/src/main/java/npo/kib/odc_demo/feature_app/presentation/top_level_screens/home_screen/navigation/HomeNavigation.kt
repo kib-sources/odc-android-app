@@ -15,7 +15,7 @@ fun NavController.navigateToHomeGraph(navOptions: NavOptions? = null) {
     this.navigate(HOME_GRAPH_ROUTE_PATTERN, navOptions)
 }
 
-fun NavGraphBuilder.homeGraph(
+fun NavGraphBuilder.homeGraph(onHistoryClick: () -> Unit,
     nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
     navigation(
@@ -23,7 +23,7 @@ fun NavGraphBuilder.homeGraph(
             startDestination = homeRoute
     ) {
         composable(route = homeRoute){
-            HomeScreen()
+            HomeScreen(onHistoryClick = onHistoryClick)
         }
         nestedGraphs()
     }

@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.p2p_screens.atm_screen
+package npo.kib.odc_demo.feature_app.presentation.top_level_screens.history_screen
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,11 +9,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
+//@Composable
+//fun HistoryScreenRoute() {
+//
+//}
+
 @Composable
-fun ATMScreen() {
+fun HistoryScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
-        Surface(color = Color.Blue, modifier = Modifier.fillMaxSize()) {
+        Surface(color = Color.LightGray, modifier = Modifier.fillMaxSize()) {
         }
-        Text(text = "ATM_SCREEN! ", modifier = Modifier.align(Alignment.Center))
+        Text(text = "HISTORY_SCREEN! ", modifier = Modifier.align(Alignment.Center))
     }
 }

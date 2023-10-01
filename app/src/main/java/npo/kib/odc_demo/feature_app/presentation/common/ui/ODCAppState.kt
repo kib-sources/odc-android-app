@@ -13,9 +13,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
-import npo.kib.odc_demo.feature_app.presentation.navigation.TopLevelDestination
-import npo.kib.odc_demo.feature_app.presentation.navigation.TopLevelDestination.HOME
-import npo.kib.odc_demo.feature_app.presentation.navigation.TopLevelDestination.SETTINGS
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination.HOME
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination.SETTINGS
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.navigation.homeRoute
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.navigation.navigateToHomeGraph
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_screen.navigation.navigateToSettingsScreen
@@ -78,10 +78,5 @@ class ODCAppState(
             SETTINGS -> navController.navigateToSettingsScreen()
         }
     }
-
-    fun onBackClick() {
-        navController.popBackStack()
-    }
-
 
 }

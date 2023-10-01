@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.navigation
+package npo.kib.odc_demo.feature_app.presentation.common.navigation
 
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.ui.Icon

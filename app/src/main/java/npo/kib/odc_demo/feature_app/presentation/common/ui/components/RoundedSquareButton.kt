@@ -75,9 +75,9 @@ fun RSBPreview(modifier: Modifier = Modifier, onClick3: () -> Unit = {}) {
 
 @Composable
 fun RoundedSquareButtonRow(modifier: Modifier = Modifier,
-        onclick1: () -> Unit = {},
-        onclick2: () -> Unit = {},
-        onClick3: () -> Unit = {}) {
+                           onclickATM: () -> Unit = {},
+                           onclickReceive: () -> Unit = {},
+                           onClickSend: () -> Unit = {}) {
     Row(
         modifier = modifier
             .requiredWidth(300.dp)
@@ -86,17 +86,17 @@ fun RoundedSquareButtonRow(modifier: Modifier = Modifier,
        ) {
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
-            onClick = onclick1,
+            onClick = onclickATM,
             iconImageResId = R.drawable.atm_top_up_icon
                            )
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
-            onClick = onclick2,
+            onClick = onclickReceive,
             iconImageResId = R.drawable.receive_money
                            )
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
-            onClick = onClick3,
+            onClick = onClickSend,
             iconImageResId = R.drawable.send_money
                            )
     }
