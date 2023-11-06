@@ -23,11 +23,13 @@ import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_scre
 
 
 @Composable
-fun rememberODCAppState(navController: NavHostController = rememberNavController() /*, currentAppUser: AppUser*/)
-        : ODCAppState {
+fun rememberODCAppState(navController: NavHostController = rememberNavController() /*, currentAppUser: AppUser*/): ODCAppState {
     return remember(navController/*,currentAppUser*/) { ODCAppState(navController/*, currentAppUser*/) }
 }
 
+//The invariants that this annotation implies are used for optimizations by the compose compiler,
+// and have undefined behavior if the above assumptions are not met.
+// As a result, one should not use this annotation unless they are certain that these conditions are satisfied.
 @Stable
 class ODCAppState(
     //Created on log in screen, need to set a default one temporarily
@@ -36,8 +38,7 @@ class ODCAppState(
 //    val windowSizeClass: WindowSizeClass add later if/when adapting UI to different screen classes is needed
 ) {
     val currentDestination: NavDestination?
-        @Composable get() = navController
-            .currentBackStackEntryAsState().value?.destination
+        @Composable get() = navController.currentBackStackEntryAsState().value?.destination
 
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
@@ -74,8 +75,8 @@ class ODCAppState(
 //             restoreState = true
         }
         when (topLevelDestination) {
-            HOME -> navController.navigateToHomeGraph()
-            SETTINGS -> navController.navigateToSettingsScreen()
+            HOME -> navController.navigateToHomeGraph(topLevelNavOptions)
+            SETTINGS -> navController.navigateToSettingsScreen(topLevelNavOptions)
         }
     }
 

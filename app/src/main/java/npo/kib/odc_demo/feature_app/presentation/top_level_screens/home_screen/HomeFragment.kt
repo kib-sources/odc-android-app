@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModelProvider
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.feature_app.presentation.common.SwitcherInterface
 import npo.kib.odc_demo.common.util.collectFlow
-import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.databinding.WalletFragmentBinding
 import npo.kib.odc_demo.common.util.makeToast
 import javax.inject.Inject
@@ -26,7 +26,7 @@ class HomeFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    //    private lateinit var viewModel: HomeViewModel
+
     @Inject
     lateinit var viewModel: HomeViewModel
 

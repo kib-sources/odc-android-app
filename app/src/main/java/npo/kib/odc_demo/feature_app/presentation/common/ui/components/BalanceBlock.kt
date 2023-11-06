@@ -41,6 +41,7 @@ import npo.kib.odc_demo.ui.theme.RobotoFont
 @Composable
 fun BalanceBlock(
     modifier: Modifier = Modifier,
+    balance : Int = 0,
     roundedCornerSize: Dp = 15.dp,
     userPhotoSmallComposable: @Composable () -> Unit = { UserPhotoSmall() },
     textColor: Color = Color.White,
@@ -70,7 +71,7 @@ fun BalanceBlock(
                 )
                 Text(
                     modifier = Modifier.weight(1f),
-                    text = "10 000 RUB",
+                    text = "$balance RUB",
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     fontSize = 24.sp,

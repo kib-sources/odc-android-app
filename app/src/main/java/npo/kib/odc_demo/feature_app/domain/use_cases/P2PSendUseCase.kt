@@ -5,27 +5,18 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
 import npo.kib.odc_demo.common.core.models.Block
-import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
-import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectional
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
 class P2PSendUseCase(
-    blockchainDatabase: BlockchainDatabase, walletRepository: WalletRepository,
-    override val p2p: P2PConnectionBidirectional,
-    /*override val p2p: P2PConnectionBidirectional = P2PConnectionNearbyImpl(context)*/
-                    ) : P2PBaseUseCase(blockchainDatabase, walletRepository) {
-
-    fun startAdvertising() {
-        p2p.startAdvertising()
-    }
-
-    fun stopAdvertising() {
-        p2p.stopAdvertising()
-    }
+    override val walletRepository: WalletRepository,
+    override val p2pConnection: P2PConnection,
+) : P2PBaseUseCase() {
 
     /**
      * Sending banknotes to another device
@@ -41,12 +32,12 @@ class P2PSendUseCase(
         }
 
         // Отправка суммы и первой банкноты
-        p2p.send(serializer.toCbor(PayloadContainer(amount = amount)))
+        p2pConnection.sendBytes(serializer.toCbor(PayloadContainer(amount = amount)))
         sendBanknoteWithBlockchain(sendingList.poll())
 
         for (i in 0 until blockchainArray.size) {
             // Ждем выполнения шагов 2-4
-            val bytes = p2p.receivedBytes.take(1).first()
+            val bytes = p2pConnection.receivedBytes.take(1).first()
             val container = serializer.toObject(bytes)
             if (container.blocks == null) {
                 _requiringStatusFlow.update { RequiringStatus.REJECT }
@@ -74,8 +65,8 @@ class P2PSendUseCase(
                 BanknoteWithBlockchain(
                     banknotesDao.getBlockchainByBnid(banknoteAmount.bnid),
                     blockDao.getBlocksByBnid(banknoteAmount.bnid)
-                                      )
-                               )
+                )
+            )
 
             amount -= banknoteAmount.amount
             if (amount <= 0) break
@@ -97,7 +88,7 @@ class P2PSendUseCase(
 
         val payloadContainer = PayloadContainer(banknoteWithBlockchain = banknoteWithBlockchain)
         val blockchainJson = serializer.toCbor(payloadContainer)
-        p2p.send(blockchainJson)
+        p2pConnection.sendBytes(blockchainJson)
 
         //Запоминаем отправленный parentBlock для последующей верификации
         sentBlock = banknoteWithBlockchain.blocks.last()
@@ -117,8 +108,7 @@ class P2PSendUseCase(
         val currentAmount = walletRepository.getStoredInWalletSum() ?: 0
         if (requiredAmount <= currentAmount) {
             _amountRequestFlow.update { amountRequest }
-        }
-        else {
+        } else {
             sendRejection()
         }
     }
@@ -129,7 +119,7 @@ class P2PSendUseCase(
             sentBlock,
             acceptanceBlocks.childBlock,
             acceptanceBlocks.protectedBlock
-                                             )
+        )
         banknotesDao.deleteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
         sendBanknoteWithBlockchain(sendingList.poll())
@@ -138,6 +128,6 @@ class P2PSendUseCase(
     private fun sendChildBlockFull(childBlock: Block) {
         val payloadContainer = PayloadContainer(childFull = childBlock)
         val blockchainJson = serializer.toCbor(payloadContainer)
-        p2p.send(blockchainJson)
+        p2pConnection.sendBytes(blockchainJson)
     }
 }

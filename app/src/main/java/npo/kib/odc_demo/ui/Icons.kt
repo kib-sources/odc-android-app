@@ -13,6 +13,9 @@ object ODCIcons {
     val P2PReceiveIcon = R.drawable.receive_money
     val P2PATMIcon = R.drawable.atm_top_up_icon
 
+    val bluetoothIcon = R.drawable.baseline_bluetooth_24
+    val bluetoothSearchingIcon = R.drawable.baseline_bluetooth_searching_24
+
 }
 
 

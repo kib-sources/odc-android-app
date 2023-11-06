@@ -14,16 +14,16 @@ import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BanknoteRaw
 import npo.kib.odc_demo.feature_app.domain.model.serialization.IssueRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.ReceiveRequest
-import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
-class BankRepositoryImpl(blockchainDatabase: BlockchainDatabase,
-                         private val walletRepository: WalletRepository,
-                         private val bankApi: BankApi) : BankRepository {
+class BankRepositoryImpl(override val walletRepository: WalletRepository) : BankRepository {
 
-    private val banknotesDao = blockchainDatabase.banknotesDao
-    private val blockDao = blockchainDatabase.blockDao
+    private val banknotesDao = walletRepository.blockchainDatabase.banknotesDao
+    private val blockDao = walletRepository.blockchainDatabase.blockDao
+
+    override val bankApi : BankApi = walletRepository.bankApi
 
     override suspend fun getSum() = banknotesDao.getStoredSum()
 

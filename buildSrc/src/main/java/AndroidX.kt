@@ -1,8 +1,11 @@
 object AndroidX {
-    private const val lifecycleVersion = "2.6.1"
+
+    private const val lifecycleVersion = "2.6.2"
 
     const val lifecycleViewmodel = "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion"
     const val lifecycleRuntime = "androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion"
+    //for the collectAsStateWithLifecycle()
+    const val lifecycleRuntimeCompose = "androidx.lifecycle:lifecycle-runtime-compose:$lifecycleVersion"
 
     private const val lifecycleExtensionsVersion = "2.2.0"
     const val lifecycleExtensions =

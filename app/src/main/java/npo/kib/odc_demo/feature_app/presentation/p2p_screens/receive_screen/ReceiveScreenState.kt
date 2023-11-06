@@ -1,5 +1,7 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
-data class ReceiveScreenState(val value1 : Int
+import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
 
-                             )
+data class ReceiveScreenState(
+    var localUser: AppUser, var remoteUser: AppUser? = null
+)

@@ -1,76 +1,104 @@
 package npo.kib.odc_demo.feature_app.data.p2p.bluetooth
 
-import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothSocket
 import android.content.Context
+import androidx.activity.result.ActivityResultRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
-import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
-import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.SearchingStatus
+import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectionalBluetooth
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import java.io.InputStream
-import java.util.*
+import javax.inject.Inject
 
-@Suppress("BlockingMethodInNonBlockingContext")
-class P2PConnectionBluetoothImpl(context: Context) : P2PConnection {
+class P2PConnectionBluetoothImpl @Inject constructor(
+    private val bluetoothController: BluetoothController, private val context: Context
+) : P2PConnectionBidirectionalBluetooth {
+
     private val _connectionResult: MutableStateFlow<ConnectingStatus> = MutableStateFlow(
-        ConnectingStatus.NoConnection)
+        ConnectingStatus.NoConnection
+    )
+
+    @Deprecated(
+        "use startAdvertising(registry: ActivityResultRegistry, duration: Int)",
+        ReplaceWith("startAdvertising(registry: ActivityResultRegistry, duration: Int)")
+    )
+    override fun startAdvertising() = Unit
+
+    @Deprecated(
+        "use stopAdvertising(registry: ActivityResultRegistry)",
+        ReplaceWith("stopAdvertising(registry: ActivityResultRegistry)")
+    )
+    override fun stopAdvertising() = Unit
+
+    override fun startAdvertising(registry: ActivityResultRegistry, duration: Int) {
+        bluetoothController.startAdvertising(registry, duration)
+    }
+
+    override fun stopAdvertising(registry: ActivityResultRegistry) {
+        bluetoothController.stopAdvertising(registry)
+    }
+
     override val connectionResult = _connectionResult.asStateFlow()
+
     private val _searchingStatusFlow: MutableStateFlow<SearchingStatus> = MutableStateFlow(
-        SearchingStatus.NONE)
+        SearchingStatus.NONE
+    )
     override val searchingStatusFlow = _searchingStatusFlow.asStateFlow()
+
     private val _receivedBytes = MutableSharedFlow<ByteArray>()
     override val receivedBytes = _receivedBytes.asSharedFlow()
 
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val serviceUUID = UUID.fromString("133f71c6-b7b6-437e-8fd1-d2f59cc76066")
-    private val adapter = BluetoothAdapter.getDefaultAdapter()
+
+
     private var connectedSocket: BluetoothSocket? = null
 
-    override fun startDiscovery() {
-        scope.launch {
-            if (!adapter.isEnabled) {
-                return@launch
-            }
 
-            val device = adapter.getRemoteDevice("AA:AA:AA:AA:AA:AA")
-            val bondingResult = runCatching { device.createBond() }
-            if (bondingResult.isFailure || !bondingResult.getOrDefault(false)) {
-                return@launch
-            }
+    override fun startDiscovery() {/*        scope.launch {
+                    if (!adapter.isEnabled) {
+                        return@launch
+                    }
 
-            val socket: BluetoothSocket = device.createRfcommSocketToServiceRecord(serviceUUID)
-            val connectionResult = runCatching { socket.connect() }
-            if (connectionResult.isFailure) {
-                return@launch
-            }
+                    val device = adapter.getRemoteDevice("AA:AA:AA:AA:AA:AA")
+                    val bondingResult = runCatching { device.createBond() }
+                    if (bondingResult.isFailure || !bondingResult.getOrDefault(false)) {
+                        return@launch
+                    }
 
-            connectedSocket = socket
-            readInputStream(socket.inputStream)
-        }
+                    val socket: BluetoothSocket = device.createRfcommSocketToServiceRecord(serviceUUID)
+                    val connectionResult = runCatching { socket.connect() }
+                    if (connectionResult.isFailure) {
+                        return@launch
+                    }
+
+                    connectedSocket = socket
+                    readInputStream(socket.inputStream)
+                }*/
+        bluetoothController.startDiscovery()
     }
 
     override fun stopDiscovery() {
-        connectedSocket?.close()
-        connectedSocket = null
-        _searchingStatusFlow.update { SearchingStatus.NONE }
+        bluetoothController.stopDiscovery()
+//        _searchingStatusFlow.update { SearchingStatus.NONE }
     }
 
-    override fun send(bytes: ByteArray) {
+    override fun sendBytes(bytes: ByteArray) {
         connectedSocket?.runCatching {
             val msg = (bytes.decodeToString() + "\n").encodeToByteArray()
             outputStream.write(msg)
-            outputStream.flush()
         }
     }
 
     private suspend fun readInputStream(inputStream: InputStream) {
         val reader = inputStream.bufferedReader()
-
-        runCatching {
-            while (connectedSocket?.isConnected == true) {
+        connectedSocket?.runCatching {
+            while (isConnected) {
                 val line = reader.readLine()
                 _receivedBytes.emit(line.encodeToByteArray())
             }
@@ -80,4 +108,7 @@ class P2PConnectionBluetoothImpl(context: Context) : P2PConnection {
     override fun acceptConnection() = Unit
 
     override fun rejectConnection() = Unit
+    override fun connectToDevice() {
+        TODO("Not yet implemented")
+    }
 }

@@ -12,8 +12,8 @@ import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.common.util.collectFlow
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
-import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
-import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.SearchingStatus
 import npo.kib.odc_demo.databinding.SendFragmentBinding
 import npo.kib.odc_demo.common.util.makeToast
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseNearbyFragment
@@ -45,7 +45,7 @@ class SendFragment : BaseNearbyFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[SendViewModel::class.java]
-        viewModel.getCurrentSum()
+        viewModel.updateCurrentSum()
         var currentAmount = 0
 
         viewLifecycleOwner.collectFlow(viewModel.amountRequestFlow) { request: AmountRequest? ->
@@ -135,7 +135,7 @@ class SendFragment : BaseNearbyFragment() {
                     }
 
                 ConnectingStatus.Disconnected -> {
-                    viewModel.getCurrentSum()
+                    viewModel.updateCurrentSum()
                     makeVisible(true)
                     binding.sendingStatusView.text =
                         getString(R.string.connecting_disconnected)

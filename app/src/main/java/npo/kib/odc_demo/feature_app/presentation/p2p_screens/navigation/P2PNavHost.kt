@@ -12,25 +12,25 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.navigat
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.navigation.sendScreen
 
 @Composable
-fun P2PNavHost(onHistoryClick: () -> Unit,
+fun P2PNavHost(modifier: Modifier = Modifier,
+               startingP2PRoute: String = p2pRootRoute,
+               onHistoryClick: () -> Unit,
                p2pCommonState: P2PCommonState,
-               modifier: Modifier = Modifier,
                startDestination: String = p2pSelectionGraphRoutePattern
 ) {
     val navController = p2pCommonState.navController
     NavHost(
         navController = navController, startDestination = startDestination, modifier = modifier
     ) {
-        p2pSelectionGraph(
-            onHistoryClick = onHistoryClick,
-            onATMButtonClick = navController::navigateToATMScreen,
-            onReceiveButtonClick = navController::navigateToReceiveScreen,
-            onSendButtonClick = navController::navigateToSendScreen,
-            nestedGraphs = {
-                atmScreen()
-                receiveScreen()
-                sendScreen()
-
-            })
+        p2pSelectionGraph(startingP2PRoute = startingP2PRoute,
+                          onHistoryClick = onHistoryClick,
+                          onATMButtonClick = navController::navigateToATMScreen,
+                          onReceiveButtonClick = navController::navigateToReceiveScreen,
+                          onSendButtonClick = navController::navigateToSendScreen,
+                          nestedGraphs = {
+                              atmScreen()
+                              receiveScreen()
+                              sendScreen()
+                          })
     }
 }

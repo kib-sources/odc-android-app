@@ -8,4 +8,8 @@ object GoogleAccompanist {
 
     //SwipeRefreshLayout
 
+    //Permissions in Compose
+    private const val permissionsVer = "0.32.0"
+    const val permissions = "com.google.accompanist:accompanist-permissions:$permissionsVer"
+
 }

@@ -11,14 +11,19 @@ import npo.kib.odc_demo.common.core.getStringPem
 import npo.kib.odc_demo.common.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.data.api.BankApi
 import npo.kib.odc_demo.feature_app.data.db.BanknotesDao
+import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.domain.model.serialization.WalletRequest
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import java.security.PrivateKey
 import java.security.PublicKey
 
-class WalletRepositoryImpl(private val blockchainDao: BanknotesDao,
-                           private val bankApi: BankApi,
-                           context: Context) : WalletRepository {
+class WalletRepositoryImpl(
+    override val blockchainDatabase: BlockchainDatabase,
+    override val bankApi: BankApi,
+    context: Context) : WalletRepository {
+
+    private val banknotesDao : BanknotesDao = blockchainDatabase.banknotesDao
+
     private val binKey = "BIN"
     private val bokKey = "BOK"
     private val sokSignKey = "SOK_signed"
@@ -83,7 +88,7 @@ class WalletRepositoryImpl(private val blockchainDao: BanknotesDao,
         return !(sokSignature == null || wid == null || bokString == null || bin == null)
     }
 
-    override suspend fun getStoredInWalletSum() = blockchainDao.getStoredSum()
+    override suspend fun getStoredInWalletSum() = banknotesDao.getStoredSum()
 
     private fun verifySokSign(sok: PublicKey, sokSignature: String, bokString: String) {
         val sokHash =

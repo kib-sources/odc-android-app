@@ -11,8 +11,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
-import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.SearchingStatus
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectional
 import npo.kib.odc_demo.common.util.myLogs
 
@@ -116,7 +116,7 @@ class P2PConnectionNearbyImpl(context: Context) : P2PConnectionBidirectional {
     }
 
 
-    override fun send(bytes: ByteArray) {
+    override fun sendBytes(bytes: ByteArray) {
         val payload = Payload.fromBytes(bytes)
         mConnectionsClient
             .sendPayload(connectionEndpoint, payload)
@@ -145,5 +145,9 @@ class P2PConnectionNearbyImpl(context: Context) : P2PConnectionBidirectional {
 
     override fun rejectConnection() {
         mConnectionsClient.rejectConnection(connectionEndpoint)
+    }
+
+    override fun connectToDevice() {
+        TODO("Not yet implemented")
     }
 }

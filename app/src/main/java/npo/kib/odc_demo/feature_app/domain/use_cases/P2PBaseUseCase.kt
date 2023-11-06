@@ -15,26 +15,25 @@ import npo.kib.odc_demo.common.core.Wallet
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.util.myLogs
-import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
-import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
-import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.RequiringStatus
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import java.util.LinkedList
 
-//todo : Decouple domain from data by changing blockhainDatabase to an interface in domain.
-// BlockchainDatabase is currently referenced from data as a room db
-abstract class P2PBaseUseCase(blockchainDatabase: BlockchainDatabase, protected val walletRepository: WalletRepository) {
 
-    abstract val p2p: P2PConnection
+abstract class P2PBaseUseCase {
+
+    abstract val walletRepository: WalletRepository
+    abstract val p2pConnection: P2PConnection
 
     // public states
-    val connectionResult by lazy { p2p.connectionResult }
-    val searchingStatusFlow by lazy { p2p.searchingStatusFlow }
+    val connectionResult by lazy { p2pConnection.connectionResult }
+    val searchingStatusFlow by lazy { p2pConnection.searchingStatusFlow }
 
     protected val _isSendingFlow = MutableStateFlow<Boolean?>(null)
     val isSendingFlow = _isSendingFlow.asStateFlow()
@@ -45,16 +44,13 @@ abstract class P2PBaseUseCase(blockchainDatabase: BlockchainDatabase, protected 
     protected val _amountRequestFlow = MutableStateFlow<AmountRequest?>(null)
     val amountRequestFlow = _amountRequestFlow.asStateFlow()
 
-    // protected fields
 
     protected val serializer = ObjectSerializer()
     private var job = Job() as Job
 
-    //Using injected by Hilt BlockchainDatabase
-    protected val banknotesDao = blockchainDatabase.banknotesDao
-    protected val blockDao = blockchainDatabase.blockDao
+    protected val banknotesDao by lazy { walletRepository.blockchainDatabase.banknotesDao }
+    protected val blockDao by lazy { walletRepository.blockchainDatabase.blockDao }
 
-    //Using injected by Hilt WalletRepository to get the wallet later
     protected lateinit var wallet: Wallet
 
     protected val sendingList = LinkedList<BanknoteWithBlockchain>()
@@ -76,38 +72,37 @@ abstract class P2PBaseUseCase(blockchainDatabase: BlockchainDatabase, protected 
     protected abstract suspend fun onBytesReceive(container: PayloadContainer)
 
     fun acceptConnection() {
-        p2p.acceptConnection()
+        p2pConnection.acceptConnection()
     }
 
     fun rejectConnection() {
-        p2p.rejectConnection()
+        p2pConnection.rejectConnection()
     }
 
     fun sendRejection() {
-        p2p.send(serializer.toCbor(PayloadContainer()))
+        p2pConnection.sendBytes(serializer.toCbor(PayloadContainer()))
         _amountRequestFlow.update { null }
     }
 
     private fun CoroutineScope.onConnectionStateChanged(connectingStatus: ConnectingStatus) {
         when (connectingStatus) {
             is ConnectingStatus.ConnectionResult -> {
-                if (connectingStatus.statusCode != ConnectionsStatusCodes.STATUS_OK)
-                    return
+                if (connectingStatus.statusCode != ConnectionsStatusCodes.STATUS_OK) return
                 job = onConnected()
             }
+
             is ConnectingStatus.Disconnected -> {
                 onDisconnected()
                 job.cancel()
             }
+
             else -> job.cancel()
         }
     }
 
-    private fun CoroutineScope.onConnected() = p2p.receivedBytes
-        .map { serializer.toObject(it) }
-        .onEach { myLogs(it) }
-        .onEach { bytes -> onBytesReceive(bytes) }
-        .launchIn(this)
+    private fun CoroutineScope.onConnected() =
+        p2pConnection.receivedBytes.map { serializer.toObject(it) }.onEach { myLogs(it) }
+            .onEach { bytes -> onBytesReceive(bytes) }.launchIn(this)
 
     private fun onDisconnected() {
         _isSendingFlow.update { null }

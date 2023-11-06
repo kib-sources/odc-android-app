@@ -3,23 +3,26 @@ package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
-import npo.kib.odc_demo.feature_app.domain.use_cases.FeatureAppUseCases
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseNearbyViewModel
+import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseP2PViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class ReceiveViewModel @Inject constructor(walletRepository: WalletRepository, appUseCases: FeatureAppUseCases) : BaseNearbyViewModel(walletRepository) {
-    override val p2pUseCase = appUseCases.p2pReceiveUseCase
+class ReceiveViewModel @Inject constructor(@ReceiveUseCase p2pUseCase: P2PBaseUseCase) : BaseP2PViewModel() {
+
+    override val p2pUseCase : P2PReceiveUseCase = p2pUseCase as P2PReceiveUseCase
+
     val requiringStatusFlow = p2pUseCase.requiringStatusFlow
 
-    fun startDiscovery() {
-        p2pUseCase.startDiscovery()
-    }
-
-    fun stopDiscovery() {
-        p2pUseCase.stopDiscovery()
-    }
+//    fun startDiscovery() {
+//        p2pUseCase.startDiscovery()
+//    }
+//
+//    fun stopDiscovery() {
+//        p2pUseCase.stopDiscovery()
+//    }
 
     fun requireBanknotes(amount: Int) {
         viewModelScope.launch {

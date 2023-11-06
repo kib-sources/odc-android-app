@@ -10,9 +10,9 @@ import npo.kib.odc_demo.R
 import npo.kib.odc_demo.common.util.collectFlow
 import npo.kib.odc_demo.common.util.makeToast
 import npo.kib.odc_demo.databinding.ReceiveFragmentBinding
-import npo.kib.odc_demo.feature_app.domain.model.types.ConnectingStatus
-import npo.kib.odc_demo.feature_app.domain.model.types.RequiringStatus
-import npo.kib.odc_demo.feature_app.domain.model.types.SearchingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.RequiringStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.SearchingStatus
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseNearbyFragment
 
 class ReceiveFragment : BaseNearbyFragment() {
@@ -41,7 +41,7 @@ class ReceiveFragment : BaseNearbyFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel = ViewModelProvider(this)[ReceiveViewModel::class.java]
-        viewModel.getCurrentSum()
+        viewModel.updateCurrentSum()
 
         viewLifecycleOwner.collectFlow(viewModel.sum) {
             val amount = it ?: 0
@@ -61,23 +61,23 @@ class ReceiveFragment : BaseNearbyFragment() {
         }
 
         viewLifecycleOwner.collectFlow(viewModel.searchingStatusFlow) {
-            when (it) {
-                SearchingStatus.NONE -> {
-                    if (askForPermissions()) {
-                        viewModel.startDiscovery()
-                    }
-                }
-                SearchingStatus.FAILURE -> binding.requireStatusTextView.text =
-                    getString(R.string.searching_failure)
-                SearchingStatus.DISCOVERING -> binding.requireStatusTextView.text =
-                    getString(
-                        R.string.searching_device
-                    )
-                SearchingStatus.ADVERTISING -> binding.requireStatusTextView.text =
-                    getString(
-                        R.string.searching_device
-                    )
-            }
+//            when (it) {
+//                SearchingStatus.NONE -> {
+//                    if (askForPermissions()) {
+//                        viewModel.startDiscovery()
+//                    }
+//                }
+//                SearchingStatus.FAILURE -> binding.requireStatusTextView.text =
+//                    getString(R.string.searching_failure)
+//                SearchingStatus.DISCOVERING -> binding.requireStatusTextView.text =
+//                    getString(
+//                        R.string.searching_device
+//                    )
+//                SearchingStatus.ADVERTISING -> binding.requireStatusTextView.text =
+//                    getString(
+//                        R.string.searching_device
+//                    )
+//            }
         }
 
         viewLifecycleOwner.collectFlow(viewModel.requiringStatusFlow) {
@@ -125,7 +125,7 @@ class ReceiveFragment : BaseNearbyFragment() {
                         }
                     }
                 ConnectingStatus.Disconnected -> {
-                    viewModel.getCurrentSum()
+                    viewModel.updateCurrentSum()
                     makeVisible(true)
                     binding.requireStatusTextView.text = getString(R.string.connecting_disconnected)
                     binding.buttonBill.isEnabled = false
@@ -144,7 +144,7 @@ class ReceiveFragment : BaseNearbyFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.stopDiscovery()
+//        viewModel.stopDiscovery()
     }
 
     private fun makeVisible(visible: Boolean) {
@@ -163,7 +163,7 @@ class ReceiveFragment : BaseNearbyFragment() {
 
     //Runtime permissions
     override fun onPermissionGranted() {
-        viewModel.startDiscovery()
+//        viewModel.startDiscovery()
     }
 
     override fun onPermissionRejected() {

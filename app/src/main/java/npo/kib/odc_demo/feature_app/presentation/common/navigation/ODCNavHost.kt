@@ -3,6 +3,7 @@ package npo.kib.odc_demo.feature_app.presentation.common.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
+import androidx.navigation.navOptions
 import npo.kib.odc_demo.feature_app.presentation.common.ui.ODCAppState
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.history_screen.navigation.historyScreen
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.atm_screen.navigation.atmScreen
@@ -34,6 +35,6 @@ fun ODCNavHost(appState: ODCAppState,
         homeGraph(onHistoryClick = navController::navigateToHistoryScreen, nestedGraphs = {
             historyScreen()
         })
-        settingsScreen()
+        settingsScreen(onBackClick = navController::popBackStack)
     }
 }

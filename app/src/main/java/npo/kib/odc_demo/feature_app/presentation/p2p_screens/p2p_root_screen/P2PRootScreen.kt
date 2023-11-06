@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -24,16 +25,19 @@ fun P2PRootScreen(onHistoryClick: () -> Unit,
                   onSendButtonClick: () -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-//        BalanceBlock(modifier = Modifier.align(CenterHorizontally).weight(1f))
-        RoundedSquareButtonRow(modifier = Modifier.align(CenterHorizontally).weight(1f),
+        RoundedSquareButtonRow(modifier = Modifier
+            .align(CenterHorizontally)
+            .weight(1f),
             onclickATM = onATMButtonClick,
             onclickReceive = onReceiveButtonClick,
             onClickSend = onSendButtonClick
         )
-        HistoryBlock(onHistoryClick = onHistoryClick, modifier = Modifier.fillMaxSize()
-                .align(CenterHorizontally).padding(20.dp).weight(2f))
+        HistoryBlock(onHistoryClick = onHistoryClick, modifier = Modifier
+            .fillMaxSize()
+            .align(CenterHorizontally)
+            .padding(20.dp)
+            .weight(2f))
     }
-
 
 }
 

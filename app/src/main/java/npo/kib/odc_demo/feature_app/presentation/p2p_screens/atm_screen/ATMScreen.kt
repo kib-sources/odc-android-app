@@ -10,6 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
+fun ATMRoute(viewModel : ATMViewModelNew) {
+    
+}
+@Composable
 fun ATMScreen() {
     Box(modifier = Modifier.fillMaxSize()) {
         Surface(color = Color.Blue, modifier = Modifier.fillMaxSize()) {
@@ -17,3 +21,4 @@ fun ATMScreen() {
         Text(text = "ATM_SCREEN! ", modifier = Modifier.align(Alignment.Center))
     }
 }
+

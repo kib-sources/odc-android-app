@@ -10,10 +10,11 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 
-// TODO: Read about Hilt's @AssistedInject
-abstract class BaseNearbyViewModel(private val walletRepository: WalletRepository) : ViewModel() {
+abstract class BaseP2PViewModel : ViewModel() {
 
     protected abstract val p2pUseCase: P2PBaseUseCase
+
+    private val walletRepository: WalletRepository by lazy { p2pUseCase.walletRepository }
 
     val connectionResult by lazy { p2pUseCase.connectionResult }
     val searchingStatusFlow by lazy { p2pUseCase.searchingStatusFlow }
@@ -21,7 +22,7 @@ abstract class BaseNearbyViewModel(private val walletRepository: WalletRepositor
     private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
     val sum: StateFlow<Int?> = _sum
 
-    fun getCurrentSum() {
+    fun updateCurrentSum() {
         viewModelScope.launch(Dispatchers.IO) {
             _sum.update { walletRepository.getStoredInWalletSum() }
         }

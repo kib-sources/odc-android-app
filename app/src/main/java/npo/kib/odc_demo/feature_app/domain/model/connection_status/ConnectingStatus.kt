@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model.types
+package npo.kib.odc_demo.feature_app.domain.model.connection_status
 
 import com.google.android.gms.nearby.connection.ConnectionInfo
 

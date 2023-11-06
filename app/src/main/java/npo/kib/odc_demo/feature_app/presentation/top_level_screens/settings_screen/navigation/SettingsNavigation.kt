@@ -12,8 +12,8 @@ fun NavController.navigateToSettingsScreen(navOptions: NavOptions? = null) {
     this.navigate(settingsRoute, navOptions)
 }
 
-fun NavGraphBuilder.settingsScreen() {
+fun NavGraphBuilder.settingsScreen(onBackClick : () -> Unit) {
     composable(route = settingsRoute) {
-        SettingsScreen(onBackClick = {})
+        SettingsScreen(onBackClick = onBackClick)
     }
 }

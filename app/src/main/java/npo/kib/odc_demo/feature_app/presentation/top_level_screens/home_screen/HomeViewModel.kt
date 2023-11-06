@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.domain.model.types.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import javax.inject.Inject
 
@@ -18,7 +18,6 @@ class HomeViewModel @Inject constructor(private val repository: BankRepository,)
 //    private val p2pTcp: P2PConnection = P2PConnectionTcpImpl(application, "192.168.0.105")
 //    private val p2pTcpUseCase = P2PReceiveUseCase(application, p2pTcp)
 
-    //todo create separate useCase for NFC and add to FeatureAppUseCases
 //    private val p2pNfc: P2PConnection = P2PConnectionNfcImpl(application)
 //    private val p2pNfcUseCase = P2PReceiveUseCase(p2pNfc)
 

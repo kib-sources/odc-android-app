@@ -70,6 +70,7 @@ dependencies {
     implementation(AndroidX.lifecycleViewmodel)
     implementation(AndroidX.lifecycleExtensions)
     implementation(AndroidX.lifecycleRuntime)
+    implementation(AndroidX.lifecycleRuntimeCompose)
     implementation(AndroidX.preferenceKtx)
     implementation(AndroidX.legacySupport)
     implementation(AndroidX.coreKtx)
@@ -135,6 +136,8 @@ dependencies {
     ksp(DaggerHilt.hiltCompiler)
     implementation(DaggerHilt.hiltNavigationCompose)
 
+    //Google Accompanist
+    implementation(GoogleAccompanist.permissions)
 
 //    Testing
 
