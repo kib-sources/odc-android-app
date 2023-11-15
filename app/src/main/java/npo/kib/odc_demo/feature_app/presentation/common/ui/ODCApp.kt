@@ -1,9 +1,7 @@
 package npo.kib.odc_demo.feature_app.presentation.common.ui
 
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -18,10 +16,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import npo.kib.odc_demo.feature_app.presentation.common.navigation.ODCNavHost
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCPlainBackground
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCTopBar
-import npo.kib.odc_demo.feature_app.presentation.common.navigation.ODCNavHost
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -37,7 +35,7 @@ fun ODCApp(
         BoxWithConstraints {
             val topBarHeightPercentage = maxHeight * 0.1f
             val bottomBarHeightPercentage = maxHeight * 0.11f
-            //fixme . LAST WORK FINISHED HERE
+            //fixme
             //todo read here https://developer.android.com/jetpack/compose/layouts/insets
             // understand insets, and adapt the bottom bar size correctly.
             // Need to have some background behind the system navigation, which will

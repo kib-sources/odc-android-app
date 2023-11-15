@@ -62,7 +62,7 @@ fun ODCTopBar(modifier: Modifier = Modifier) {
 
 @ThemePreviews
 @Composable
-fun ODCTopBarWithBalanceBlock(modifier: Modifier = Modifier) {
+private fun ODCTopBarWithBalanceBlock(modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.SpaceEvenly) {
         ODCTopBar(modifier = Modifier.weight(1f))
 //        Spacer(modifier = Modifier.weight(0.5f))

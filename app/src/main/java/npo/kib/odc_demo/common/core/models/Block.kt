@@ -4,8 +4,13 @@
 
 package npo.kib.odc_demo.common.core.models
 
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.ForeignKey.Companion.CASCADE
+import androidx.room.Index
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverters
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.common.core.Crypto
 import npo.kib.odc_demo.common.core.checkHashes
@@ -14,8 +19,9 @@ import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.PublicKeySerializerNotNull
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializer
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializerNotNull
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.CustomType
 import java.security.PublicKey
-import java.util.*
+import java.util.UUID
 
 @Serializable
 @Entity(
@@ -52,13 +58,14 @@ data class Block(
     val magic: String?,
     val transactionHash: String?,
     val transactionHashSignature: String?,
-) {
+) : CustomType {
     fun makeBlockHashValue(): ByteArray {
         return if (parentUuid == null) {
             Crypto.hash(
                 uuid.toString(), otok.getStringPem(), bnid, time.toString()
             )
-        } else {
+        }
+        else {
             Crypto.hash(
                 uuid.toString(), parentUuid.toString(), otok.getStringPem(), bnid, time.toString()
             )
@@ -81,7 +88,11 @@ data class Block(
         if (!checkHashes(hashValueCheck, transactionHash.encodeToByteArray())) {
             throw Exception("Некорректно подсчитан hashValue")
         }
-        return Crypto.verifySignature(transactionHash.encodeToByteArray(), transactionHashSignature, publicKey)
+        return Crypto.verifySignature(
+            transactionHash.encodeToByteArray(),
+            transactionHashSignature,
+            publicKey
+        )
     }
 
     override fun equals(other: Any?): Boolean {
@@ -99,7 +110,8 @@ data class Block(
         if (transactionHash != null) {
             if (other.transactionHash == null) return false
             if (!transactionHash.contentEquals(other.transactionHash)) return false
-        } else if (other.transactionHash != null) return false
+        }
+        else if (other.transactionHash != null) return false
         if (transactionHashSignature != other.transactionHashSignature) return false
 
         return true

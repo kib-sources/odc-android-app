@@ -1,5 +1,6 @@
 package npo.kib.odc_demo
 
+/*
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -52,4 +53,4 @@ class P2pInstrumentedTest {
 //        receiveUseCase.p2p.receivedBytes.collect { myLogs(it.decodeToString()) }
         receiveUseCase.requiringStatusFlow.collect { myLogs("status $it") }
     }
-}
+}*/

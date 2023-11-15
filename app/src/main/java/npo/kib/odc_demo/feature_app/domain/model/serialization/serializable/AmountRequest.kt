@@ -5,6 +5,5 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class AmountRequest(
     val amount: Int,
-    val userName: String,
-    val wid: String
-)
+    val walletId: String
+) : CustomType

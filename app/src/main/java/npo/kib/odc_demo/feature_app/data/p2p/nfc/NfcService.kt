@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model
+package npo.kib.odc_demo.feature_app.data.p2p.nfc
 
 import android.content.Intent
 import android.nfc.cardemulation.HostApduService
@@ -10,7 +10,6 @@ import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.ApduCommands
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceCommands
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceKeys
 import java.io.ByteArrayOutputStream
-import kotlin.collections.ArrayList
 
 class NfcService : HostApduService() {
 

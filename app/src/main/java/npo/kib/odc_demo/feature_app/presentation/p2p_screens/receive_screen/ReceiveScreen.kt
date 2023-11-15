@@ -1,14 +1,23 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
 import androidx.activity.compose.LocalActivityResultRegistryOwner
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,10 +28,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import npo.kib.odc_demo.feature_app.presentation.common.LocalAppBluetoothPermissions
+import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
+import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissions
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.presentation.common.LocalReceiveViewModelNewFactory
-import npo.kib.odc_demo.feature_app.presentation.common.permissions.getTextToShowGivenPermissions
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.MultiplePermissionsRequestBlock
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.DeviceItem
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenSubScreens.ResultScreen
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 
@@ -65,95 +77,130 @@ fun ReceiveRoute(
 internal fun ReceiveScreen(
     uiState: ReceiveUiState, onEvent: (ReceiveScreenEvent) -> Unit
 ) {
-//    LocalActivityResultRegistryOwner.current?.activityResultRegistry
-    when (uiState) {
-        ReceiveUiState.Initial -> InitialScreen(onClickStartAdvertising = {
-            onEvent(
-                ReceiveScreenEvent.SetAdvertising(true)
-            )
-        })
-
-        ReceiveUiState.Advertising -> AdvertisingScreen(onClickStopAdvertising = {
-            onEvent(ReceiveScreenEvent.SetAdvertising(false))
-        })
-
-        is ReceiveUiState.Paired -> PairedScreen()
-        ReceiveUiState.OfferReceived -> OfferReceivedScreen(onEvent = onEvent)
-        ReceiveUiState.Receiving -> ReceivingScreen()
-        is ReceiveUiState.Result -> ResultScreen(uiState.result)
+    Column(modifier = Modifier.fillMaxSize()) {
+    val isScreenLabelVisible by remember { mutableStateOf(true) }
+    AnimatedVisibility(
+        visible = isScreenLabelVisible,
+        enter = fadeIn() + slideInVertically(),
+        exit = fadeOut() + slideOutVertically()
+    ) {
+        Text(text = "Receive banknotes", modifier = Modifier.align(Alignment.CenterHorizontally))
     }
+    with(ReceiveScreenSubScreens) {
+        when (uiState) {
+            ReceiveUiState.Initial -> InitialScreen(onClickStartAdvertising = {
+                onEvent(
+                    ReceiveScreenEvent.SetAdvertising(true)
+                )
+            })
 
-}
+            ReceiveUiState.WaitingForConnection -> AdvertisingScreen(onClickStopAdvertising = {
+                onEvent(ReceiveScreenEvent.SetAdvertising(false))
+            })
 
-
-@Composable
-private fun InitialScreen(onClickStartAdvertising: () -> Unit) {
-    Column {
-        Text(text = "Initial screen")
-        Button(onClick = onClickStartAdvertising) {
-            Text(text = "Start advertising")
+            is ReceiveUiState.Connected -> ConnectedScreen(CustomBluetoothDevice("Test","Test"))
+            is ReceiveUiState.OfferReceived -> {}/*OfferReceivedScreen(uiState., onEvent = onEvent)*/
+            ReceiveUiState.Receiving -> ReceivingScreen()
+            is ReceiveUiState.Result -> ResultScreen(uiState.result)
         }
     }
-}
-
-@Composable
-private fun AdvertisingScreen(onClickStopAdvertising: () -> Unit) {
-    Column {
-        Text(text = "Advertising screen")
-        Button(onClick = onClickStopAdvertising) {
-            Text(text = "Stop advertising")
-        }
     }
 }
 
-@Composable
-fun PairedScreen() {
-
-}
-
-@Composable
-private fun OfferReceivedScreen(onEvent: (ReceiveScreenEvent.ReactToOffer) -> Unit) {
-    Column {
-        Button(onClick = { onEvent(ReceiveScreenEvent.ReactToOffer(true)) }) {
-            Text(text = "Accept")
-        }
-        Button(onClick = { onEvent(ReceiveScreenEvent.ReactToOffer(false)) }) {
-            Text(text = "Reject")
+private object ReceiveScreenSubScreens {
+    @Composable
+    fun InitialScreen(onClickStartAdvertising: () -> Unit) {
+        Column {
+            Text(text = "Initial screen")
+            Button(onClick = onClickStartAdvertising) {
+                Text(text = "Start advertising")
+            }
         }
     }
-}
 
-@Composable
-private fun ReceivingScreen() {
-    Text(text = "Receiving banknotes...")
-}
-
-@Composable
-private fun ResultScreen(result: ReceiveUiState.ResultType) {
-    when (result) {
-        ReceiveUiState.ResultType.Success -> Column {
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = "Receiving success!",
-                color = Color.Green
-            )
+    @Composable
+    fun AdvertisingScreen(onClickStopAdvertising: () -> Unit) {
+        Column {
+            Text(text = "Advertising screen")
+            Button(onClick = onClickStopAdvertising) {
+                Text(text = "Stop advertising")
+            }
         }
+    }
 
-        is ReceiveUiState.ResultType.Failure -> Column {
-            Text(
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                text = "Failure: \n${result.failureMessage}",
-                color = Color.Red
-            )
+    @Composable
+    fun ConnectedScreen(bluetoothDevice: CustomBluetoothDevice) {
+        Column {
+            Text(text = "Connected to device:")
+            Spacer(modifier = Modifier.height(5.dp))
+            DeviceItem(
+                name = bluetoothDevice.name ?: "No name",
+                address = bluetoothDevice.address,
+                onItemClick = {})
+        }
+    }
+
+    @Composable
+    fun OfferReceivedScreen(
+        name: String,
+        info: String,
+        onEvent: (ReceiveScreenEvent.ReactToOffer) -> Unit
+    ) {
+        Surface {
+            Column {
+                Text(text = "Offer received from: ")
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(text = name)
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(text = "Info:")
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(text = info)
+                Row {
+                    Button(onClick = { onEvent(ReceiveScreenEvent.ReactToOffer(true)) }) {
+                        Text(text = "Accept")
+                    }
+                    Button(onClick = { onEvent(ReceiveScreenEvent.ReactToOffer(false)) }) {
+                        Text(text = "Reject")
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun ReceivingScreen() {
+        Text(text = "Receiving banknotes...")
+    }
+
+    @Composable
+    fun ResultScreen(result: ReceiveUiState.ResultType) {
+        when (result) {
+            ReceiveUiState.ResultType.Success -> Column {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "Receiving success!",
+                    color = Color.Green
+                )
+            }
+
+            is ReceiveUiState.ResultType.Failure -> Column {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                    text = "Failure: \n${result.failureMessage}",
+                    color = Color.Red
+                )
+            }
         }
     }
 }
 
 @Preview
 @Composable
-fun ResultScreenPreviews() {
+private fun ResultScreenPreviews() {
     ODCAppTheme {
-        ResultScreen(result = ReceiveUiState.ResultType.Success)
-        ResultScreen(result = ReceiveUiState.ResultType.Failure("Some error"))
+        Column {
+            ResultScreen(result = ReceiveUiState.ResultType.Success)
+            ResultScreen(result = ReceiveUiState.ResultType.Failure("Some error"))
+        }
     }
 }

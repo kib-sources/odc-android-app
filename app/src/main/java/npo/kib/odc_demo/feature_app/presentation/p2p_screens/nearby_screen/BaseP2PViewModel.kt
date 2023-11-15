@@ -16,8 +16,6 @@ abstract class BaseP2PViewModel : ViewModel() {
 
     private val walletRepository: WalletRepository by lazy { p2pUseCase.walletRepository }
 
-    val connectionResult by lazy { p2pUseCase.connectionResult }
-    val searchingStatusFlow by lazy { p2pUseCase.searchingStatusFlow }
 
     private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
     val sum: StateFlow<Int?> = _sum

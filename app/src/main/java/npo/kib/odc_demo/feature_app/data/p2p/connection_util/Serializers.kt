@@ -1,9 +1,11 @@
 package npo.kib.odc_demo.feature_app.data.p2p.connection_util
 
 import com.upokecenter.cbor.CBORObject
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.Json
@@ -11,9 +13,10 @@ import npo.kib.odc_demo.common.core.getString
 import npo.kib.odc_demo.common.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
 import java.security.PublicKey
-import java.util.*
+import java.util.UUID
 
-class ObjectSerializer {
+
+object ObjectSerializer {
 
     private val json = Json {
         ignoreUnknownKeys = true
@@ -21,15 +24,16 @@ class ObjectSerializer {
 
     //Kotlin Cbor serializer не преобразовывал вложенные классы в PayloadContainer,
     // поэтому используется сторонняя библиотека
-    fun toObject(bytes: ByteArray): PayloadContainer {
-        val cbor = CBORObject.DecodeFromBytes(bytes)
+    fun ByteArray.toPayloadContainer(): PayloadContainer {
+        val cbor = CBORObject.DecodeFromBytes(this)
         return json.decodeFromString(cbor.ToJSONString())
     }
 
-    fun toCbor(payloadContainer: PayloadContainer): ByteArray {
-        val jsonString = json.encodeToString(payloadContainer)
+    fun PayloadContainer.toByteArray(): ByteArray {
+        val jsonString = json.encodeToString(this)
         return CBORObject.FromJSONString(jsonString).EncodeToBytes()
     }
+
 }
 
 object UUIDSerializer : KSerializer<UUID?> {

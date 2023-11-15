@@ -7,38 +7,65 @@ import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
-import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectionalBluetooth
+import npo.kib.odc_demo.feature_app.domain.model.DataPacket
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseP2PViewModel
-import javax.inject.Inject
 
 class ReceiveViewModelNew @AssistedInject constructor(
-    @ReceiveUseCase p2pUseCase: P2PBaseUseCase,
-    @Assisted private val registry: ActivityResultRegistry
+    @ReceiveUseCase useCase: P2PBaseUseCase, @Assisted private val registry: ActivityResultRegistry
 ) : BaseP2PViewModel() {
 
-    override val p2pUseCase = p2pUseCase as P2PReceiveUseCase
+    override val p2pUseCase = useCase as P2PReceiveUseCase
 
     private val p2pBluetoothConnection =
-        p2pUseCase.p2pConnection as P2PConnectionBidirectionalBluetooth
+        p2pUseCase.p2pConnection as P2PConnectionBluetooth
+
+
 
     private val _uiState: MutableStateFlow<ReceiveUiState> =
         MutableStateFlow(ReceiveUiState.Initial)
     val uiState: StateFlow<ReceiveUiState>
         get() = _uiState.asStateFlow()
 
-    init {
+    //todo add other device info class (potentially with serialized profile pic field)
+    // on each emission from bluetoothPacketsFlow retrieve first fields and send in flow of type
+    // of that device info class and transform to flow of bytes without those first
+    //  bluetooth packet user-specific info fields
 
-    }
+//    private val _receivedBluetoothPacketsChannel = Channel<BluetoothDataPacket?>()
+//    private val receivedBluetoothPacketsFlow: Flow<BluetoothDataPacket?> = _receivedBluetoothPacketsChannel.receiveAsFlow()
+    private val receivedBluetoothPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
+    private val receivedBluetoothPacketsFlow: Flow<DataPacket?> = receivedBluetoothPacketsChannel.receiveAsFlow()
+
+
+//    private val receivedBytesFlow : Mu
+//    private val _viewModelState: MutableStateFlow<ReceiveUiState> =
+//        MutableStateFlow(ReceiveUiState.Initial)
+//    val viewModelState: StateFlow<ReceiveUiState>
+//        get() = _viewModelState.asStateFlow()
+
+
+    private var deviceConnectionJob: Job? = null
+
 
     fun onEvent(event: ReceiveScreenEvent) {
         when (event) {
@@ -49,12 +76,14 @@ class ReceiveViewModelNew @AssistedInject constructor(
 
             is ReceiveScreenEvent.ReactToOffer -> {
                 if (event.accept) {
+
                 } else {
                 }
             }
 
             ReceiveScreenEvent.Reset -> {
                 stopAdvertising()
+//                p2pUseCase.stopDiscovery()
             }
         }
 
@@ -64,20 +93,59 @@ class ReceiveViewModelNew @AssistedInject constructor(
     private fun startAdvertising() {
         viewModelScope.launch {
             //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
-            val duration = 10
-            p2pBluetoothConnection.startAdvertising(registry = registry, duration = duration)
-            _uiState.update { ReceiveUiState.Advertising }
-            delay(timeMillis = duration.toLong()*1000)
-            _uiState.update { ReceiveUiState.Initial }
+            //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
+            p2pBluetoothConnection.startAdvertising(registry = registry,
+                duration = 10,
+                callback = { resultDuration ->
+                    resultDuration?.run {
+                        _uiState.update { ReceiveUiState.WaitingForConnection }
+                        deviceConnectionJob?.cancel()
+                        deviceConnectionJob =
+                            p2pBluetoothConnection.startBluetoothServerAndGetFlow().listen()
+                    }
+                })
         }
 
     }
 
+    //Due to a bug (?) in Android some devices will start advertising for 120s instead of 1s
     private fun stopAdvertising() {
         viewModelScope.launch {
             p2pBluetoothConnection.stopAdvertising(registry)
-            _uiState.update { ReceiveUiState.Initial }
+//            _uiState.update { ReceiveUiState.Initial }
         }
+    }
+
+
+    private fun Flow<BluetoothConnectionStatus>.listen(): Job {
+        return onEach { result ->
+            when (result) {
+                is BluetoothConnectionStatus.ConnectionEstablished -> {
+                    _uiState.update {ReceiveUiState.Connected(otherDevice = result.withDevice)
+                    }
+                }
+                is BluetoothConnectionStatus.TransferSucceeded -> {
+//                    receivedBluetoothPacketsChannel.send(result.bytes)
+                }
+                is BluetoothConnectionStatus.Error -> {}
+                BluetoothConnectionStatus.WaitingForConnection -> {}
+                BluetoothConnectionStatus.Disconnected -> {}
+                BluetoothConnectionStatus.NoConnection -> {}
+                BluetoothConnectionStatus.ConnectionInitiated -> {}
+                BluetoothConnectionStatus.Discovering -> {}
+            }
+        }.catch { throwable ->
+            p2pBluetoothConnection.closeConnection()
+            _uiState.update {
+                ReceiveUiState.Result(ReceiveUiState.ResultType.Failure("Exception: ${throwable.message}"))
+            }
+        }.launchIn(viewModelScope)
+    }
+
+
+    override fun onCleared() {
+        super.onCleared()
+        p2pBluetoothConnection.reset()
     }
 
     @AssistedFactory
@@ -106,10 +174,10 @@ class ReceiveViewModelNew @AssistedInject constructor(
 // along with the connection progression?
 sealed interface ReceiveUiState {
     data object Initial : ReceiveUiState
-    data object Advertising : ReceiveUiState
+    data object WaitingForConnection : ReceiveUiState
 
-    data class Paired(val state: Boolean) : ReceiveUiState
-    data object OfferReceived : ReceiveUiState
+    data class Connected(val otherDevice: CustomBluetoothDevice?) : ReceiveUiState
+    data class OfferReceived(val amountRequest: AmountRequest) : ReceiveUiState
     data object Receiving : ReceiveUiState
     data class Result(val result: ResultType) : ReceiveUiState
 

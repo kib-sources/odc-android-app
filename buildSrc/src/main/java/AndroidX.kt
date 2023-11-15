@@ -11,9 +11,6 @@ object AndroidX {
     const val lifecycleExtensions =
         "androidx.lifecycle:lifecycle-extensions:$lifecycleExtensionsVersion"
 
-    private const val preferenceKtxVersion = "1.2.0"
-    const val preferenceKtx = "androidx.preference:preference-ktx:$preferenceKtxVersion"
-
     const val legacySupport = "androidx.legacy:legacy-support-v13:1.0.0"
 
     private const val coreKtxVersion = "1.10.1"
@@ -31,5 +28,12 @@ object AndroidX {
     private const val activityVer = "1.8.0-rc01"
     const val activity = "androidx.activity:activity:$activityVer"
 
+
+
+    private const val preferenceKtxVersion = "1.2.0"
+    const val preferenceKtx = "androidx.preference:preference-ktx:$preferenceKtxVersion"
+
+    private const val datastorePreferencesVer = "1.1.0-alpha06"
+    const val datastorePreferences = "androidx.datastore:datastore-preferences:$datastorePreferencesVer"
 
 }

@@ -15,50 +15,60 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class SendViewModelNew @Inject constructor(@SendUseCase p2pUseCase: P2PBaseUseCase) :
+class SendViewModelNew @Inject constructor(@SendUseCase _p2pUseCase: P2PBaseUseCase) :
     BaseP2PViewModel() {
 
+    override val p2pUseCase: P2PSendUseCase = _p2pUseCase as P2PSendUseCase
+    val p2pBluetoothConnection = p2pUseCase.p2pConnection
 
-    override val p2pUseCase: P2PSendUseCase = p2pUseCase as P2PSendUseCase
-
+    val amountRequestFlow = _p2pUseCase.amountRequestFlow
+//    val isSendingFlow = _p2pUseCase.isSendingFlow
 
     private val _uiState: MutableStateFlow<SendUiState> =
         MutableStateFlow(SendUiState.Initial)
     val uiState: StateFlow<SendUiState>
         get() = _uiState.asStateFlow()
 
-    private var currentJob: Job? = null
+    private var deviceConnectionJob: Job? = null
 
 
     fun onEvent(event: SendScreenEvent) {
         when (event) {
-            is SendScreenEvent.StartSearching -> TODO()
-            is SendScreenEvent.ChooseUser -> TODO()
-            is SendScreenEvent.ChangeAmountFieldFocus -> TODO()
-            is SendScreenEvent.EnterAmount -> TODO()
-            is SendScreenEvent.ConfirmAmount -> TODO()
-            is SendScreenEvent.Cancel -> TODO()
-            is SendScreenEvent.Finish -> TODO()
-            is SendScreenEvent.RetryOnInterrupted -> TODO()
+            is SendScreenEvent.StartSearching -> {
+//                _uiState.update { SendUiState.Searching }
+            }
+            is SendScreenEvent.ChooseUser -> {}
+            is SendScreenEvent.ChangeAmountFieldFocus -> {}
+            is SendScreenEvent.EnterAmount -> {}
+            is SendScreenEvent.ConfirmAmount -> {}
+            is SendScreenEvent.Cancel -> {}
+            is SendScreenEvent.Finish -> {}
+            is SendScreenEvent.Retry -> {}
         }
     }
+
+    private fun startSearching(){
+        p2pBluetoothConnection.startDiscovery()
+    }
+
 }
 
+
 sealed interface SendUiState {
-    object Initial : SendUiState
-    object Searching : SendUiState
-    data class ShowingUsersList(val usersList: List<AppUser>) : SendUiState
-    object Connecting : SendUiState
-    object ConnectionAccepted : SendUiState
-    object ConnectionRejected : SendUiState
-    object Connected : SendUiState
-    object SendAccepted : SendUiState
-    object SendRejected : SendUiState
-    object Sending : SendUiState
-    object Success : SendUiState
-    object Finish : SendUiState
-    object Interrupted : SendUiState
-    object Retry : SendUiState
+    data object Initial : SendUiState
+    data class Searching(val usersList: List<AppUser>) : SendUiState
+    data object Connecting : SendUiState
+    data object ConnectionAccepted : SendUiState
+    data object ConnectionRejected : SendUiState
+    data object Connected : SendUiState
+    data class OfferSent(val accepted: Boolean) : SendUiState
+    data object Sending : SendUiState
+    data class Result(val result: ReceiveUiState.ResultType) : SendUiState
+    data object Retry : SendUiState
+    sealed interface ResultType {
+        data object Success : ResultType
+        data class Failure(val failureMessage: String) : ResultType
+    }
 }
 
 

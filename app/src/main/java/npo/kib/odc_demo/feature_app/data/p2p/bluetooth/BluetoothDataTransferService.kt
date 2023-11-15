@@ -6,47 +6,42 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothDataPacket
 import java.io.IOException
 
 class BluetoothDataTransferService(
-    private val socket: BluetoothSocket
+    private val socket: BluetoothSocket, private val bufferSize: Int = 65_536
 ) {
-    fun listenForIncomingMessages(): Flow<BluetoothDataPacket> {
-//        return flow {
-//            if(!socket.isConnected) {
-//                return@flow
-//            }
-//            val buffer = ByteArray(1024)
-//            while(true) {
-//                val byteCount = try {
-//                    socket.inputStream.read(buffer)
-//                } catch(e: IOException) {
-//                    throw TransferFailedException()
-//                }
-//
-//                emit(
-//                    buffer.decodeToString(
-//                        endIndex = byteCount
-//                    ).toBluetoothMessage(
-//                        isFromLocalUser = false
-//                    )
-//                )
-//            }
-//        }.flowOn(Dispatchers.IO)
-        return flow<BluetoothDataPacket> {}.flowOn(Dispatchers.IO)
+    fun listenForIncomingBytes(): Flow<ByteArray> {
+        return flow {
+            if (!socket.isConnected) {
+                return@flow
+            }
+            val buffer = ByteArray(bufferSize)
+            while (true) {
+                val byteCount = try {
+                    socket.inputStream.read(buffer)
+                } catch (e: IOException) {
+                    throw TransferFailedException()
+                }
+
+                emit(
+                    buffer.copyOf(byteCount)
+                )
+            }
+        }.flowOn(Dispatchers.IO)
     }
 
-    suspend fun sendMessage(bytes: ByteArray): Boolean {
+    suspend fun sendBytes(bytes: ByteArray): Boolean {
         return withContext(Dispatchers.IO) {
             try {
                 socket.outputStream.write(bytes)
-            } catch(e: IOException) {
+            } catch (e: IOException) {
                 e.printStackTrace()
                 return@withContext false
             }
-
             true
         }
     }
+
+    private class TransferFailedException : Exception()
 }

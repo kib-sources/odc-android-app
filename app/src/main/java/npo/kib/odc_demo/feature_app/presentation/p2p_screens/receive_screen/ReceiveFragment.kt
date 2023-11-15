@@ -5,14 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
-import com.google.android.gms.nearby.connection.ConnectionsStatusCodes
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.common.util.collectFlow
 import npo.kib.odc_demo.common.util.makeToast
 import npo.kib.odc_demo.databinding.ReceiveFragmentBinding
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.RequiringStatus
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.SearchingStatus
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseNearbyFragment
 
 class ReceiveFragment : BaseNearbyFragment() {
@@ -55,12 +51,12 @@ class ReceiveFragment : BaseNearbyFragment() {
                 return@setOnClickListener
             }
 
-            if (amount > 0) {
-                viewModel.requireBanknotes(amount)
-            }
+//            if (amount > 0) {
+//                viewModel.requireBanknotes(amount)
+//            }
         }
 
-        viewLifecycleOwner.collectFlow(viewModel.searchingStatusFlow) {
+//        viewLifecycleOwner.collectFlow(viewModel.searchingStatusFlow) {
 //            when (it) {
 //                SearchingStatus.NONE -> {
 //                    if (askForPermissions()) {
@@ -78,63 +74,63 @@ class ReceiveFragment : BaseNearbyFragment() {
 //                        R.string.searching_device
 //                    )
 //            }
-        }
+//        }
 
-        viewLifecycleOwner.collectFlow(viewModel.requiringStatusFlow) {
-            when (it) {
-                RequiringStatus.NONE -> {
-                    makeVisible(true)
-                }
-                RequiringStatus.REQUEST -> {
-                    binding.requireStatusTextView.text = getString(R.string.requiring_request)
-                }
-                RequiringStatus.REJECT -> {
-                    binding.requireStatusTextView.text = getString(R.string.requiring_reject)
-                }
-                RequiringStatus.ACCEPTANCE -> {
-                    makeVisible(false)
-                    binding.requireStatusTextView.text = getString(R.string.requiring_acceptance)
-                }
-                RequiringStatus.COMPLETED -> {
-                    makeToast(getString(R.string.requiring_completed))
-                    mController.openHomeFragment()
-                }
-            }
-        }
+//        viewLifecycleOwner.collectFlow(viewModel.requiringStatusFlow) {
+//            when (it) {
+//                RequiringStatus.NONE -> {
+//                    makeVisible(true)
+//                }
+//                RequiringStatus.REQUEST -> {
+//                    binding.requireStatusTextView.text = getString(R.string.requiring_request)
+//                }
+//                RequiringStatus.REJECT -> {
+//                    binding.requireStatusTextView.text = getString(R.string.requiring_reject)
+//                }
+//                RequiringStatus.ACCEPTANCE -> {
+//                    makeVisible(false)
+//                    binding.requireStatusTextView.text = getString(R.string.requiring_acceptance)
+//                }
+//                RequiringStatus.COMPLETED -> {
+//                    makeToast(getString(R.string.requiring_completed))
+//                    mController.openHomeFragment()
+//                }
+//            }
+//        }
 
-        viewLifecycleOwner.collectFlow(viewModel.connectionResult) {
-            when (it) {
-                is ConnectingStatus.ConnectionInitiated -> {
-                    binding.requireStatusTextView.text = getString(R.string.connecting_initiated)
-                    showConnectionDialog(it.info)
-                }
-                is ConnectingStatus.ConnectionResult ->
-                    when (it.statusCode) {
-                        ConnectionsStatusCodes.STATUS_OK -> {
-                            binding.buttonBill.isEnabled = true
-                            binding.requireStatusTextView.text = getString(R.string.connecting_ok)
-                        }
-                        ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
-                            binding.requireStatusTextView.text = getString(R.string.connecting_rejected)
-                        }
-                        ConnectionsStatusCodes.STATUS_ERROR -> {
-                            binding.requireStatusTextView.text = getString(R.string.connecting_error)
-                        }
-                        else -> {
-                            binding.requireStatusTextView.text = getString(R.string.connecting_undefined_error)
-                        }
-                    }
-                ConnectingStatus.Disconnected -> {
-                    viewModel.updateCurrentSum()
-                    makeVisible(true)
-                    binding.requireStatusTextView.text = getString(R.string.connecting_disconnected)
-                    binding.buttonBill.isEnabled = false
-                }
-                ConnectingStatus.NoConnection -> {
-                    binding.buttonBill.isEnabled = false
-                }
-            }
-        }
+//        viewLifecycleOwner.collectFlow(viewModel.connectionResult) {
+//            when (it) {
+//                is ConnectingStatus.ConnectionInitiated -> {
+//                    binding.requireStatusTextView.text = getString(R.string.connecting_initiated)
+//                    showConnectionDialog(it.info)
+//                }
+//                is ConnectingStatus.ConnectionResult ->
+//                    when (it.statusCode) {
+//                        ConnectionsStatusCodes.STATUS_OK -> {
+//                            binding.buttonBill.isEnabled = true
+//                            binding.requireStatusTextView.text = getString(R.string.connecting_ok)
+//                        }
+//                        ConnectionsStatusCodes.STATUS_CONNECTION_REJECTED -> {
+//                            binding.requireStatusTextView.text = getString(R.string.connecting_rejected)
+//                        }
+//                        ConnectionsStatusCodes.STATUS_ERROR -> {
+//                            binding.requireStatusTextView.text = getString(R.string.connecting_error)
+//                        }
+//                        else -> {
+//                            binding.requireStatusTextView.text = getString(R.string.connecting_undefined_error)
+//                        }
+//                    }
+//                ConnectingStatus.Disconnected -> {
+//                    viewModel.updateCurrentSum()
+//                    makeVisible(true)
+//                    binding.requireStatusTextView.text = getString(R.string.connecting_disconnected)
+//                    binding.buttonBill.isEnabled = false
+//                }
+//                ConnectingStatus.NoConnection -> {
+//                    binding.buttonBill.isEnabled = false
+//                }
+//            }
+//        }
     }
 
     override fun onDestroyView() {

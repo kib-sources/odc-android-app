@@ -4,8 +4,8 @@
 //androidTestImplementation(Compose.composeBOM)
 object Testing {
 
-    private const val junitVersion = "4.13.2"
-    const val junit4 = "junit:junit:$junitVersion"
+    private const val junitVersion = "5.10.1"
+    const val junit5 = "junit:junit:$junitVersion"
 
     private const val junitAndroidExtVersion = "1.2.0-alpha01"
     const val junitAndroidExt = "androidx.test.ext:junit:$junitAndroidExtVersion"

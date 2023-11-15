@@ -1,8 +1,6 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
-import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
@@ -14,8 +12,6 @@ class ReceiveViewModel @Inject constructor(@ReceiveUseCase p2pUseCase: P2PBaseUs
 
     override val p2pUseCase : P2PReceiveUseCase = p2pUseCase as P2PReceiveUseCase
 
-    val requiringStatusFlow = p2pUseCase.requiringStatusFlow
-
 //    fun startDiscovery() {
 //        p2pUseCase.startDiscovery()
 //    }
@@ -24,9 +20,9 @@ class ReceiveViewModel @Inject constructor(@ReceiveUseCase p2pUseCase: P2PBaseUs
 //        p2pUseCase.stopDiscovery()
 //    }
 
-    fun requireBanknotes(amount: Int) {
-        viewModelScope.launch {
-            p2pUseCase.requireBanknotes(amount)
-        }
-    }
+//    fun requireBanknotes(amount: Int) {
+//        viewModelScope.launch {
+//            p2pUseCase.requireBanknotes(amount)
+//        }
+//    }
 }

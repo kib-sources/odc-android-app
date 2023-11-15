@@ -1,12 +1,11 @@
 package npo.kib.odc_demo.feature_app.domain.p2p.bluetooth
 
-import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.ActivityResultRegistry
-import androidx.lifecycle.DefaultLifecycleObserver
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.ConnectingStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import kotlin.ByteArray
 
 interface BluetoothController {
     val isConnected: StateFlow<Boolean>
@@ -17,15 +16,15 @@ interface BluetoothController {
     fun startDiscovery()
     fun stopDiscovery()
 
-    fun startBluetoothServer(): Flow<ConnectionResult>
-    fun connectToDevice(device: CustomBluetoothDevice): Flow<ConnectingStatus.ConnectionResult>
+    fun startBluetoothServerAndGetFlow(): Flow<BluetoothConnectionStatus>
+    fun connectToDevice(device: CustomBluetoothDevice): Flow<BluetoothConnectionStatus>
 
-    suspend fun trySendData(data: ByteArray): BluetoothDataPacket?
+    suspend fun trySendBytes(bytes: ByteArray): ByteArray?
 
-    fun startAdvertising(registry: ActivityResultRegistry, duration: Int)
+    fun startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)
 
     fun stopAdvertising(registry: ActivityResultRegistry)
 
     fun closeConnection()
-    fun release()
+    fun reset()
 }

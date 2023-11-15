@@ -5,7 +5,6 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
-import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnectionBidirectional
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
@@ -47,14 +46,14 @@ object UseCasesModule {
     @Singleton
     @ReceiveUseCase
     fun provideReceiveUseCase(
-        walletRepository: WalletRepository, @BluetoothP2PConnectionBidirectional p2p: P2PConnectionBidirectional
+        walletRepository: WalletRepository, @BluetoothP2PConnectionBidirectional p2p: P2PConnection
     ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
 
     @Provides
     @Singleton
     @AtmUseCase
     fun provideAtmUseCase(
-        walletRepository: WalletRepository, @NfcP2PConnection p2p: P2PConnectionBidirectional
+        walletRepository: WalletRepository, @NfcP2PConnection p2p: P2PConnection
     ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
 
 }

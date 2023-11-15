@@ -7,13 +7,13 @@ import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.PublicKeySerializer
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializer
 import java.security.PublicKey
-import java.util.*
+import java.util.UUID
 
 @Serializable
 @TypeConverters(BlockchainConverter::class)
 data class ProtectedBlock(
     /*
-    Сопроваждающий блок для дополнительного подтверждения на Сервере.
+    Сопровождающий блок для дополнительного подтверждения на сервере.
     */
     @Serializable(with = PublicKeySerializer::class)
     val parentSok: PublicKey?,

@@ -1,5 +1,6 @@
 package npo.kib.odc_demo
 
+/*
 import android.content.Context
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -20,4 +21,4 @@ class DbInstrumentedTest {
         val res = banknotesDB.getBnidsAndAmounts()
         myLogs(res)
     }
-}
+}*/

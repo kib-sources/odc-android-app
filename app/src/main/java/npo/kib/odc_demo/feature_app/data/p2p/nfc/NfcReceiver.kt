@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model
+package npo.kib.odc_demo.feature_app.data.p2p.nfc
 
 import android.content.BroadcastReceiver
 import android.content.Context

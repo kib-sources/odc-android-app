@@ -45,7 +45,7 @@
     <string name="permission_rejected">You will not be able to exchange banknotes until you provide location permission</string>
     <string name="insufficient_funds">Insufficient funds</string>
     <string name="sending_is_going">Sending in progress. Wait, please</string>
-    <string name="sending_completed">Банкноты успешно отправлены</string>
+    <string name="sending_completed">Banknotes sent successfully</string>
     <string name="request_banknotes_description">User %1$s (wid: %2$s) wants to accept</string>
     <string name="default_username" translatable="false">User</string>
     <string name="title_activity_compose" translatable="false">ComposeActivity</string>

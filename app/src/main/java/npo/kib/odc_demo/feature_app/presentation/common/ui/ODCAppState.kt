@@ -55,6 +55,9 @@ class ODCAppState(
     var currentAppUser: AppUser by mutableStateOf(AppUser())
         private set
 
+//    var isAuthenticated: Boolean = false
+//        private set
+
 
     val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.values().asList()
 

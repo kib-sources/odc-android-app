@@ -32,7 +32,7 @@
         android:usesCleartextTraffic="true">
 
         <service
-            android:name=".feature_app.domain.model.NfcService"
+            android:name=".feature_app.data.p2p.nfc.NfcService"
             android:enabled="true"
             android:exported="true"
             android:permission="android.permission.BIND_NFC_SERVICE">

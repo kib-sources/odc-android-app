@@ -1,8 +1,6 @@
 package npo.kib.odc_demo.feature_app.presentation.common
 
-import android.Manifest
 import android.graphics.Color.TRANSPARENT
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -17,11 +15,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
 import dagger.hilt.android.AndroidEntryPoint
+import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
+import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.bluetoothPermissionsList
 import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
 import npo.kib.odc_demo.feature_app.presentation.common.ui.ODCApp
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
@@ -36,21 +34,6 @@ import javax.inject.Inject
 val LocalReceiveViewModelNewFactory =
     compositionLocalOf<ReceiveViewModelNew.Factory?> { null }
 
-val LocalAppBluetoothPermissions: ProvidableCompositionLocal<List<String>> =
-    compositionLocalOf { bluetoothPermissionsList }
-
-private val bluetoothPermissionsList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-    listOf(
-        Manifest.permission.ACCESS_FINE_LOCATION,
-        Manifest.permission.BLUETOOTH_CONNECT,
-        Manifest.permission.BLUETOOTH_SCAN,
-        Manifest.permission.BLUETOOTH_ADVERTISE
-    )
-} else listOf(
-    Manifest.permission.ACCESS_FINE_LOCATION,
-    Manifest.permission.BLUETOOTH,
-    Manifest.permission.BLUETOOTH_ADMIN,
-)
 
 @AndroidEntryPoint
 class MainActivityCompose : ComponentActivity() {
@@ -88,16 +71,6 @@ class MainActivityCompose : ComponentActivity() {
         }
     }
 }
-
-
-//A function to ensure to not navigate to a screen if we are on that screen already
-private fun NavController.navigateToScreenOnce(route: String) {
-    if (this.currentDestination?.route != route) this.navigate(route)
-}
-
-
-private fun NavController.getCurrentDestination(): String =
-    currentDestination?.route ?: "null_route"
 
 
 @ThemePreviews

@@ -26,9 +26,6 @@ class ATMViewModelNew @Inject constructor(@AtmUseCase p2pUseCase: P2PBaseUseCase
 sealed interface ATMUiState {
     data object Initial : ATMUiState
     data object Advertising : ATMUiState
-
-    data class Paired(val state: Boolean) : ATMUiState
-    data object OfferReceived : ATMUiState
     data object Receiving : ATMUiState
     data class Result(val result: ResultType) : ATMUiState
 

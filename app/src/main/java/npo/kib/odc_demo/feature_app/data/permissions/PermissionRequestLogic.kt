@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.common.permissions
+package npo.kib.odc_demo.feature_app.data.permissions
 
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.PermissionState
@@ -32,9 +32,9 @@ fun getTextToShowGivenPermissions(
     textToShow.append(if (revokedPermissionsSize == 1) "permission is" else "permissions are")
     textToShow.append(
         if (shouldShowRationale) {
-            " important. Please grant all of them for the app to function properly."
+            " important. Please grant ${if (revokedPermissionsSize == 1) "it" else "all of them"}  for the app to function properly."
         } else {
-            " denied. The app cannot function without them."
+            " denied. The app cannot function without ${if (revokedPermissionsSize == 1) "it" else "them"}."
         }
     )
     return textToShow.toString()

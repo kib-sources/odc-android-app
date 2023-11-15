@@ -1,6 +1,6 @@
 object Compose {
     //https://developer.android.com/jetpack/compose/bom/bom-mapping
-    private const val composeBOMVersion = "2023.09.02"
+    private const val composeBOMVersion = "2023.10.01"
     const val composeBOM = "androidx.compose:compose-bom:$composeBOMVersion"
 
     const val ui = "androidx.compose.ui:ui"
