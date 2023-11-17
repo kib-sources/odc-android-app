@@ -46,7 +46,7 @@ object UseCasesModule {
     @Singleton
     @ReceiveUseCase
     fun provideReceiveUseCase(
-        walletRepository: WalletRepository, @BluetoothP2PConnectionBidirectional p2p: P2PConnection
+        walletRepository: WalletRepository, @BluetoothP2PConnection p2p: P2PConnection
     ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
 
     @Provides

@@ -2,7 +2,7 @@
    Декларирование одного блока
  */
 
-package npo.kib.odc_demo.common.core.models
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -15,11 +15,11 @@ import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.common.core.Crypto
 import npo.kib.odc_demo.common.core.checkHashes
 import npo.kib.odc_demo.common.core.getStringPem
+import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.PublicKeySerializerNotNull
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializer
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializerNotNull
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.CustomType
 import java.security.PublicKey
 import java.util.UUID
 
@@ -58,7 +58,7 @@ data class Block(
     val magic: String?,
     val transactionHash: String?,
     val transactionHashSignature: String?,
-) : CustomType {
+) : DataPacketTypeMarker {
     fun makeBlockHashValue(): ByteArray {
         return if (parentUuid == null) {
             Crypto.hash(

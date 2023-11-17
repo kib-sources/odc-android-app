@@ -4,8 +4,25 @@
 //androidTestImplementation(Compose.composeBOM)
 object Testing {
 
-    private const val junitVersion = "5.10.1"
-    const val junit5 = "junit:junit:$junitVersion"
+    const val junit5_pluginVersion = "1.10.0.0"
+    const val junit5_plugin = "de.mannodermaus.android-junit5"
+
+
+    private const val junitBOMVersion = "5.10.1"
+    const val junitBOM = "org.junit:junit-bom:$junitBOMVersion"
+
+    // Aggregator dependency on JUnit api, engine, and params
+    // testImplementation
+//    const val junit_jupiter = "org.junit.jupiter:junit-jupiter"
+
+    //testImplementation, androidTestImplementation
+    const val junit5_jupiter_api = "org.junit.jupiter:junit-jupiter-api"
+//
+//    //testRuntimeOnly
+    const val junit5_jupiter_engine = "org.junit.jupiter:junit-jupiter-engine"
+//
+//    //testImplementation
+    const val junit5_jupiter_params = "org.junit.jupiter:junit-jupiter-params"
 
     private const val junitAndroidExtVersion = "1.2.0-alpha01"
     const val junitAndroidExt = "androidx.test.ext:junit:$junitAndroidExtVersion"

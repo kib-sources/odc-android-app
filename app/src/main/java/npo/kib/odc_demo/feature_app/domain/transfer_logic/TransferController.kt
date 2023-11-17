@@ -7,12 +7,12 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
-import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
-import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToObject
+import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknotesList
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.DataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.TransactionResult
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.UserInfo
@@ -30,6 +30,8 @@ abstract class TransferController(val bankRepository: BankRepository) {
         Channel(capacity = UNLIMITED)
     val currentDataPacketTypeFlow: Flow<DataPacketType> =
         currentDataPacketTypeChannel.receiveAsFlow()
+
+
 
 
     private val userInfoChannel: Channel<UserInfo> = Channel(capacity = UNLIMITED)
@@ -56,20 +58,22 @@ abstract class TransferController(val bankRepository: BankRepository) {
         currentDataPacketTypeChannel.send(packetType)
         with(packetBytes) {
             when (packetType) {
-                DataPacketType.USER_INFO -> userInfoChannel.send(deserializeToObject(UserInfo::class) as UserInfo)
+                DataPacketType.USER_INFO -> userInfoChannel.send(deserializeToDataPacketType<UserInfo>())
 
-                DataPacketType.AMOUNT -> amountRequestChannel.send(deserializeToObject(AmountRequest::class) as AmountRequest)
+                DataPacketType.AMOUNT -> amountRequestChannel.send(deserializeToDataPacketType<AmountRequest>())
 
-                DataPacketType.BANKNOTES -> banknotesChannel.send(deserializeToObject(BanknotesList::class) as BanknotesList)
+                DataPacketType.BANKNOTES -> banknotesChannel.send(deserializeToDataPacketType<BanknotesList>())
 
-                DataPacketType.UNSIGNED_BLOCK -> unsignedBlockChannel.send(deserializeToObject(Block::class) as Block)
+                DataPacketType.UNSIGNED_BLOCK -> unsignedBlockChannel.send(deserializeToDataPacketType<Block>())
 
-                DataPacketType.SIGNED_BLOCK -> signedBlockChannel.send(deserializeToObject(Block::class) as Block)
+                DataPacketType.SIGNED_BLOCK -> signedBlockChannel.send(deserializeToDataPacketType<Block>())
 
-                DataPacketType.RESULT -> resultChannel.send(deserializeToObject(TransactionResult::class) as TransactionResult)
+                DataPacketType.RESULT -> resultChannel.send(deserializeToDataPacketType<TransactionResult>())
 
             }
         }
     }
+
+
 
 }

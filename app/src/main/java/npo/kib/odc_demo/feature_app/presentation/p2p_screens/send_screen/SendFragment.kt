@@ -86,18 +86,18 @@ class SendFragment : BaseNearbyFragment() {
 //            }
 //        }
 
-        viewLifecycleOwner.collectFlow(viewModel.isSendingFlow) { isSending: Boolean? ->
-            isSending ?: return@collectFlow
-
-            if (isSending) {
-                makeVisible(false)
-                binding.sendingStatusView.text = getString(R.string.sending_is_going)
-            }
-            else {
-                makeToast(getString(R.string.sending_completed))
-                mController.openHomeFragment()
-            }
-        }
+//        viewLifecycleOwner.collectFlow(viewModel.isSendingFlow) { isSending: Boolean? ->
+//            isSending ?: return@collectFlow
+//
+//            if (isSending) {
+//                makeVisible(false)
+//                binding.sendingStatusView.text = getString(R.string.sending_is_going)
+//            }
+//            else {
+//                makeToast(getString(R.string.sending_completed))
+//                mController.openHomeFragment()
+//            }
+//        }
 
 //        viewLifecycleOwner.collectFlow(viewModel.connectionResult) {
 //            when (it) {

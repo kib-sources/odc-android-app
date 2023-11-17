@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
-import npo.kib.odc_demo.common.core.models.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toByteArray
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toPayloadContainer
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest

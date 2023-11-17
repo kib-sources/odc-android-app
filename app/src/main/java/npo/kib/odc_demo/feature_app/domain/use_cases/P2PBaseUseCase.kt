@@ -12,13 +12,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.common.core.Wallet
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.util.myLogs
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toByteArray
 import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toPayloadContainer
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository

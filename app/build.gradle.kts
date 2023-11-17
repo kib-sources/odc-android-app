@@ -1,11 +1,11 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-//    id("org.jetbrains.kotlin.kapt")
     //KSP instead of Kapt for faster builds
     id("com.google.devtools.ksp")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
+    id(Testing.junit5_plugin)
 }
 
 
@@ -64,6 +64,11 @@ android {
         }
     }
 }
+
+tasks.withType<Test> {
+    useJUnitPlatform() // Enables JUnit Platform (JUnit 5 + JUnit 4)
+}
+
 
 dependencies {
     //AndroidX
@@ -143,6 +148,9 @@ dependencies {
     //Datastore preferences
     implementation(AndroidX.datastorePreferences)
 
+    //Kotlin reflection API
+    implementation(Kotlin.kotlinReflect)
+
 //    Testing
 
     testImplementation(Compose.composeBOM)
@@ -153,27 +161,44 @@ dependencies {
     // Make Hilt generate code in the androidTest folder
     kspAndroidTest(DaggerHilt.hiltCompiler)
 
+    //junit5
+    testImplementation(platform(Testing.junitBOM))
+    // (Required) Writing and executing Unit Tests on the JUnit Platform
+    testImplementation(Testing.junit5_jupiter_api)
+    testRuntimeOnly(Testing.junit5_jupiter_engine)
 
-    testImplementation(Testing.junit5)
-    testImplementation(Testing.junitAndroidExt)
+    androidTestImplementation(Testing.junit5_jupiter_api)
+    // (Optional) If you need "Parameterized Tests"
+    testImplementation(Testing.junit5_jupiter_params)
+
+//    androidTestImplementation("de.mannodermaus.junit5:android-test-core:1.4.0")
+//    androidTestRuntimeOnly("de.mannodermaus.junit5:android-test-runner:1.4.0")
+
+//    testImplementation(Testing.junitAndroidExt)
+//    androidTestImplementation(Testing.junitAndroidExt)
+
+
     testImplementation(Testing.truth)
-    testImplementation(Testing.coroutines)
-    testImplementation(Testing.turbine)
-    testImplementation(Testing.composeUiTest)
-    testImplementation(Testing.mockk)
-    testImplementation(Testing.mockWebServer)
-
-    androidTestImplementation(Testing.junit5)
-    androidTestImplementation(Testing.junitAndroidExt)
     androidTestImplementation(Testing.truth)
+
+    testImplementation(Testing.coroutines)
     androidTestImplementation(Testing.coroutines)
+
+    testImplementation(Testing.turbine)
     androidTestImplementation(Testing.turbine)
+
+    testImplementation(Testing.composeUiTest)
     androidTestImplementation(Testing.composeUiTest)
+
+    testImplementation(Testing.mockk)
     androidTestImplementation(Testing.mockkAndroid)
+
+    testImplementation(Testing.mockWebServer)
     androidTestImplementation(Testing.mockWebServer)
 
-
     androidTestImplementation(Testing.testRunner)
+
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
 }
 
 //kapt {

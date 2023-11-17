@@ -8,4 +8,4 @@ import kotlinx.serialization.Serializable
 data class UserInfo(
     val userName: String,
     val walletId: String
-) : CustomType
+) : DataPacketTypeMarker

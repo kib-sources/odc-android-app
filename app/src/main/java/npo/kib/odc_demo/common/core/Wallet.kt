@@ -9,8 +9,8 @@ package npo.kib.odc_demo.common.core
 
 import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
 import npo.kib.odc_demo.common.core.models.Banknote
-import npo.kib.odc_demo.common.core.models.Block
 import npo.kib.odc_demo.common.core.models.ProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.Calendar

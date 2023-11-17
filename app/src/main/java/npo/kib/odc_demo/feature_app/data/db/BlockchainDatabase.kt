@@ -3,7 +3,7 @@ package npo.kib.odc_demo.feature_app.data.db
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.common.core.models.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
 
 @Database(
     entities = [BanknoteWithProtectedBlock::class, Block::class],

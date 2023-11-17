@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TransactionResult(
     val result: ResultType
-) : CustomType
+) : DataPacketTypeMarker
 
 sealed interface ResultType {
     data object Success : ResultType

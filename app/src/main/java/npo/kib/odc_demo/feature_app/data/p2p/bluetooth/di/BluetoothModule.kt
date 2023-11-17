@@ -9,7 +9,6 @@ import dagger.hilt.components.SingletonComponent
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothControllerImpl
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.P2PConnectionBluetoothImpl
 import npo.kib.odc_demo.feature_app.di.BluetoothP2PConnection
-import npo.kib.odc_demo.feature_app.di.BluetoothP2PConnectionBidirectional
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
@@ -35,7 +34,7 @@ object BluetoothModule {
 
     @Provides
     @Singleton
-    @BluetoothP2PConnectionBidirectional
+    @BluetoothP2PConnection
     fun provideP2PConnectionBidirectionalBluetoothImpl(
         controller: BluetoothController, @ApplicationContext context: Context
     ) = P2PConnectionBluetoothImpl(

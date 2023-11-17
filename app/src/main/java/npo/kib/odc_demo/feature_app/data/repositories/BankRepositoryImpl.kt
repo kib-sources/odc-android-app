@@ -6,11 +6,10 @@ import npo.kib.odc_demo.common.core.Wallet
 import npo.kib.odc_demo.common.core.getStringPem
 import npo.kib.odc_demo.common.core.models.Banknote
 import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.common.core.models.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
 import npo.kib.odc_demo.common.core.models.ProtectedBlock
 import npo.kib.odc_demo.common.util.myLogs
 import npo.kib.odc_demo.feature_app.data.api.BankApi
-import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BanknoteRaw
 import npo.kib.odc_demo.feature_app.domain.model.serialization.IssueRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.ReceiveRequest

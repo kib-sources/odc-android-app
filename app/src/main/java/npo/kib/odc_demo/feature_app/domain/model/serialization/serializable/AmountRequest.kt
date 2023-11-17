@@ -6,4 +6,4 @@ import kotlinx.serialization.Serializable
 data class AmountRequest(
     val amount: Int,
     val walletId: String
-) : CustomType
+) : DataPacketTypeMarker

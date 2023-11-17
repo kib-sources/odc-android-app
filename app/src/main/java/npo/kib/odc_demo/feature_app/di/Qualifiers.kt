@@ -6,13 +6,7 @@ import javax.inject.Qualifier
 annotation class BluetoothP2PConnection
 
 @Qualifier
-annotation class BluetoothP2PConnectionBidirectional
-
-@Qualifier
 annotation class NfcP2PConnection
-
-@Qualifier
-annotation class NfcP2PConnectionBidirectional
 
 @Qualifier
 annotation class ReceiveUseCase
