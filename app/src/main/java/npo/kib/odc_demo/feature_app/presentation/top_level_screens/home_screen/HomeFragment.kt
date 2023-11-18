@@ -8,10 +8,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.feature_app.presentation.common.SwitcherInterface
-import npo.kib.odc_demo.common.util.collectFlow
+import npo.kib.odc_demo.feature_app.domain.util.collectFlow
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.databinding.WalletFragmentBinding
-import npo.kib.odc_demo.common.util.makeToast
+import npo.kib.odc_demo.feature_app.domain.util.makeToast
 import javax.inject.Inject
 
 class HomeFragment : Fragment() {

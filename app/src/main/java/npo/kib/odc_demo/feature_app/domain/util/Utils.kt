@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.common.util
+package npo.kib.odc_demo.feature_app.domain.util
 
 import android.util.Log
 import android.widget.Toast
@@ -25,6 +25,7 @@ fun Fragment.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
 //        }
 //    }
 //}
+
 
 fun <T> LifecycleOwner.collectFlow(flow: Flow<T>, block: suspend (T) -> Unit) {
     lifecycleScope.launch {

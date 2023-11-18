@@ -5,12 +5,19 @@ import android.content.Context
 import androidx.activity.result.ActivityResultRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.receiveAsFlow
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToTypeAndPacketPair
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
@@ -28,8 +35,20 @@ class P2PConnectionBluetoothImpl @Inject constructor(
     override val connectionStatus = _connectionStatus.asStateFlow()
 
 
-    private val _receivedBytes = MutableSharedFlow<ByteArray>()
-    override val receivedBytes = _receivedBytes.asSharedFlow()
+    private val _receivedBytes = Channel<ByteArray>(capacity = UNLIMITED)
+    override val receivedBytes : Flow<ByteArray> = _receivedBytes.receiveAsFlow()
+
+
+    private val _receivedData: Channel<Pair<DataPacketType, DataPacketVariant>> = Channel(capacity = UNLIMITED)
+    val receivedData: Flow<Pair<DataPacketType, DataPacketVariant>> =
+        _receivedData.receiveAsFlow().flowOn(Dispatchers.IO)
+
+    suspend fun addNewReceivedData(bytes: ByteArray) {
+        val pair = bytes.deserializeToTypeAndPacketPair()
+        _receivedData.send(pair)
+
+    }
+
 
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -37,14 +56,14 @@ class P2PConnectionBluetoothImpl @Inject constructor(
     private var connectedSocket: BluetoothSocket? = null
 
     @Deprecated(
-        "use startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)",
-        ReplaceWith("startAdvertising(registry: ActivityResultRegistry, duration: Int)"),
+        "Use other option.",
+        ReplaceWith("startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)"),
         level = DeprecationLevel.HIDDEN
     )
     override fun startAdvertising() = Unit
 
     @Deprecated(
-        "use other option",
+        "Use other option.",
         ReplaceWith("stopAdvertising(registry: ActivityResultRegistry)"),
         level = DeprecationLevel.HIDDEN
     )

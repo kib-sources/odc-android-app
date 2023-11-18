@@ -16,3 +16,9 @@ annotation class SendUseCase
 
 @Qualifier
 annotation class AtmUseCase
+
+@Qualifier
+annotation class ReceiverTransactionController
+
+@Qualifier
+annotation class SenderTransactionController

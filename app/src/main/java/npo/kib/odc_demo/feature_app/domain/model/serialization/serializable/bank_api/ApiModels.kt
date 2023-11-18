@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model.serialization
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api
 
 import com.google.gson.annotations.SerializedName
 

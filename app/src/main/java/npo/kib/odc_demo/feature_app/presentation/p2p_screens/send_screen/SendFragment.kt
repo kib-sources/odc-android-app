@@ -9,10 +9,10 @@ import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.lifecycle.ViewModelProvider
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.common.util.collectFlow
-import npo.kib.odc_demo.common.util.makeToast
+import npo.kib.odc_demo.feature_app.domain.util.collectFlow
+import npo.kib.odc_demo.feature_app.domain.util.makeToast
 import npo.kib.odc_demo.databinding.SendFragmentBinding
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseNearbyFragment
 
 class SendFragment : BaseNearbyFragment() {
@@ -47,7 +47,7 @@ class SendFragment : BaseNearbyFragment() {
 
         viewLifecycleOwner.collectFlow(viewModel.amountRequestFlow) { request: AmountRequest? ->
             if (request != null) {
-                showRequestDialog(request.amount, ""/*request.userName*/, request.walletId)
+                showRequestDialog(request.amount, ""/*request.userName*/, "some_wid")
             }
         }
 

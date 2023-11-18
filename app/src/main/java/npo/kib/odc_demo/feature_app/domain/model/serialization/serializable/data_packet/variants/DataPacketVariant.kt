@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants
 
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
@@ -13,9 +13,9 @@ import npo.kib.odc_demo.feature_app.domain.model.DataPacket
  *  1. [UserInfo]
  *  1. [AmountRequest]
  *  1. [BanknotesList]
+ *  1. [AcceptanceBlocks]
  *  1. [Block]
  *  1. [TransactionResult]
  * */
 @Serializable
-sealed interface DataPacketTypeMarker
-
+sealed interface DataPacketVariant

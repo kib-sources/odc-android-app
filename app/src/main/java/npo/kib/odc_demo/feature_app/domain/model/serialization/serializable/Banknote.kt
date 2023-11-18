@@ -1,7 +1,7 @@
-package npo.kib.odc_demo.common.core.models
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable
 
 import kotlinx.serialization.Serializable
-import npo.kib.odc_demo.common.core.Crypto
+import npo.kib.odc_demo.feature_app.domain.core.Crypto
 import java.security.PublicKey
 
 @Serializable

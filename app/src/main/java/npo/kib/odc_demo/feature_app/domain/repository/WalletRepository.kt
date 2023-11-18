@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.feature_app.domain.repository
 
-import npo.kib.odc_demo.common.core.Wallet
+import npo.kib.odc_demo.feature_app.domain.core.Wallet
 import npo.kib.odc_demo.feature_app.data.api.BankApi
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 

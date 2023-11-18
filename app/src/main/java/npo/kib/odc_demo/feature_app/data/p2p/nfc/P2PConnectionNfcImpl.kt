@@ -1,45 +1,39 @@
 package npo.kib.odc_demo.feature_app.data.p2p.nfc
 
 import android.content.Context
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 
 /** NFC is for interaction with the server only right now*/
 class P2PConnectionNfcImpl(val context: Context) : P2PConnection {
-    override val connectionStatus: StateFlow<BluetoothConnectionStatus>
-        get() = TODO("Not yet implemented")
-    override val receivedBytes: SharedFlow<ByteArray>
-        get() = TODO("Not yet implemented")
+
+    private val _receivedBytes = Channel<ByteArray>(capacity = UNLIMITED)
+    override val receivedBytes : Flow<ByteArray> = _receivedBytes.receiveAsFlow()
 
     override fun startDiscovery() {
-        TODO("Not yet implemented")
     }
 
     override fun stopDiscovery() {
-        TODO("Not yet implemented")
     }
 
     override fun startAdvertising() {
-        TODO("Not yet implemented")
     }
 
     override fun stopAdvertising() {
-        TODO("Not yet implemented")
     }
 
     override suspend fun sendBytes(bytes: ByteArray): ByteArray? {
-        TODO("Not yet implemented")
+        return byteArrayOf(1)
     }
 
 
     override fun acceptConnection() {
-        TODO("Not yet implemented")
     }
 
     override fun rejectConnection() {
-        TODO("Not yet implemented")
     }
 
 

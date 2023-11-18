@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.common.core
+package npo.kib.odc_demo.feature_app.domain.core
 
 import java.util.*
 import kotlin.random.Random

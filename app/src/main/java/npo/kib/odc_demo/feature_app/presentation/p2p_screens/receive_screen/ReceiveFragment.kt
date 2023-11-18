@@ -6,8 +6,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.lifecycle.ViewModelProvider
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.common.util.collectFlow
-import npo.kib.odc_demo.common.util.makeToast
+import npo.kib.odc_demo.feature_app.domain.util.collectFlow
+import npo.kib.odc_demo.feature_app.domain.util.makeToast
 import npo.kib.odc_demo.databinding.ReceiveFragmentBinding
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseNearbyFragment
 

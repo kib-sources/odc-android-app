@@ -1,8 +1,8 @@
 package npo.kib.odc_demo.feature_app.data.db
 
 import androidx.room.TypeConverter
-import npo.kib.odc_demo.common.core.getString
-import npo.kib.odc_demo.common.core.loadPublicKey
+import npo.kib.odc_demo.feature_app.domain.core.getString
+import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
 import java.security.PublicKey
 import java.util.*
 

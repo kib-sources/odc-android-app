@@ -2,7 +2,7 @@
    Декларирование одного блока
  */
 
-package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
@@ -12,17 +12,24 @@ import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
 import kotlinx.serialization.Serializable
-import npo.kib.odc_demo.common.core.Crypto
-import npo.kib.odc_demo.common.core.checkHashes
-import npo.kib.odc_demo.common.core.getStringPem
-import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.core.Crypto
+import npo.kib.odc_demo.feature_app.domain.core.checkHashes
+import npo.kib.odc_demo.feature_app.domain.core.getStringPem
 import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.PublicKeySerializerNotNull
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializer
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.UUIDSerializerNotNull
+import npo.kib.odc_demo.feature_app.domain.model.serialization.PublicKeySerializerNotNull
+import npo.kib.odc_demo.feature_app.domain.model.serialization.UUIDSerializer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.UUIDSerializerNotNull
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
 import java.security.PublicKey
 import java.util.UUID
 
+
+/**
+ * A block of the public blockchain for each banknote
+ * @param bnid Banknote id
+ * @param otok One-time open key
+ * @param magic Idk, looks like magic
+ * */
 @Serializable
 @Entity(
     tableName = "block",
@@ -36,9 +43,7 @@ import java.util.UUID
 )
 @TypeConverters(BlockchainConverter::class)
 data class Block(
-    /*
-    Блок публичного блокчейна к каждой банкноте
-    */
+
     @PrimaryKey
     @Serializable(with = UUIDSerializerNotNull::class)
     val uuid: UUID,
@@ -46,11 +51,9 @@ data class Block(
     @Serializable(with = UUIDSerializer::class)
     val parentUuid: UUID?,
 
-    // BankNote id
     @ColumnInfo(name = "block_bnid")
     val bnid: String,
 
-    // One Time Open key
     @Serializable(with = PublicKeySerializerNotNull::class)
     val otok: PublicKey,
 
@@ -58,7 +61,7 @@ data class Block(
     val magic: String?,
     val transactionHash: String?,
     val transactionHashSignature: String?,
-) : DataPacketTypeMarker {
+) : DataPacketVariant {
     fun makeBlockHashValue(): ByteArray {
         return if (parentUuid == null) {
             Crypto.hash(

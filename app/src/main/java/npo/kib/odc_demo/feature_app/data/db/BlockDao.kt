@@ -3,7 +3,7 @@ package npo.kib.odc_demo.feature_app.data.db
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 
 @Dao
 interface BlockDao {

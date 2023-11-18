@@ -1,11 +1,11 @@
 package npo.kib.odc_demo.feature_app.domain.use_cases
 
-import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.common.util.myLogs
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toByteArray
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.util.myLogs
+import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toByteArray
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
@@ -48,8 +48,8 @@ class P2PReceiveUseCase(
         }
 
         //  Шаг 6b
-        if (container.childFull != null) {
-            verifyAndSaveNewBlock(container.childFull)
+        if (container.signedBlock != null) {
+            verifyAndSaveNewBlock(container.signedBlock)
             return
         }
 

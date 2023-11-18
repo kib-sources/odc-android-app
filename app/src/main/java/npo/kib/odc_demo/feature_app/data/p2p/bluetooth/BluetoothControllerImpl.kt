@@ -17,6 +17,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityOptionsCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,6 +30,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
@@ -69,6 +71,11 @@ class BluetoothControllerImpl(
     override val errors: SharedFlow<String>
         get() = _errors.asSharedFlow()
 
+
+    private val _receivedBytes = Channel<ByteArray>(capacity = Channel.UNLIMITED)
+    val receivedBytes : Flow<ByteArray> = _receivedBytes.receiveAsFlow()
+
+
     private val deviceFoundReceiver = DeviceFoundReceiver { device ->
         _scannedDevices.update { devices ->
             val newDevice = device.toCustomBluetoothDevice()
@@ -86,6 +93,8 @@ class BluetoothControllerImpl(
             }
         }
     }
+
+
 
     private var currentServerSocket: BluetoothServerSocket? = null
     private var currentClientSocket: BluetoothSocket? = null

@@ -1,12 +1,10 @@
 package npo.kib.odc_demo.feature_app.domain.p2p
 
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import kotlinx.coroutines.flow.Flow
 
 interface P2PConnection {
-    val connectionStatus: StateFlow<BluetoothConnectionStatus>
-    val receivedBytes: SharedFlow<ByteArray>
+
+    val receivedBytes: Flow<ByteArray>
 
     fun startDiscovery()
     fun stopDiscovery()
@@ -14,10 +12,11 @@ interface P2PConnection {
     fun startAdvertising()
     fun stopAdvertising()
 
+    fun acceptConnection()
+    fun rejectConnection()
+
     //returns null if dataTransferService is not online
     suspend fun sendBytes(bytes: ByteArray): ByteArray?
 
-    fun acceptConnection()
-    fun rejectConnection()
 
 }

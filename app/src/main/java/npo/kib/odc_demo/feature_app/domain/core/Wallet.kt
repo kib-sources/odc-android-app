@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.common.core
+package npo.kib.odc_demo.feature_app.domain.core
 
 /*
     Модуль, реализующий кошелёк.
@@ -7,10 +7,10 @@ package npo.kib.odc_demo.common.core
     В рамках презентации -- внутри самого приложения, что не безопасно .
  */
 
-import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
-import npo.kib.odc_demo.common.core.models.Banknote
-import npo.kib.odc_demo.common.core.models.ProtectedBlock
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.Calendar
@@ -22,7 +22,7 @@ class Wallet(
     private val sokSignature: String,
     private val bok: PublicKey,
     private val bin: Int,
-    val wid: String
+    val walletId: String //wid
 ) {
     private fun otokSignature(otok: PublicKey) =
         Crypto.signature(Crypto.hash(otok.getStringPem()), spk)

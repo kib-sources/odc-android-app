@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants
 
 
 import kotlinx.serialization.Serializable
@@ -8,4 +8,4 @@ import kotlinx.serialization.Serializable
 data class UserInfo(
     val userName: String,
     val walletId: String
-) : DataPacketTypeMarker
+) : DataPacketVariant

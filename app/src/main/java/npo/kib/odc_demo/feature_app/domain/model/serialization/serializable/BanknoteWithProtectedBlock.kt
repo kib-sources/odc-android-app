@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.common.core.models
+package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable
 
 import androidx.room.Embedded
 import androidx.room.Entity

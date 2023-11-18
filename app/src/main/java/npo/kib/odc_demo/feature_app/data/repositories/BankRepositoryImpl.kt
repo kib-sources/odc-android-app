@@ -2,18 +2,18 @@ package npo.kib.odc_demo.feature_app.data.repositories
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import npo.kib.odc_demo.common.core.Wallet
-import npo.kib.odc_demo.common.core.getStringPem
-import npo.kib.odc_demo.common.core.models.Banknote
-import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
-import npo.kib.odc_demo.common.core.models.ProtectedBlock
-import npo.kib.odc_demo.common.util.myLogs
+import npo.kib.odc_demo.feature_app.domain.core.Wallet
+import npo.kib.odc_demo.feature_app.domain.core.getStringPem
+import npo.kib.odc_demo.feature_app.domain.util.myLogs
 import npo.kib.odc_demo.feature_app.data.api.BankApi
-import npo.kib.odc_demo.feature_app.domain.model.serialization.BanknoteRaw
-import npo.kib.odc_demo.feature_app.domain.model.serialization.IssueRequest
-import npo.kib.odc_demo.feature_app.domain.model.serialization.ReceiveRequest
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.BanknoteRaw
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.IssueRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.ReceiveRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
@@ -39,7 +39,7 @@ class BankRepositoryImpl(override val walletRepository: WalletRepository) : Bank
             return ServerConnectionStatus.WALLET_ERROR
         }
 
-        val request = IssueRequest(amount, wallet.wid)
+        val request = IssueRequest(amount, wallet.walletId)
         val issueResponse = try {
             bankApi.issueBanknotes(request)
         } catch (e: Exception) {
@@ -91,7 +91,7 @@ class BankRepositoryImpl(override val walletRepository: WalletRepository) : Bank
             time = block.time,
             transactionSign = protectedBlock.transactionSignature,
             uuid = block.uuid.toString(),
-            wid = wallet.wid
+            wid = wallet.walletId
                                     )
         val response = bankApi.receiveBanknote(request)
         val fullBlock = Block(

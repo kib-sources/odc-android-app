@@ -10,16 +10,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.common.core.Wallet
-import npo.kib.odc_demo.common.core.models.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.common.util.myLogs
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toByteArray
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toPayloadContainer
+import npo.kib.odc_demo.feature_app.domain.core.Wallet
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.util.myLogs
+import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toByteArray
+import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toPayloadContainer
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import java.util.LinkedList
@@ -30,7 +30,7 @@ abstract class P2PBaseUseCase {
     abstract val walletRepository: WalletRepository
     abstract val p2pConnection: P2PConnection
 
-    val connectionStatus by lazy { p2pConnection.connectionStatus }
+//    val connectionStatus by lazy { p2pConnection.connectionStatus }
 
     protected val _amountRequestFlow = MutableStateFlow<AmountRequest?>(null)
     val amountRequestFlow = _amountRequestFlow.asStateFlow()
@@ -52,9 +52,9 @@ abstract class P2PBaseUseCase {
     init {
         CoroutineScope(Dispatchers.IO).launch {
             wallet = walletRepository.getOrRegisterWallet()
-            connectionStatus.collect {
-                onConnectionStateChanged(it)
-            }
+//            connectionStatus.collect {
+//                onConnectionStateChanged(it)
+//            }
         }
     }
 
@@ -88,12 +88,11 @@ abstract class P2PBaseUseCase {
         }
     }
 
-    private fun CoroutineScope.onConnected() =
-        p2pConnection.receivedBytes.map { bytes ->
-            bytes.toPayloadContainer()
-        }.onEach { myLogs(it) }
-            .onEach { bytes ->
-                 onBytesReceive(bytes) }.launchIn(this)
+    private fun CoroutineScope.onConnected() = p2pConnection.receivedBytes.map { bytes ->
+        bytes.toPayloadContainer()
+    }.onEach { myLogs(it) }.onEach { bytes ->
+            onBytesReceive(bytes)
+        }.launchIn(this)
 
 
     private fun onDisconnected() {

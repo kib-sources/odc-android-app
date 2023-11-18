@@ -1,7 +1,7 @@
 package npo.kib.odc_demo.feature_app.domain.model
 
 import kotlinx.serialization.Serializable
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.DataPacketType
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
 
 /**
  * Represents an identifiable [ByteArray] sent through a connection

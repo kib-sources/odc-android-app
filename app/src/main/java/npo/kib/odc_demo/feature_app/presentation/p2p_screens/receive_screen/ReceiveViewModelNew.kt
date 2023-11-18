@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase

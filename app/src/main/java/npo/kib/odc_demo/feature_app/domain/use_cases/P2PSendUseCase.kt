@@ -3,13 +3,13 @@ package npo.kib.odc_demo.feature_app.domain.use_cases
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.update
-import npo.kib.odc_demo.common.core.models.AcceptanceBlocks
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Block
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toByteArray
-import npo.kib.odc_demo.feature_app.data.p2p.connection_util.ObjectSerializer.toPayloadContainer
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.AmountRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toByteArray
+import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toPayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
@@ -125,7 +125,7 @@ class P2PSendUseCase(
     }
 
     private suspend fun sendChildBlockFull(childBlock: Block) {
-        val payloadContainer = PayloadContainer(childFull = childBlock)
+        val payloadContainer = PayloadContainer(signedBlock = childBlock)
         val blockchainJson = payloadContainer.toByteArray()
         p2pConnection.sendBytes(blockchainJson)
     }

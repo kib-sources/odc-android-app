@@ -9,9 +9,9 @@ import npo.kib.odc_demo.feature_app.domain.model.DataPacket
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacket
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.serializeToByteArray
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.DataPacketType
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.DataPacketTypeMarker
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.UserInfo
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -37,8 +37,8 @@ class SerializationTests {
 
 
     @DisplayName("Test if an object serialized and deserialized back is still the same")
-    private inline fun <reified T : DataPacketTypeMarker> testObjectSerializationAndDeserialization(
-        obj: DataPacketTypeMarker
+    private inline fun <reified T : DataPacketVariant> testObjectSerializationAndDeserialization(
+        obj: DataPacketVariant
     ) {
         assertEquals(obj, obj.serializeToByteArray().deserializeToDataPacketType<T>())
     }
@@ -59,7 +59,7 @@ class SerializationTests {
     }
 
     @Serializable
-    private data class Pair1<A, B>(
+    private data class Pair1<out A , out B>(
         @Serializable
         val p1: A,
         @Serializable
@@ -70,6 +70,9 @@ class SerializationTests {
     fun testPair1() {
         //Cannot serialize and deserialize nested ByteArray and Array<Byte> inside a Pair1, need a List<Byte>
         //Probably a mistake somewhere as it works with DataPacket serialization and deserialization
+        //Example error with ByteArray:
+        //Expected :Pair1(p1=10, p2=[B@1cdc4c27)
+        //Actual   :Pair1(p1=10, p2=[B@27953a83)
         val primitiveByteArray = ByteArray(127) { it.toByte() } //Will not work
         val byteArray = Array(127) { it.toByte() } // Will not work
         val byteList = byteArray.toList() //Will work
@@ -85,7 +88,7 @@ class SerializationTests {
     }
 
     //Does not work without reified A & B because of Type Erasure
-    private inline fun <reified A, reified B> Pair1<A, B>.serialize(): ByteArray {
+    private inline fun <reified A , reified B> Pair1<A, B>.serialize(): ByteArray {
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -93,7 +96,7 @@ class SerializationTests {
         return CBORObject.FromJSONString(jsonString).EncodeToBytes()
     }
 
-    private inline fun <reified T : Pair1<*, *>> ByteArray.deserialize(): T {
+    private inline fun <reified T : Pair1<Any, Any>> ByteArray.deserialize(): T {
         val json = Json {
             ignoreUnknownKeys = true
         }
