@@ -39,12 +39,12 @@ class P2PSendUseCase(
             // Ждем выполнения шагов 2-4
             val bytes = p2pConnection.receivedBytes.take(1).first()
             val container = bytes.toPayloadContainer()
-            if (container.blocks == null) {
+            if (container.acceptanceBlocks == null) {
                 return
             }
 
             //Шаг 5
-            onAcceptanceBlocksReceived(container.blocks)
+            onAcceptanceBlocksReceived(container.acceptanceBlocks)
         }
     }
 

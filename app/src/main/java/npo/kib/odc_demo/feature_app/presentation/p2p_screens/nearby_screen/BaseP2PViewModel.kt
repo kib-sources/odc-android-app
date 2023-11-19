@@ -14,23 +14,25 @@ abstract class BaseP2PViewModel : ViewModel() {
 
     protected abstract val p2pUseCase: P2PBaseUseCase
 
-    private val walletRepository: WalletRepository by lazy { p2pUseCase.walletRepository }
 
+    //todo better delete BaseP2PViewModel
+//    private val walletRepository: WalletRepository by lazy { p2pUseCase.walletRepository }
+//
+//
+//    private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
+//    val sum: StateFlow<Int?> = _sum
+//
+//    fun updateCurrentSum() {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            _sum.update { walletRepository.getStoredInWalletSum() }
+//        }
+//    }
 
-    private val _sum: MutableStateFlow<Int?> = MutableStateFlow(0)
-    val sum: StateFlow<Int?> = _sum
-
-    fun updateCurrentSum() {
-        viewModelScope.launch(Dispatchers.IO) {
-            _sum.update { walletRepository.getStoredInWalletSum() }
-        }
-    }
-
-    fun acceptConnection() {
-        p2pUseCase.acceptConnection()
-    }
-
-    fun rejectConnection() {
-        p2pUseCase.rejectConnection()
-    }
+//    private fun acceptConnection() {
+//        p2pUseCase.acceptConnection()
+//    }
+//
+//    private fun rejectConnection() {
+//        p2pUseCase.rejectConnection()
+//    }
 }

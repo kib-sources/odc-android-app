@@ -64,7 +64,7 @@ class P2PReceiveUseCase(
 
         //Шаг 4
         val childBlocksPair = wallet.acceptanceInit(blocks, protectedBlockPart)
-        val payloadContainer = PayloadContainer(blocks = childBlocksPair)
+        val payloadContainer = PayloadContainer(acceptanceBlocks = childBlocksPair)
         val blockchainJson = payloadContainer.toByteArray()
         p2pConnection.sendBytes(blockchainJson)
 

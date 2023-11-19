@@ -11,6 +11,6 @@ data class PayloadContainer(
     val amountRequest: AmountRequest? = null,
     val amount: Int? = null,
     val banknoteWithBlockchain: BanknoteWithBlockchain? = null,
-    val blocks: AcceptanceBlocks? = null,
+    val acceptanceBlocks: AcceptanceBlocks? = null,
     val signedBlock: Block? = null //
 )

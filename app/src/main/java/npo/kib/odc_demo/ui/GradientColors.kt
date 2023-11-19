@@ -17,4 +17,14 @@ sealed class GradientColors(val color1: Color, val color2: Color, val container 
         color2 = CustomColors.light_Gradient_Color_1Container
     )
 
+    data object ButtonPositiveActionColors : GradientColors(
+        color1 = CustomColors.light_Confirm_Success,
+        color2 = CustomColors.light_Confirm_SuccessContainer
+    )
+
+    data object ButtonNegativeActionColors : GradientColors(
+        color1 = CustomColors.light_Cancel_Error,
+        color2 = CustomColors.light_Cancel_ErrorContainer
+    )
+
 }

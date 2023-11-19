@@ -23,8 +23,6 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
@@ -39,29 +37,18 @@ class ReceiveViewModelNew @AssistedInject constructor(
     private val p2pBluetoothConnection =
         p2pUseCase.p2pConnection as P2PConnectionBluetooth
 
-
+    //todo combine different flows here in one flow of receiveScreenState
 
     private val _uiState: MutableStateFlow<ReceiveUiState> =
         MutableStateFlow(ReceiveUiState.Initial)
     val uiState: StateFlow<ReceiveUiState>
         get() = _uiState.asStateFlow()
 
-    //todo add other device info class (potentially with serialized profile pic field)
-    // on each emission from bluetoothPacketsFlow retrieve first fields and send in flow of type
-    // of that device info class and transform to flow of bytes without those first
-    //  bluetooth packet user-specific info fields
 
-//    private val _receivedBluetoothPacketsChannel = Channel<BluetoothDataPacket?>()
-//    private val receivedBluetoothPacketsFlow: Flow<BluetoothDataPacket?> = _receivedBluetoothPacketsChannel.receiveAsFlow()
-    private val receivedBluetoothPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
-    private val receivedBluetoothPacketsFlow: Flow<DataPacket?> = receivedBluetoothPacketsChannel.receiveAsFlow()
+    private val receivedPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
+    private val receivedPacketsFlow: Flow<DataPacket?> = receivedPacketsChannel.receiveAsFlow()
 
 
-//    private val receivedBytesFlow : Mu
-//    private val _viewModelState: MutableStateFlow<ReceiveUiState> =
-//        MutableStateFlow(ReceiveUiState.Initial)
-//    val viewModelState: StateFlow<ReceiveUiState>
-//        get() = _viewModelState.asStateFlow()
 
 
     private var deviceConnectionJob: Job? = null
@@ -76,8 +63,14 @@ class ReceiveViewModelNew @AssistedInject constructor(
 
             is ReceiveScreenEvent.ReactToOffer -> {
                 if (event.accept) {
-
                 } else {
+
+                }
+            }
+            is ReceiveScreenEvent.ReactToConnection -> {
+                when(event.accept){
+                    false -> {}
+                    true -> {}
                 }
             }
 
@@ -85,6 +78,8 @@ class ReceiveViewModelNew @AssistedInject constructor(
                 stopAdvertising()
 //                p2pUseCase.stopDiscovery()
             }
+
+            ReceiveScreenEvent.Finish -> {}
         }
 
     }
@@ -98,7 +93,7 @@ class ReceiveViewModelNew @AssistedInject constructor(
                 duration = 10,
                 callback = { resultDuration ->
                     resultDuration?.run {
-                        _uiState.update { ReceiveUiState.WaitingForConnection }
+                        _uiState.update { ReceiveUiState.Advertising }
                         deviceConnectionJob?.cancel()
                         deviceConnectionJob =
                             p2pBluetoothConnection.startBluetoothServerAndGetFlow().listen()
@@ -116,12 +111,39 @@ class ReceiveViewModelNew @AssistedInject constructor(
         }
     }
 
+    private fun acceptConnection(){
+        //update ui state
+        //...
+        TODO()
+    }
+    private  fun rejectConnection(){
+        //update ui state
+        //...
+        TODO()
+    }
+
+    private fun acceptOffer(){
+        //update ui state
+        //...
+        TODO()
+    }
+
+    private fun rejectOffer(){
+        //update ui state
+        //...
+        TODO()
+    }
+
+
+
+
+
 
     private fun Flow<BluetoothConnectionStatus>.listen(): Job {
         return onEach { result ->
             when (result) {
                 is BluetoothConnectionStatus.ConnectionEstablished -> {
-                    _uiState.update {ReceiveUiState.Connected(otherDevice = result.withDevice)
+                    _uiState.update {ReceiveUiState.Connected
                     }
                 }
                 is BluetoothConnectionStatus.TransferSucceeded -> {
@@ -166,23 +188,5 @@ class ReceiveViewModelNew @AssistedInject constructor(
 
             }
         }
-    }
-}
-
-// Add separate connection buffer class with builder to keep the current connection data
-//like current sending user info, current chosen user, the selected banknotes amount, etc, to build
-// along with the connection progression?
-sealed interface ReceiveUiState {
-    data object Initial : ReceiveUiState
-    data object WaitingForConnection : ReceiveUiState
-
-    data class Connected(val otherDevice: CustomBluetoothDevice?) : ReceiveUiState
-    data class OfferReceived(val amountRequest: AmountRequest) : ReceiveUiState
-    data object Receiving : ReceiveUiState
-    data class Result(val result: ResultType) : ReceiveUiState
-
-    sealed interface ResultType {
-        data object Success : ResultType
-        data class Failure(val failureMessage: String) : ResultType
     }
 }
