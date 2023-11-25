@@ -13,7 +13,6 @@ import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -21,34 +20,39 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
+import npo.kib.odc_demo.feature_app.di.ReceiverControllerBluetooth
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseP2PViewModel
 
 class ReceiveViewModelNew @AssistedInject constructor(
-    @ReceiveUseCase useCase: P2PBaseUseCase, @Assisted private val registry: ActivityResultRegistry
-) : BaseP2PViewModel() {
+    @ReceiverControllerBluetooth _transactionController: ReceiverTransactionController,
+    @Assisted private val registry: ActivityResultRegistry
+) : ViewModel() {
 
-    override val p2pUseCase = useCase as P2PReceiveUseCase
+    private val transactionController : ReceiverTransactionController = _transactionController
+    private val p2pBluetoothConnection = transactionController.p2pConnection as P2PConnectionBluetooth
 
-    private val p2pBluetoothConnection =
-        p2pUseCase.p2pConnection as P2PConnectionBluetooth
 
     //todo combine different flows here in one flow of receiveScreenState
 
     private val _uiState: MutableStateFlow<ReceiveUiState> =
         MutableStateFlow(ReceiveUiState.Initial)
-    val uiState: StateFlow<ReceiveUiState>
-        get() = _uiState.asStateFlow()
+//    val uiState: StateFlow<ReceiveUiState>
+//        get() = _uiState.asStateFlow()
+
+//    private val receivedPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
+//    private val receivedPacketsFlow: Flow<DataPacket?> = receivedPacketsChannel.receiveAsFlow()
 
 
-    private val receivedPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
-    private val receivedPacketsFlow: Flow<DataPacket?> = receivedPacketsChannel.receiveAsFlow()
-
-
+    //    val state : MutableStateFlow<ReceiveScreenState> = MutableStateFlow(
+//        ReceiveScreenState()
+//    )
+    val state: StateFlow<ReceiveScreenState> = MutableStateFlow(
+        ReceiveScreenState()
+    )
 
 
     private var deviceConnectionJob: Job? = null
@@ -67,8 +71,9 @@ class ReceiveViewModelNew @AssistedInject constructor(
 
                 }
             }
+
             is ReceiveScreenEvent.ReactToConnection -> {
-                when(event.accept){
+                when (event.accept) {
                     false -> {}
                     true -> {}
                 }
@@ -89,7 +94,8 @@ class ReceiveViewModelNew @AssistedInject constructor(
         viewModelScope.launch {
             //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
             //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
-            p2pBluetoothConnection.startAdvertising(registry = registry,
+            p2pBluetoothConnection.startAdvertising(
+                registry = registry,
                 duration = 10,
                 callback = { resultDuration ->
                     resultDuration?.run {
@@ -111,44 +117,49 @@ class ReceiveViewModelNew @AssistedInject constructor(
         }
     }
 
-    private fun acceptConnection(){
-        //update ui state
-        //...
-        TODO()
-    }
-    private  fun rejectConnection(){
+    private fun acceptConnection() {
         //update ui state
         //...
         TODO()
     }
 
-    private fun acceptOffer(){
+    private fun rejectConnection() {
         //update ui state
         //...
         TODO()
     }
 
-    private fun rejectOffer(){
+    private fun acceptOffer() {
+        //update ui state
+        //...
+        TODO()
+    }
+
+    private fun rejectOffer() {
         //update ui state
         //...
         TODO()
     }
 
 
-
-
+    private fun reset() {
+        transactionController.reset()
+    }
 
 
     private fun Flow<BluetoothConnectionStatus>.listen(): Job {
         return onEach { result ->
             when (result) {
                 is BluetoothConnectionStatus.ConnectionEstablished -> {
-                    _uiState.update {ReceiveUiState.Connected
+                    _uiState.update {
+                        ReceiveUiState.Connected
                     }
                 }
+
                 is BluetoothConnectionStatus.TransferSucceeded -> {
 //                    receivedBluetoothPacketsChannel.send(result.bytes)
                 }
+
                 is BluetoothConnectionStatus.Error -> {}
                 BluetoothConnectionStatus.WaitingForConnection -> {}
                 BluetoothConnectionStatus.Disconnected -> {}

@@ -77,15 +77,15 @@ class P2PReceiveUseCase(
     }
 
     //Шаг 6b
-    private fun verifyAndSaveNewBlock(childBlockFull: Block) {
+    private suspend fun verifyAndSaveNewBlock(childBlockFull: Block) {
         // TODO verification disabled for demo
 //        if (!childBlockFull.verification(blocksToDB.last().otok)) {
 //            throw Exception("childBlock некорректно подписан")
 //        }
 
-        banknotesDao.insert(banknoteToDB)
-        blocksToDB.forEach { block -> blockDao.insert(block) }
-        blockDao.insert(childBlockFull)
+        walletRepository.insertBanknote(banknoteToDB)
+        blocksToDB.forEach { block -> walletRepository.insertBlock(block) }
+        walletRepository.insertBlock(childBlockFull)
 
         receivingAmount -= banknoteToDB.banknote.amount
         if (receivingAmount <= 0) {

@@ -27,19 +27,15 @@ import java.util.LinkedList
 
 abstract class P2PBaseUseCase {
 
-    abstract val walletRepository: WalletRepository
-    abstract val p2pConnection: P2PConnection
+    protected abstract val walletRepository: WalletRepository
+    protected abstract val p2pConnection: P2PConnection
 
-//    val connectionStatus by lazy { p2pConnection.connectionStatus }
 
     protected val _amountRequestFlow = MutableStateFlow<AmountRequest?>(null)
-    val amountRequestFlow = _amountRequestFlow.asStateFlow()
+    protected val amountRequestFlow = _amountRequestFlow.asStateFlow()
 
 
     private var currentJob = Job() as Job
-
-    protected val banknotesDao by lazy { walletRepository.blockchainDatabase.banknotesDao }
-    protected val blockDao by lazy { walletRepository.blockchainDatabase.blockDao }
 
     protected lateinit var wallet: Wallet
 

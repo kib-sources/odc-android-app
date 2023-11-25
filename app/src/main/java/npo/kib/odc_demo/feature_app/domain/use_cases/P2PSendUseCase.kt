@@ -61,7 +61,8 @@ class P2PSendUseCase(
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
         val banknoteAmounts = banknotesDao.getBnidsAndAmounts().toCollection(ArrayList())
-        banknoteAmounts.sortByDescending { it.amount }
+        banknoteAmounts.sortByDescending {
+            it.amount }
 
         val blockchainsList = ArrayList<BanknoteWithBlockchain>()
         for (banknoteAmount in banknoteAmounts) {
@@ -71,7 +72,7 @@ class P2PSendUseCase(
 
             blockchainsList.add(
                 BanknoteWithBlockchain(
-                    banknotesDao.getBlockchainByBnid(banknoteAmount.bnid),
+                    banknotesDao.getBanknoteByBnid(banknoteAmount.bnid),
                     blockDao.getBlocksByBnid(banknoteAmount.bnid)
                 )
             )
@@ -119,7 +120,7 @@ class P2PSendUseCase(
         val childBlockFull = wallet.signature(
             sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock
         )
-        banknotesDao.deleteByBnid(acceptanceBlocks.childBlock.bnid)
+        banknotesDao.deleteBanknoteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
         sendBanknoteWithBlockchain(sendingList.poll())
     }

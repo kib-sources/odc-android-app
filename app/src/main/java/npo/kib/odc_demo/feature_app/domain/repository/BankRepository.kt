@@ -1,19 +1,23 @@
 package npo.kib.odc_demo.feature_app.domain.repository
 
-import kotlinx.coroutines.flow.Flow
-import npo.kib.odc_demo.feature_app.data.api.BankApi
+import npo.kib.odc_demo.feature_app.domain.core.Wallet
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.CredentialsResponse
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.WalletRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.WalletResponse
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 
 interface BankRepository {
 
-    val walletRepository: WalletRepository
+    suspend fun getCredentials(): CredentialsResponse
 
-    val bankApi: BankApi
-    suspend fun getSum(): Int?
+    suspend fun registerWallet(wr: WalletRequest): WalletResponse
 
-    fun getSumAsFlow(): Flow<Int?>
+    suspend fun issueBanknotes(
+        wallet: Wallet,
+        amount: Int,
+        walletInsertionCallback: (BanknoteWithProtectedBlock, Block) -> Unit
+    ): ServerConnectionStatus
 
-    suspend fun issueBanknotes(amount: Int): ServerConnectionStatus
-
-    fun isWalletRegistered(): Boolean
 }

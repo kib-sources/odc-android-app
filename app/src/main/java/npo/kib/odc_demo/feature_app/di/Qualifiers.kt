@@ -18,7 +18,7 @@ annotation class SendUseCase
 annotation class AtmUseCase
 
 @Qualifier
-annotation class ReceiverTransactionController
+annotation class ReceiverControllerBluetooth
 
 @Qualifier
-annotation class SenderTransactionController
+annotation class SenderControllerBluetooth

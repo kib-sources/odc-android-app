@@ -4,6 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.receiveAsFlow
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 
@@ -26,7 +27,11 @@ class P2PConnectionNfcImpl(val context: Context) : P2PConnection {
     }
 
     override suspend fun sendBytes(bytes: ByteArray): ByteArray? {
-        return byteArrayOf(1)
+        return byteArrayOf(0)
+    }
+
+    override suspend fun listenForBytes(): Flow<ByteArray> {
+        return flowOf(byteArrayOf(0))
     }
 
 

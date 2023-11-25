@@ -17,7 +17,9 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseN
 
 class SendFragment : BaseNearbyFragment() {
 
+    /*
     companion object {
+
         fun newInstance() = SendFragment()
     }
 
@@ -28,7 +30,7 @@ class SendFragment : BaseNearbyFragment() {
     private val binding get() = _binding!!
 
 
-    override lateinit var viewModel: SendViewModel
+//    override lateinit var viewModel: SendViewModel
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -206,4 +208,6 @@ class SendFragment : BaseNearbyFragment() {
     override fun onPermissionRejected() {
         binding.sendingStatusView.text = getString(R.string.permission_rejected)
     }
+
+     */
 }

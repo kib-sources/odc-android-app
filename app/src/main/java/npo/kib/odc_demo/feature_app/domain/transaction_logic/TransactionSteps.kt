@@ -3,31 +3,36 @@ package npo.kib.odc_demo.feature_app.domain.transaction_logic
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.*
 
 sealed interface TransactionSteps {
-    val role : TransactionRole
+    val role: TransactionRole
+
     enum class ForReceiver : TransactionSteps {
-        WAITING_FOR_OFFER,
+        INITIAL,
+        WAIT_FOR_OFFER,
         REJECT_OFFER,
-        WAITING_FOR_BANKNOTES,
-        INIT_BLOCK, //steps 2-4
-        SEND_UNSIGNED_BLOCK,
+        ACCEPT_OFFER,
+        WAIT_FOR_BANKNOTES,
+        INIT_VERIFICATION, //steps 2-4
+        SEND_ACCEPTANCE_BLOCKS, //or SEND_UNSIGNED_BLOCK
         VERIFY_SIGNATURE,
-        MAKE_LOCAL_PUSH,
-        SEND_RESULT,
-        END;
-        override val role= Receiver
+        SAVE_BANKNOTES_TO_WALLET,
+        SEND_RESULT;
+
+        override val role = Receiver
     }
 
     enum class ForSender : TransactionSteps {
-        INIT,
+        INITIAL,
+        INIT_TRANSACTION,
         SEND_OFFER,
-        WAITING_FOR_OFFER_RESULT,
+        WAIT_FOR_RESULT,
         SEND_BANKNOTES,
-        WAITING_FOR_UNSIGNED_BLOCK,
+        WAITING_FOR_ACCEPTANCE_BLOCKS, //OR WAITING_FOR_UNSIGNED_BLOCK
         SIGN_BLOCK, //step 5
         SEND_SIGNED_BLOCK,
-        MAKE_LOCAL_PUSH,
-        SEND_RESULT,
-        END;
+        SAVE_BANKNOTES_TO_WALLET;
+        //not needed right now for sending side, sender does not need to send any results, only data
+//       ,SEND_RESULT;
+
         override val role = Sender
     }
 

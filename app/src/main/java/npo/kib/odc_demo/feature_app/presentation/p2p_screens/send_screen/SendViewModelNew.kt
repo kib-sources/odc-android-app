@@ -1,5 +1,6 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen
 
+import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,23 +8,20 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.feature_app.di.SendUseCase
+import npo.kib.odc_demo.feature_app.di.SenderControllerBluetooth
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseP2PViewModel
 import javax.inject.Inject
 
 
 @HiltViewModel
 class SendViewModelNew @Inject constructor(
-    @SendUseCase
-    _p2pUseCase: P2PBaseUseCase
-) : BaseP2PViewModel() {
+    @SenderControllerBluetooth _transactionController: SenderTransactionController
+) : ViewModel() {
 
-    override val p2pUseCase: P2PSendUseCase = _p2pUseCase as P2PSendUseCase
-    val p2pBluetoothConnection = p2pUseCase.p2pConnection
+    private val transactionController : SenderTransactionController = _transactionController
+    val p2pBluetoothConnection = transactionController.p2pConnection
 
-    val amountRequestFlow = _p2pUseCase.amountRequestFlow
-//    val isSendingFlow = _p2pUseCase.isSendingFlow
 
     private val _uiState: MutableStateFlow<SendUiState> = MutableStateFlow(SendUiState.Initial)
     val uiState: StateFlow<SendUiState>
@@ -55,7 +53,7 @@ class SendViewModelNew @Inject constructor(
         //transactionController.reset()
     }
 
-    private fun connectTouser(){
+    private fun connectTouser() {
         _uiState.update { SendUiState.Initial }
     }
 }

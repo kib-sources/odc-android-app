@@ -16,7 +16,13 @@ interface P2PConnection {
     fun rejectConnection()
 
     //returns null if dataTransferService is not online
-    suspend fun sendBytes(bytes: ByteArray): ByteArray?
+    //todo change to sendDataPacket
+    suspend fun sendBytes(bytes: ByteArray): ByteArray? {
+        TODO()
+    }
 
-
+    //todo change to return Flow<DataPacket> instead
+    suspend fun listenForBytes() : Flow<ByteArray> {
+        TODO()
+    }
 }

@@ -21,9 +21,11 @@ import npo.kib.odc_demo.feature_app.presentation.common.SwitcherInterface
 // базовый класс для фрагментов, где предполагается использование Nearby Connections API
 abstract class BaseNearbyFragment : Fragment() {
 
-    protected abstract val viewModel: BaseP2PViewModel
+//    protected abstract val viewModel: BaseP2PViewModel
 
+    /*
     protected lateinit var mController: SwitcherInterface
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,12 +43,12 @@ abstract class BaseNearbyFragment : Fragment() {
             .setPositiveButton(
                 getString(R.string.receive)
             ) { _, _ ->  // The user confirmed, so we can accept the connection.
-                viewModel.acceptConnection()
+//                viewModel.acceptConnection()
             }
             .setNegativeButton(
                 getString(R.string.cancel)
             ) { _, _ ->  // The user canceled, so we should reject the connection.
-                viewModel.rejectConnection()
+//                viewModel.rejectConnection()
             }
             //           .setIcon(ContextCompat.getDrawable(view.context, R.drawable.ic_dialog_alert))
             .show()
@@ -139,4 +141,6 @@ abstract class BaseNearbyFragment : Fragment() {
         }
         return isAllowed
     }
+    */
+
 }

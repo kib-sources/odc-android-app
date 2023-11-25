@@ -1,17 +1,16 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.atm_screen
 
+import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import npo.kib.odc_demo.feature_app.di.AtmUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.nearby_screen.BaseP2PViewModel
 import javax.inject.Inject
 
-class ATMViewModelNew @Inject constructor(@AtmUseCase p2pUseCase: P2PBaseUseCase) : BaseP2PViewModel(){
+class ATMViewModelNew @Inject constructor(@AtmUseCase private val p2pUseCase: P2PBaseUseCase) : ViewModel(){
 
-    override val p2pUseCase = p2pUseCase as P2PReceiveUseCase
+
 
     private val _uiState: MutableStateFlow<ATMUiState> =
         MutableStateFlow(ATMUiState.Initial)
