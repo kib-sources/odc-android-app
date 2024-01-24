@@ -2,6 +2,7 @@ package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.*
 
+//todo right now not needed, later can change awaited packet type with changing steps and come up with something else
 sealed interface TransactionSteps {
     val role: TransactionRole
 
@@ -24,12 +25,13 @@ sealed interface TransactionSteps {
         INITIAL,
         INIT_TRANSACTION,
         SEND_OFFER,
-        WAIT_FOR_RESULT,
+//        WAIT_FOR_RESULT,
         SEND_BANKNOTES,
         WAITING_FOR_ACCEPTANCE_BLOCKS, //OR WAITING_FOR_UNSIGNED_BLOCK
-        SIGN_BLOCK, //step 5
-        SEND_SIGNED_BLOCK,
-        SAVE_BANKNOTES_TO_WALLET;
+        SIGN_AND_SEND_BLOCK, //step 5
+        FINISH
+//        , SAVE_BANKNOTES_TO_WALLET
+        ;
         //not needed right now for sending side, sender does not need to send any results, only data
 //       ,SEND_RESULT;
 

@@ -32,7 +32,7 @@ import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissio
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.presentation.common.LocalReceiveViewModelNewFactory
+import npo.kib.odc_demo.feature_app.presentation.common.LocalReceiveViewModelFactory
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.MultiplePermissionsRequestBlock
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientActionButton
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.DeviceItem
@@ -54,14 +54,15 @@ fun ReceiveRoute(
 //    Using CompositionLocalProvider to provide ReceiveViewModelNew.Factory and then
 //    creating a viewmodel scoped to the NavBackStackEntry with Hilt 's Assisted injection
 //    providing activityResultRegistry to be able to use ActivityResult API in the viewmodel.
-        val viewModel = viewModel<ReceiveViewModelNew>(
-            viewModelStoreOwner = navBackStackEntry, factory = ReceiveViewModelNew.provideReceiveViewModelNewFactory(
-                LocalReceiveViewModelNewFactory.current!!,
+        val viewModel = viewModel<ReceiveViewModel>(
+            viewModelStoreOwner = navBackStackEntry, factory = ReceiveViewModel.provideReceiveViewModelNewFactory(
+                LocalReceiveViewModelFactory.current!!,
                 registry = LocalActivityResultRegistryOwner.current!!.activityResultRegistry
             )
         )
         //todo change type from ReceiveUiState to ReceiveScreenState
         val receiveUiState by viewModel.uiState.collectAsStateWithLifecycle()
+        val receiveScreenState by viewModel.uiState.collectAsStateWithLifecycle()
         ReceiveScreen(uiState = receiveUiState, onEvent = viewModel::onEvent)
     }
     else {

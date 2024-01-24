@@ -2,10 +2,11 @@ package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.dat
 
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.ACCEPTANCE_BLOCKS
 
 
 /**
- * Sent on step 4, acceptance_init,
+ * Sent on step 4, acceptance_init
  * @param childBlock Unsigned [Block]
  * @param protectedBlock Accompanying block for additional verification on server
  * */
@@ -13,4 +14,4 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Prot
 data class AcceptanceBlocks(
     val childBlock: Block,
     val protectedBlock: ProtectedBlock
-) : DataPacketVariant
+) : DataPacketVariant(packetType = ACCEPTANCE_BLOCKS)

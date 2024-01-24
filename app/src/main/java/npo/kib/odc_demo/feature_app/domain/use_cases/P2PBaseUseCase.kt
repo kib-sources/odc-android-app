@@ -35,7 +35,7 @@ abstract class P2PBaseUseCase {
     protected val amountRequestFlow = _amountRequestFlow.asStateFlow()
 
 
-    private var currentJob = Job() as Job
+    private var currentJob: Job? = null
 
     protected lateinit var wallet: Wallet
 
@@ -77,20 +77,25 @@ abstract class P2PBaseUseCase {
 
             is BluetoothConnectionStatus.Disconnected -> {
                 onDisconnected()
-                currentJob.cancel()
             }
 
-            else -> currentJob.cancel()
+            else -> resetJob()
         }
     }
 
     private fun CoroutineScope.onConnected() = p2pConnection.receivedBytes.map { bytes ->
         bytes.toPayloadContainer()
     }.onEach { myLogs(it) }.onEach { bytes ->
-            onBytesReceive(bytes)
-        }.launchIn(this)
+        onBytesReceive(bytes)
+    }.launchIn(this)
 
 
     private fun onDisconnected() {
+        resetJob()
+    }
+
+    private fun resetJob() {
+        currentJob?.cancel()
+        currentJob = null
     }
 }

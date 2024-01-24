@@ -20,6 +20,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.PublicKeySerializ
 import npo.kib.odc_demo.feature_app.domain.model.serialization.UUIDSerializer
 import npo.kib.odc_demo.feature_app.domain.model.serialization.UUIDSerializerNotNull
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.SIGNED_BLOCK
 import java.security.PublicKey
 import java.util.UUID
 
@@ -61,7 +62,7 @@ data class Block(
     val magic: String?,
     val transactionHash: String?,
     val transactionHashSignature: String?,
-) : DataPacketVariant {
+) : DataPacketVariant(packetType = SIGNED_BLOCK) {
     fun makeBlockHashValue(): ByteArray {
         return if (parentUuid == null) {
             Crypto.hash(

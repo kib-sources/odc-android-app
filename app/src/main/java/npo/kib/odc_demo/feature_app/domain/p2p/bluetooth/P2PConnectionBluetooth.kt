@@ -1,6 +1,7 @@
 package npo.kib.odc_demo.feature_app.domain.p2p.bluetooth
 
 import androidx.activity.result.ActivityResultRegistry
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
@@ -11,27 +12,30 @@ import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 interface P2PConnectionBluetooth : P2PConnection {
 
     val connectionStatus: StateFlow<BluetoothConnectionStatus>
+    var scope: CoroutineScope
 
     @Deprecated(
         "",
         ReplaceWith("fun startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)"),
         level = DeprecationLevel.HIDDEN
     )
-    override fun startAdvertising()
+    override fun startAdvertising() = Unit
 
     @Deprecated(
         "",
         ReplaceWith("fun stopAdvertising(registry: ActivityResultRegistry)"),
         level = DeprecationLevel.HIDDEN
     )
-    override fun stopAdvertising()
+    override fun stopAdvertising() = Unit
 
     fun startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)
     fun stopAdvertising(registry: ActivityResultRegistry)
 
-    fun startBluetoothServerAndGetFlow(): Flow<BluetoothConnectionStatus>
+    //    fun startBluetoothServerAndGetFlow(): Flow<BluetoothConnectionStatus>
+     fun startBluetoothServerAndGetBytesFlow(): Flow<ByteArray>
 
-    fun connectToDevice(device: CustomBluetoothDevice): Flow<BluetoothConnectionStatus>
+    //    fun connectToDevice(device: CustomBluetoothDevice): Flow<BluetoothConnectionStatus>
+    fun connectToDevice(device: CustomBluetoothDevice)
 
     fun closeConnection()
 

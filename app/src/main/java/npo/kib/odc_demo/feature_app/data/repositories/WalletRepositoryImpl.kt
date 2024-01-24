@@ -1,9 +1,8 @@
 package npo.kib.odc_demo.feature_app.data.repositories
 
 import android.util.Log
-import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey
 import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey.*
-import npo.kib.odc_demo.feature_app.data.db.Amounts
+import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.data.db.BanknotesDao
 import npo.kib.odc_demo.feature_app.data.db.BlockDao
 import npo.kib.odc_demo.feature_app.domain.core.Crypto
@@ -12,9 +11,12 @@ import npo.kib.odc_demo.feature_app.domain.core.getStringPem
 import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus.WALLET_ERROR
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.WalletRequest
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
@@ -77,21 +79,58 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun isWalletRegistered(): Boolean {
-        val sokSignature = keysDataStoreRepository.readValue(KeysDataStoreKey.SOK_SIGN_KEY)
-        val wid = keysDataStoreRepository.readValue(KeysDataStoreKey.WID_KEY)
-        val bin = keysDataStoreRepository.readValue(KeysDataStoreKey.BIN_KEY)
-        val bokString = keysDataStoreRepository.readValue(KeysDataStoreKey.BOK_KEY)
+        val sokSignature = keysDataStoreRepository.readValue(SOK_SIGN_KEY)
+        val wid = keysDataStoreRepository.readValue(WID_KEY)
+        val bin = keysDataStoreRepository.readValue(BIN_KEY)
+        val bokString = keysDataStoreRepository.readValue(BOK_KEY)
         return !(sokSignature == null || wid == null || bokString == null || bin == null)
     }
 
     override suspend fun getStoredInWalletSum() = banknotesDao.getStoredSum()
+
+    override suspend fun walletBanknoteVerification(banknote: Banknote) {
+        val wallet = getOrRegisterWallet()
+        wallet.banknoteVerification(banknote)
+    }
+
+    override suspend fun walletFirstBlock(banknote: Banknote): Pair<Block, ProtectedBlock> {
+        val wallet = getOrRegisterWallet()
+        return wallet.firstBlock(banknote)
+    }
+
+    override suspend fun walletFirstBlockVerification(block: Block) {
+        val wallet = getOrRegisterWallet()
+        wallet.firstBlockVerification(block)
+    }
+
+    override suspend fun walletInitProtectedBlock(protectedBlock: ProtectedBlock): ProtectedBlock {
+        val wallet = getOrRegisterWallet()
+        return wallet.initProtectedBlock(protectedBlock)
+    }
+
+    override suspend fun walletAcceptanceInit(
+        blocks: List<Block>,
+        protectedBlock: ProtectedBlock
+    ): AcceptanceBlocks {
+        val wallet = getOrRegisterWallet()
+        return wallet.acceptanceInit(blocks, protectedBlock)
+    }
+
+    override suspend fun walletSignature(
+        parentBlock: Block,
+        childBlock: Block,
+        protectedBlock: ProtectedBlock
+    ): Block {
+        val wallet = getOrRegisterWallet()
+        return wallet.signature(parentBlock, childBlock, protectedBlock)
+    }
 
     override suspend fun insertBanknote(banknoteWithProtectedBlock: BanknoteWithProtectedBlock) {
         banknotesDao.insertBanknote(banknoteWithProtectedBlock)
     }
 
 
-    override suspend fun getBanknotesIdsAndAmounts(): List<Amounts> {
+    override suspend fun getBanknotesIdsAndAmounts(): List<Amount> {
         return banknotesDao.getBnidsAndAmounts()
     }
 
@@ -129,12 +168,26 @@ class WalletRepositoryImpl(
     }
 
 
-    override suspend fun getBanknotesFromWallet(): List<BanknoteWithBlockchain> {
-        TODO("Need to get banknotes from amount or return that the amount can not be constructed from available banknotes")
+    override suspend fun getBanknotesWithBlockchainByBnids(bnidList: List<String>): List<BanknoteWithBlockchain>? {
+        if (bnidList.isEmpty()) return null
+        val resultList = bnidList.map { bnid ->
+            BanknoteWithBlockchain(getBanknoteByBnid(bnid), getBlocksByBnid(bnid))
+        }
+        return resultList.takeIf { bnidList.size == resultList.size }
     }
 
     override suspend fun addBanknotesToWallet(banknotes: List<BanknoteWithBlockchain>) {
-        TODO("add all the passed banknotes to the wallet")
+        banknotes.forEach {
+            banknotesDao.insertBanknote(it.banknoteWithProtectedBlock)
+            it.blocks.forEach { block -> blockDao.insertBlock(block) }
+        }
+    }
+
+
+    override suspend fun deleteBanknotesWithBlockchainByBnids(bnidList: List<String>) {
+        bnidList.forEach {
+            this.deleteBanknoteByBnid(it)
+        }
     }
 
 

@@ -21,10 +21,5 @@ object NfcModule {
     fun provideP2PConnectionNfcImpl(@ApplicationContext context: Context) =
         P2PConnectionNfcImpl(context) as P2PConnection
 
-//    @Provides
-//    @Singleton
-//    @NfcP2PConnectionBidirectional
-//    fun provideP2PConnectionBidirectionalNfcImpl(@ApplicationContext context: Context) =
-//        P2PConnectionNfcImpl(context) as P2PConnectionBidirectional
 
 }

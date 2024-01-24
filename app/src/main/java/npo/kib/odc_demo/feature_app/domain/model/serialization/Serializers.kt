@@ -66,6 +66,28 @@ object BytesToTypeConverter {
         return packetType to deserializedPacket
     }
 
+    /**
+     * Fully deserializes [DataPacket] based on [DataPacketType]
+     * @return [DataPacketVariant]
+     * */
+    fun ByteArray.deserializeToDataPacketVariant(): DataPacketVariant {
+        val dataPacket = this.deserializeToDataPacket()
+        val packetType = dataPacket.packetType
+        val packetBytes = dataPacket.bytes
+        val deserializedPacket: DataPacketVariant
+        with(packetBytes) {
+            deserializedPacket = when (packetType) {
+                DataPacketType.USER_INFO -> deserializeToDataPacketType<UserInfo>()
+                DataPacketType.AMOUNT_REQUEST -> deserializeToDataPacketType<AmountRequest>()
+                DataPacketType.BANKNOTES_LIST -> deserializeToDataPacketType<BanknotesList>()
+                DataPacketType.ACCEPTANCE_BLOCKS -> deserializeToDataPacketType<AcceptanceBlocks>()
+                DataPacketType.SIGNED_BLOCK -> deserializeToDataPacketType<Block>()
+                DataPacketType.RESULT -> deserializeToDataPacketType<TransactionResult>()
+            }
+        }
+        return deserializedPacket
+    }
+
 
 }
 

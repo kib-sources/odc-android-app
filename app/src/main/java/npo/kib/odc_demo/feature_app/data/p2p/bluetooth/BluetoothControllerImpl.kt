@@ -55,25 +55,20 @@ class BluetoothControllerImpl(
     private var dataTransferService: BluetoothDataTransferService? = null
 
     private val _isConnected = MutableStateFlow(false)
-
-    override val isConnected: StateFlow<Boolean>
-        get() = _isConnected.asStateFlow()
+    override val isConnected: StateFlow<Boolean> = _isConnected.asStateFlow()
 
     private val _scannedDevices = MutableStateFlow<List<CustomBluetoothDevice>>(emptyList())
-    override val scannedDevices: StateFlow<List<CustomBluetoothDevice>>
-        get() = _scannedDevices.asStateFlow()
+    override val scannedDevices: StateFlow<List<CustomBluetoothDevice>> = _scannedDevices.asStateFlow()
 
     private val _bondedDevices = MutableStateFlow<List<CustomBluetoothDevice>>(emptyList())
-    override val bondedDevices: StateFlow<List<CustomBluetoothDevice>>
-        get() = _bondedDevices.asStateFlow()
+    override val bondedDevices: StateFlow<List<CustomBluetoothDevice>> = _bondedDevices.asStateFlow()
 
     private val _errors = MutableSharedFlow<String>()
-    override val errors: SharedFlow<String>
-        get() = _errors.asSharedFlow()
+    override val errors: SharedFlow<String> = _errors.asSharedFlow()
 
-
-    private val _receivedBytes = Channel<ByteArray>(capacity = Channel.UNLIMITED)
-    val receivedBytes : Flow<ByteArray> = _receivedBytes.receiveAsFlow()
+// not needed here, it is higher in hierarchy
+//    private val _receivedBytes = Channel<ByteArray>(capacity = Channel.UNLIMITED)
+//    val receivedBytes : Flow<ByteArray> = _receivedBytes.receiveAsFlow()
 
 
     private val deviceFoundReceiver = DeviceFoundReceiver { device ->

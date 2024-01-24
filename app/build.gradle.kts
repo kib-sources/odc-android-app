@@ -3,6 +3,7 @@ plugins {
     id("kotlin-android")
     //KSP instead of Kapt for faster builds
     id("com.google.devtools.ksp")
+//    kotlin("kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     id(Testing.junit5_plugin)
@@ -131,7 +132,7 @@ dependencies {
     implementation(Room.roomRuntime)
     implementation(Room.roomKtx)
     //KSP instead of Kapt for faster builds
-    //kapt(Room.roomCompiler)
+//    kapt(Room.roomCompiler)
     ksp(Room.roomCompiler)
 
     //Dagger-Hilt
@@ -139,6 +140,7 @@ dependencies {
     //KSP instead of Kapt for faster builds
     //kapt(DaggerHilt.hiltCompiler)
     ksp(DaggerHilt.hiltCompiler)
+//    kapt(DaggerHilt.hiltCompiler)
     implementation(DaggerHilt.hiltNavigationCompose)
 
     //Google Accompanist
@@ -160,7 +162,7 @@ dependencies {
     androidTestImplementation (Testing.hiltTesting)
     // Make Hilt generate code in the androidTest folder
     kspAndroidTest(DaggerHilt.hiltCompiler)
-
+//    kaptAndroidTest(DaggerHilt.hiltCompiler)
     //junit5
     testImplementation(platform(Testing.junitBOM))
     // (Required) Writing and executing Unit Tests on the JUnit Platform
@@ -200,7 +202,7 @@ dependencies {
 
     androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
 }
-
+//
 //kapt {
 //    correctErrorTypes = true
 //    useBuildCache = true

@@ -2,7 +2,7 @@ package npo.kib.odc_demo.feature_app.data.db
 
 import androidx.room.ColumnInfo
 
-data class Amounts(
+data class Amount(
     @ColumnInfo(name = "bnid")
     val bnid: String,
 

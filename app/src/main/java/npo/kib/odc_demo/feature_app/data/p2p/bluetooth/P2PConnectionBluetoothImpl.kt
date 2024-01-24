@@ -5,19 +5,21 @@ import android.content.Context
 import androidx.activity.result.ActivityResultRegistry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToTypeAndPacketPair
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
@@ -27,47 +29,26 @@ class P2PConnectionBluetoothImpl @Inject constructor(
     private val bluetoothController: BluetoothController, private val context: Context
 ) : P2PConnectionBluetooth {
 
-    private val _connectionStatus: MutableStateFlow<BluetoothConnectionStatus.NoConnection> =
-        MutableStateFlow(
-            BluetoothConnectionStatus.NoConnection
-        )
-
+    private val _connectionStatus: MutableStateFlow<BluetoothConnectionStatus> =
+        MutableStateFlow(BluetoothConnectionStatus.NoConnection)
     override val connectionStatus = _connectionStatus.asStateFlow()
 
-
     private val _receivedBytes = Channel<ByteArray>(capacity = UNLIMITED)
-    override val receivedBytes : Flow<ByteArray> = _receivedBytes.receiveAsFlow()
+    override val receivedBytes: Flow<ByteArray> = _receivedBytes.receiveAsFlow()
 
 
-    private val _receivedData: Channel<Pair<DataPacketType, DataPacketVariant>> = Channel(capacity = UNLIMITED)
-    val receivedData: Flow<Pair<DataPacketType, DataPacketVariant>> =
-        _receivedData.receiveAsFlow().flowOn(Dispatchers.IO)
+//    private val _receivedData: Channel<DataPacketVariant> = Channel(capacity = UNLIMITED)
+//    val receivedData: Flow<DataPacketVariant> = _receivedData.receiveAsFlow()
 
-    suspend fun addNewReceivedData(bytes: ByteArray) {
-        val pair = bytes.deserializeToTypeAndPacketPair()
-        _receivedData.send(pair)
+    private var currentJob: Job? = null
 
-    }
+    //todo use this instead of a job and pass a viewModelScope?
+    override lateinit var scope: CoroutineScope
 
-
-    private val scope = CoroutineScope(Dispatchers.IO)
+//    private val scope = CoroutineScope(Dispatchers.IO)
 
 
     private var connectedSocket: BluetoothSocket? = null
-
-    @Deprecated(
-        "Use other option.",
-        ReplaceWith("startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)"),
-        level = DeprecationLevel.HIDDEN
-    )
-    override fun startAdvertising() = Unit
-
-    @Deprecated(
-        "Use other option.",
-        ReplaceWith("stopAdvertising(registry: ActivityResultRegistry)"),
-        level = DeprecationLevel.HIDDEN
-    )
-    override fun stopAdvertising() = Unit
 
     override fun startAdvertising(
         registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit
@@ -77,10 +58,6 @@ class P2PConnectionBluetoothImpl @Inject constructor(
 
     override fun stopAdvertising(registry: ActivityResultRegistry) {
         bluetoothController.stopAdvertising(registry)
-    }
-
-    override fun startBluetoothServerAndGetFlow(): Flow<BluetoothConnectionStatus> {
-        return bluetoothController.startBluetoothServerAndGetFlow()
     }
 
     override fun startDiscovery() {
@@ -95,9 +72,31 @@ class P2PConnectionBluetoothImpl @Inject constructor(
 
     override fun rejectConnection() = Unit
 
+    override fun startBluetoothServerAndGetBytesFlow()/*: Flow<BluetoothConnectionStatus>*/ {
+        resetJob()
 
-    override fun connectToDevice(device: CustomBluetoothDevice): Flow<BluetoothConnectionStatus> =
-        bluetoothController.connectToDevice(device)
+        currentJob = bluetoothController.startBluetoothServerAndGetFlow().onEach { status ->
+            updateConnectionStatus(status)
+            when (status) {
+                is BluetoothConnectionStatus.TransferSucceeded -> {
+                    _receivedBytes.send(status.bytes)
+                }
+                else -> {/* Nothing is required here */}
+            }
+        }.launchIn(CoroutineScope(Dispatchers.IO))
+    }
+    override fun connectToDevice(device: CustomBluetoothDevice)/*: Flow<BluetoothConnectionStatus>*/ {
+        resetJob()
+        currentJob = bluetoothController.connectToDevice(device).onEach { status ->
+            updateConnectionStatus(status)
+            when (status) {
+                is BluetoothConnectionStatus.TransferSucceeded -> {
+                    _receivedBytes.send(status.bytes)
+                }
+                else -> {/* Nothing is required here */}
+            }
+        }.launchIn(CoroutineScope(Dispatchers.IO))
+    }
 
     override suspend fun sendBytes(bytes: ByteArray): ByteArray? {
         return bluetoothController.trySendBytes(bytes = bytes)
@@ -109,6 +108,16 @@ class P2PConnectionBluetoothImpl @Inject constructor(
 
     override fun reset() {
         bluetoothController.reset()
+        resetJob()
+    }
+
+    private fun resetJob(){
+        currentJob?.cancel()
+        currentJob = null
+    }
+
+    private fun updateConnectionStatus(status: BluetoothConnectionStatus) {
+        _connectionStatus.update { status }
     }
 
 }

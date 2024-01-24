@@ -7,41 +7,32 @@ import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.di.ReceiveUseCase
-import npo.kib.odc_demo.feature_app.di.ReceiverControllerBluetooth
-import npo.kib.odc_demo.feature_app.domain.model.DataPacket
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.SharingStarted.Companion
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCaseNew
 
-class ReceiveViewModelNew @AssistedInject constructor(
-    @ReceiverControllerBluetooth _transactionController: ReceiverTransactionController,
+class ReceiveViewModel @AssistedInject constructor(
+    private val useCase: P2PReceiveUseCaseNew,
     @Assisted private val registry: ActivityResultRegistry
 ) : ViewModel() {
-
-    private val transactionController : ReceiverTransactionController = _transactionController
-    private val p2pBluetoothConnection = transactionController.p2pConnection as P2PConnectionBluetooth
 
 
     //todo combine different flows here in one flow of receiveScreenState
 
-    private val _uiState: MutableStateFlow<ReceiveUiState> =
-        MutableStateFlow(ReceiveUiState.Initial)
-//    val uiState: StateFlow<ReceiveUiState>
-//        get() = _uiState.asStateFlow()
+    private val _uiState: MutableStateFlow<ReceiveUiState> = MutableStateFlow(ReceiveUiState.Initial)
+//    val uiState = _uiState.asStateFlow()
+
+
+    private val _state = MutableStateFlow(ReceiveScreenState())
+    val state : StateFlow<ReceiveScreenState> = combine(_state,_uiState){ state,uiState ->
+        state.copy(
+            uiState = uiState
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
+
+
 
 //    private val receivedPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
 //    private val receivedPacketsFlow: Flow<DataPacket?> = receivedPacketsChannel.receiveAsFlow()
@@ -50,10 +41,14 @@ class ReceiveViewModelNew @AssistedInject constructor(
     //    val state : MutableStateFlow<ReceiveScreenState> = MutableStateFlow(
 //        ReceiveScreenState()
 //    )
-    val state: StateFlow<ReceiveScreenState> = MutableStateFlow(
-        ReceiveScreenState()
-    )
 
+
+    //TODO
+//    val state: StateFlow<ReceiveScreenState> = combine<ReceiveUiState,ReceiveScreenState>(_uiState,_uiState2 ){}
+
+    init {
+        useCase.scope = viewModelScope
+    }
 
     private var deviceConnectionJob: Job? = null
 
@@ -67,8 +62,9 @@ class ReceiveViewModelNew @AssistedInject constructor(
 
             is ReceiveScreenEvent.ReactToOffer -> {
                 if (event.accept) {
+                    useCase.acceptOffer()
                 } else {
-
+                    useCase.rejectOffer()
                 }
             }
 
@@ -94,15 +90,15 @@ class ReceiveViewModelNew @AssistedInject constructor(
         viewModelScope.launch {
             //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
             //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
-            p2pBluetoothConnection.startAdvertising(
+            useCase.startAdvertising(
                 registry = registry,
                 duration = 10,
                 callback = { resultDuration ->
                     resultDuration?.run {
                         _uiState.update { ReceiveUiState.Advertising }
-                        deviceConnectionJob?.cancel()
-                        deviceConnectionJob =
-                            p2pBluetoothConnection.startBluetoothServerAndGetFlow().listen()
+//                        deviceConnectionJob?.cancel()
+//                        deviceConnectionJob =
+//                            p2pBluetoothConnection.startBluetoothServerAndGetFlow().listen()
                     }
                 })
         }
@@ -112,7 +108,7 @@ class ReceiveViewModelNew @AssistedInject constructor(
     //Due to a bug (?) in Android some devices will start advertising for 120s instead of 1s
     private fun stopAdvertising() {
         viewModelScope.launch {
-            p2pBluetoothConnection.stopAdvertising(registry)
+            useCase.stopAdvertising(registry)
 //            _uiState.update { ReceiveUiState.Initial }
         }
     }
@@ -143,47 +139,48 @@ class ReceiveViewModelNew @AssistedInject constructor(
 
 
     private fun reset() {
-        transactionController.reset()
+        //TODO
+//        useCase.resetTransaction()
     }
 
 
-    private fun Flow<BluetoothConnectionStatus>.listen(): Job {
-        return onEach { result ->
-            when (result) {
-                is BluetoothConnectionStatus.ConnectionEstablished -> {
-                    _uiState.update {
-                        ReceiveUiState.Connected
-                    }
-                }
-
-                is BluetoothConnectionStatus.TransferSucceeded -> {
-//                    receivedBluetoothPacketsChannel.send(result.bytes)
-                }
-
-                is BluetoothConnectionStatus.Error -> {}
-                BluetoothConnectionStatus.WaitingForConnection -> {}
-                BluetoothConnectionStatus.Disconnected -> {}
-                BluetoothConnectionStatus.NoConnection -> {}
-                BluetoothConnectionStatus.ConnectionInitiated -> {}
-                BluetoothConnectionStatus.Discovering -> {}
-            }
-        }.catch { throwable ->
-            p2pBluetoothConnection.closeConnection()
-            _uiState.update {
-                ReceiveUiState.Result(ReceiveUiState.ResultType.Failure("Exception: ${throwable.message}"))
-            }
-        }.launchIn(viewModelScope)
-    }
+//    private fun Flow<BluetoothConnectionStatus>.listen(): Job {
+//        return onEach { result ->
+//            when (result) {
+//                is BluetoothConnectionStatus.ConnectionEstablished -> {
+//                    _uiState.update {
+//                        ReceiveUiState.Connected
+//                    }
+//                }
+//
+//                is BluetoothConnectionStatus.TransferSucceeded -> {
+////                    receivedBluetoothPacketsChannel.send(result.bytes)
+//                }
+//
+//                is BluetoothConnectionStatus.Error -> {}
+//                BluetoothConnectionStatus.WaitingForConnection -> {}
+//                BluetoothConnectionStatus.Disconnected -> {}
+//                BluetoothConnectionStatus.NoConnection -> {}
+//                BluetoothConnectionStatus.ConnectionInitiated -> {}
+//                BluetoothConnectionStatus.Discovering -> {}
+//            }
+//        }.catch { throwable ->
+//            p2pBluetoothConnection.closeConnection()
+//            _uiState.update {
+//                ReceiveUiState.Result(ReceiveUiState.ResultType.Failure("Exception: ${throwable.message}"))
+//            }
+//        }.launchIn(viewModelScope)
+//    }
 
 
     override fun onCleared() {
         super.onCleared()
-        p2pBluetoothConnection.reset()
+//        useCase.reset()
     }
 
     @AssistedFactory
     interface Factory {
-        fun create(registry: ActivityResultRegistry): ReceiveViewModelNew
+        fun create(registry: ActivityResultRegistry): ReceiveViewModel
     }
 
     companion object {

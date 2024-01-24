@@ -7,25 +7,31 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import npo.kib.odc_demo.feature_app.di.SendUseCase
-import npo.kib.odc_demo.feature_app.di.SenderControllerBluetooth
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import javax.inject.Inject
 
 
 @HiltViewModel
-class SendViewModelNew @Inject constructor(
-    @SenderControllerBluetooth _transactionController: SenderTransactionController
+class SendViewModel @Inject constructor(
+    _transactionController: SenderTransactionController
 ) : ViewModel() {
 
-    private val transactionController : SenderTransactionController = _transactionController
-    val p2pBluetoothConnection = transactionController.p2pConnection
+    private val transactionController: SenderTransactionController = _transactionController
+//    val p2pBluetoothConnection = transactionController.p2pConnection
 
 
-    private val _uiState: MutableStateFlow<SendUiState> = MutableStateFlow(SendUiState.Initial)
-    val uiState: StateFlow<SendUiState>
-        get() = _uiState.asStateFlow()
+//    private val _uiState: MutableStateFlow<SendUiState> = MutableStateFlow(SendUiState.Initial)
+
+//    private val _state: MutableStateFlow<SendScreenState> =
+//        /*MutableStateFlow(SendScreenState())*/
+//        combine
+
+    private val _state: MutableStateFlow<SendScreenState> = MutableStateFlow(SendScreenState())
+
+
+    //TODO combine
+    val state: StateFlow<SendScreenState>
+        get() = _state.asStateFlow()
 
     private var deviceConnectionJob: Job? = null
 
@@ -44,16 +50,17 @@ class SendViewModelNew @Inject constructor(
     }
 
     private fun startSearching() {
-        _uiState.update { SendUiState.Searching }
+        //TODO replace with combine where the flow is created (combine with uiState flow)
+        _state.update { it.copy(uiState = SendUiState.Searching) }
 //        p2pBluetoothConnection.startDiscovery()
     }
 
     private fun reset() {
-        _uiState.update { SendUiState.Initial }
-        //transactionController.reset()
+        _state.update { it.copy(uiState = SendUiState.Initial) }
+//        transactionController.reset()
     }
 
     private fun connectTouser() {
-        _uiState.update { SendUiState.Initial }
+        _state.update { it.copy(uiState = SendUiState.Connecting) }
     }
 }

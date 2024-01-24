@@ -30,11 +30,6 @@ class P2PConnectionNfcImpl(val context: Context) : P2PConnection {
         return byteArrayOf(0)
     }
 
-    override suspend fun listenForBytes(): Flow<ByteArray> {
-        return flowOf(byteArrayOf(0))
-    }
-
-
     override fun acceptConnection() {
     }
 

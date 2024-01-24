@@ -7,7 +7,7 @@ object Build {
     private const val hiltAndroidGradlePluginVersion = "2.38.1"
     const val hiltAndroidGradlePlugin = "com.google.dagger:hilt-android-gradle-plugin:$hiltAndroidGradlePluginVersion"
 
-    const val KSPVersion = "1.9.10-1.0.13"
+    const val KSPVersion = "1.9.20-1.0.14"
 
 
 }

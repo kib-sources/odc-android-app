@@ -7,13 +7,13 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
 class P2PReceiveUseCase(
     override val walletRepository: WalletRepository,
     override val p2pConnection: P2PConnection
 ) : P2PBaseUseCase() {
-
 
     fun startAdvertising() {
         p2pConnection.startAdvertising()
@@ -63,7 +63,7 @@ class P2PReceiveUseCase(
         val protectedBlockPart = banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock
 
         //Шаг 4
-        val childBlocksPair = wallet.acceptanceInit(blocks, protectedBlockPart)
+        val childBlocksPair = walletRepository.walletAcceptanceInit(blocks, protectedBlockPart)
         val payloadContainer = PayloadContainer(acceptanceBlocks = childBlocksPair)
         val blockchainJson = payloadContainer.toByteArray()
         p2pConnection.sendBytes(blockchainJson)
@@ -80,7 +80,7 @@ class P2PReceiveUseCase(
     private suspend fun verifyAndSaveNewBlock(childBlockFull: Block) {
         // TODO verification disabled for demo
 //        if (!childBlockFull.verification(blocksToDB.last().otok)) {
-//            throw Exception("childBlock некорректно подписан")
+//            throw Exception("childBlock is incorrectly signed")
 //        }
 
         walletRepository.insertBanknote(banknoteToDB)
@@ -90,7 +90,7 @@ class P2PReceiveUseCase(
         receivingAmount -= banknoteToDB.banknote.amount
         if (receivingAmount <= 0) {
 //            _requiringStatusFlow.update { RequiringStatus.COMPLETED }
-            myLogs("Операция завершена успешно!")
+            myLogs("Operation is successful!")
         }
     }
 

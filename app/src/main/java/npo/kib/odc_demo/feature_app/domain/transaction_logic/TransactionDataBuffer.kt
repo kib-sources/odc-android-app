@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.BanknotesList
@@ -17,11 +17,12 @@ data class TransactionDataBuffer(
     val thisUserInfo: UserInfo? = null,
     val otherUserInfo: UserInfo? = null,
     val amountRequest: AmountRequest? = null,
+    val isAmountAvailable: Boolean? = null,
     val banknotesList: BanknotesList? = null,
-    val currentlyProcessedBanknoteOrdinal: Int? = null,
-    val lastSentAcceptanceBlocks: AcceptanceBlocks? = null,
-    val lastSentSignedBlock: Block? = null,
-    val currentBanknoteToDB: BanknoteWithProtectedBlock? = null,
-    val currentBlocksToDB: List<Block>? = null,
+    val currentlyProcessedBanknoteOrdinal: Int = 0,
+    val lastAcceptanceBlocks: AcceptanceBlocks? = null,
+    val lastSignedBlock: Block? = null,
+    val allBanknotesProcessed: Boolean = false,
+    val finalBanknotesToDB: List<BanknoteWithBlockchain> = emptyList(),
     val transactionResult: TransactionResult? = null
 )

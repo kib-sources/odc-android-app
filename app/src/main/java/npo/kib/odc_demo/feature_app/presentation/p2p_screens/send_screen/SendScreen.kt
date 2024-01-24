@@ -24,11 +24,11 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.Rece
 
 @Composable
 fun SendRoute(
-    viewModel: SendViewModelNew
+    viewModel: SendViewModel
 ) {
 
     //todo change uistate type to SendScreenState
-    val sendUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val sendUiState by viewModel.state.collectAsStateWithLifecycle()
 
     SendScreen(uiState = sendUiState, onEvent = viewModel::onEvent)
 
@@ -36,8 +36,7 @@ fun SendRoute(
 
 @Composable
 private fun SendScreen(
-    uiState: SendUiState,
-    onEvent: (SendScreenEvent) -> Unit
+    uiState: SendScreenState, onEvent: (SendScreenEvent) -> Unit
 ) {
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -47,14 +46,29 @@ private fun SendScreen(
             enter = fadeIn() + slideInVertically(),
             exit = fadeOut() + slideOutVertically()
         ) {
-            Text(text = "Send banknotes here!", fontSize = 14.sp, modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text(
+                text = "Send banknotes here!",
+                fontSize = 14.sp,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
         with(SendScreenSubScreens) {
-            when (uiState) {
-                SendUiState.Initial -> InitialScreen(onClickStartSearching = { onEvent(SendScreenEvent.StartSearching) })
-                is SendUiState.Searching -> SearchingScreen(users = uiState.usersList,
-                    onUserClicked = { device -> onEvent(SendScreenEvent.ConnectToUser(device = device)) },
-                    onClickReset = { onEvent(SendScreenEvent.Reset) })
+            when (uiState.uiState) {
+                SendUiState.Initial -> InitialScreen(onClickStartSearching = {
+                    onEvent(
+                        SendScreenEvent.StartSearching
+                    )
+                })
+
+                is SendUiState.Searching -> SearchingScreen(users = uiState.scannedDevices /*todo should pass paired devices too? Likely not.*/,
+                                                            onUserClicked = { device ->
+                                                                onEvent(
+                                                                    SendScreenEvent.ConnectToUser(
+                                                                        device = device
+                                                                    )
+                                                                )
+                                                            },
+                                                            onClickReset = { onEvent(SendScreenEvent.Reset) })
 
                 SendUiState.Connecting -> ConnectingScreen()
                 SendUiState.ConnectionRejected -> ConnectionRejectedScreen(onClickSearchAgain = {
@@ -65,25 +79,26 @@ private fun SendScreen(
 
                 SendUiState.Connected -> ConnectedScreen()
                 is SendUiState.OfferSent -> WaitingForOfferAcceptance()
-                is SendUiState.OfferResponse -> when (uiState.isAccepted) {
+                is SendUiState.OfferResponse -> {}/* when (uiState.isAccepted) {
                     false -> OfferRejectedScreen(onClickSendAnotherOffer = { onEvent(SendScreenEvent.StartSearching) },
                         onClickReset = { onEvent(SendScreenEvent.Reset) })
 
                     true -> SendingAllBanknotesScreen()
-                }
+                }*/
 
-                is SendUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = uiState.banknoteId)
-                is SendUiState.Result -> when (uiState.result) {
+                is SendUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = uiState.transactionDataBuffer.currentlyProcessedBanknoteOrdinal)
+                is SendUiState.Result -> when (uiState.uiState.result) {
                     is Failure -> FailureScreen(onClickRetry = {})
                     Success -> SuccessScreen()
                 }
             }
         }
         AnimatedVisibility(
-            visible = ((uiState !is SendUiState.Initial) && (uiState != SendUiState.Result(Success))),
+            visible = ((uiState.uiState !is SendUiState.Initial) && (uiState.uiState != SendUiState.Result(
+                Success
+            ))),
             //todo animate sliding from bottom to top
-            enter = fadeIn() + slideInVertically(),
-            exit = fadeOut() + slideOutVertically()
+            enter = fadeIn() + slideInVertically(), exit = fadeOut() + slideOutVertically()
         ) {
             CancelTransactionBlock(onCancelClick = { onEvent(SendScreenEvent.Reset) })
         }
@@ -158,8 +173,7 @@ private object SendScreenSubScreens {
 
     @Composable
     fun OfferRejectedScreen(
-        onClickSendAnotherOffer: () -> Unit,
-        onClickReset: () -> Unit
+        onClickSendAnotherOffer: () -> Unit, onClickReset: () -> Unit
     ) {
         Column {
             Text(text = "The user rejected the offer")

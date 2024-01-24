@@ -1,5 +1,6 @@
 package npo.kib.odc_demo.feature_app.domain.util
 
+import android.content.Context
 import android.util.Log
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -13,19 +14,9 @@ import kotlinx.coroutines.launch
 
 fun myLogs(msg: Any?) = Log.d("myLogs", msg.toString())
 
-fun Fragment.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
-    Toast.makeText(requireActivity(), text, duration).show()
+fun Context.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
+    Toast.makeText(this, text, duration).show()
 }
-
-
-//inline fun <T> LifecycleOwner.collectFlow(flow: Flow<T>, crossinline block: suspend (T) -> Unit) {
-//    lifecycleScope.launch {
-//        lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-//            flow.collect(block)
-//        }
-//    }
-//}
-
 
 fun <T> LifecycleOwner.collectFlow(flow: Flow<T>, block: suspend (T) -> Unit) {
     lifecycleScope.launch {

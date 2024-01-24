@@ -2,6 +2,7 @@ package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.dat
 
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
 
 
 /**
@@ -18,4 +19,8 @@ import npo.kib.odc_demo.feature_app.domain.model.DataPacket
  *  1. [TransactionResult]
  * */
 @Serializable
-sealed interface DataPacketVariant
+sealed class DataPacketVariant(var packetType: DataPacketType)
+//have to use var for packet type or ksp (and kapt) give "Cannot find setter for field" errors for some reason.
+//ksp error during compilation:
+//e: [ksp] ...odc-android-app/app/src/main/java/npo/kib/odc_demo/feature_app/domain/model
+// /serialization/serializable/data_packet/variants/DataPacketVariant.kt:22: Cannot find setter for field.

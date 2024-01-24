@@ -16,7 +16,8 @@ plugins {
     id("org.jetbrains.kotlin.android") version Kotlin.version apply false
     //KSP instead of Kapt for faster builds
     id("com.google.devtools.ksp") version Build.KSPVersion apply false
+//    kotlin("kapt") version "1.9.20" apply false
     id("org.jetbrains.kotlin.plugin.serialization") version Kotlin.version apply false
-    id("com.google.dagger.hilt.android") version "2.47" apply false
+    id("com.google.dagger.hilt.android") version DaggerHilt.version apply false
     id(Testing.junit5_plugin) version Testing.junit5_pluginVersion apply false
 }

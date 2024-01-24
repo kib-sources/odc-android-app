@@ -12,7 +12,6 @@ import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 data class BanknoteWithProtectedBlock(
     @Embedded
     val banknote: Banknote,
-
     @Embedded
-    var protectedBlock: ProtectedBlock
+    val protectedBlock: ProtectedBlock
 )

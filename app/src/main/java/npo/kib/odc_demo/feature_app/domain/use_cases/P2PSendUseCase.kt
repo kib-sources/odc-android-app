@@ -57,12 +57,16 @@ class P2PSendUseCase(
 //        }
 //    }
 
+    /** SSP, NP-hard
+     * https://en.wikipedia.org/wiki/Subset_sum_problem
+     * */
     private suspend fun getBanknotesByAmount(requiredAmount: Int): ArrayList<BanknoteWithBlockchain> {
         //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
         var amount = requiredAmount
-        val banknoteAmounts = banknotesDao.getBnidsAndAmounts().toCollection(ArrayList())
+        val banknoteAmounts = walletRepository.getBanknotesIdsAndAmounts().toCollection(ArrayList())
         banknoteAmounts.sortByDescending {
-            it.amount }
+            it.amount
+        }
 
         val blockchainsList = ArrayList<BanknoteWithBlockchain>()
         for (banknoteAmount in banknoteAmounts) {
@@ -72,8 +76,8 @@ class P2PSendUseCase(
 
             blockchainsList.add(
                 BanknoteWithBlockchain(
-                    banknotesDao.getBanknoteByBnid(banknoteAmount.bnid),
-                    blockDao.getBlocksByBnid(banknoteAmount.bnid)
+                    walletRepository.getBanknoteByBnid(banknoteAmount.bnid),
+                    walletRepository.getBlocksByBnid(banknoteAmount.bnid),
                 )
             )
 
@@ -93,14 +97,17 @@ class P2PSendUseCase(
         //Создание нового ProtectedBlock
         val newProtectedBlock =
             wallet.initProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
-        banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock = newProtectedBlock
-
-        val payloadContainer = PayloadContainer(banknoteWithBlockchain = banknoteWithBlockchain)
+        //old code where protectedBlock was *var* in banknote
+//        banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock = newProtectedBlock
+        val resultBanknoteWithBlockchain = banknoteWithBlockchain.copy(
+            banknoteWithProtectedBlock = banknoteWithBlockchain.banknoteWithProtectedBlock.copy(protectedBlock = newProtectedBlock)
+        )
+        val payloadContainer = PayloadContainer(banknoteWithBlockchain = resultBanknoteWithBlockchain)
         val blockchainJson = payloadContainer.toByteArray()
         p2pConnection.sendBytes(blockchainJson)
 
         //Запоминаем отправленный parentBlock для последующей верификации
-        sentBlock = banknoteWithBlockchain.blocks.last()
+        sentBlock = resultBanknoteWithBlockchain.blocks.last()
     }
 
 
@@ -110,7 +117,8 @@ class P2PSendUseCase(
         val currentAmount = walletRepository.getStoredInWalletSum() ?: 0
         if (requiredAmount <= currentAmount) {
             _amountRequestFlow.update { amountRequest }
-        } else {
+        }
+        else {
             sendRejection()
         }
     }
@@ -120,7 +128,7 @@ class P2PSendUseCase(
         val childBlockFull = wallet.signature(
             sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock
         )
-        banknotesDao.deleteBanknoteByBnid(acceptanceBlocks.childBlock.bnid)
+        walletRepository.deleteBanknoteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
         sendBanknoteWithBlockchain(sendingList.poll())
     }

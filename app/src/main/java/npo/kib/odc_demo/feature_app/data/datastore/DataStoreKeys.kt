@@ -3,6 +3,7 @@ package npo.kib.odc_demo.feature_app.data.datastore
 import androidx.datastore.preferences.core.Preferences.Key
 import androidx.datastore.preferences.core.stringPreferencesKey
 
+//todo maybe later migrate to Proto DataStore
 sealed interface DataStoreKey<T> {
     val it: Key<T>
     val defaultValue: T?

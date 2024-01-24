@@ -5,7 +5,11 @@ import androidx.compose.ui.graphics.Color
 import npo.kib.odc_demo.ui.theme.CustomColors
 
 @Immutable
-sealed class GradientColors(val color1: Color, val color2: Color, val container : Color = Color.Unspecified) {
+sealed class GradientColors(
+    val color1: Color,
+    val color2: Color,
+    val container: Color = Color.Unspecified
+) {
 
     data object ColorSet1 : GradientColors(
         color1 = CustomColors.Gradient_Color_1,

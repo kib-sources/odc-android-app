@@ -21,7 +21,7 @@ fun HomeRoute(){
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier,
-               viewModelNew: HomeViewModelNew = hiltViewModel(),
+               viewModelNew: HomeViewModel = hiltViewModel(),
                /*ODCAppState : ODCAppState,*/
                onHistoryClick: () -> Unit
 ) {

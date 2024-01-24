@@ -11,7 +11,7 @@ interface BanknotesDao {
     fun insertBanknote(banknoteWithProtectedBlock: BanknoteWithProtectedBlock)
 
     @Query("SELECT bnid, amount FROM banknotes")
-    suspend fun getBnidsAndAmounts(): List<Amounts>
+    suspend fun getBnidsAndAmounts(): List<Amount>
 
     @Query("SELECT * FROM banknotes WHERE bnid = :requiredBnid")
     suspend fun getBanknoteByBnid(requiredBnid: String): BanknoteWithProtectedBlock
