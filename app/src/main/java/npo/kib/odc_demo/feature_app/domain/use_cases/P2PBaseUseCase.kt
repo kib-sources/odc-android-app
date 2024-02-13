@@ -15,7 +15,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 import npo.kib.odc_demo.feature_app.domain.util.myLogs
 import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toByteArray
 import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toPayloadContainer
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
@@ -69,15 +69,15 @@ abstract class P2PBaseUseCase {
         _amountRequestFlow.update { null }
     }
 
-    private fun CoroutineScope.onConnectionStateChanged(connectionStatus: BluetoothConnectionStatus) {
+    private fun CoroutineScope.onConnectionStateChanged(connectionStatus: BluetoothConnectionResult) {
         when (connectionStatus) {
-            is BluetoothConnectionStatus.ConnectionEstablished -> {
-                currentJob = onConnected()
-            }
+//            is BluetoothConnectionResult.ConnectionEstablished -> {
+//                currentJob = onConnected()
+//            }
 
-            is BluetoothConnectionStatus.Disconnected -> {
-                onDisconnected()
-            }
+//            is BluetoothConnectionResult.Disconnected -> {
+//                onDisconnected()
+//            }
 
             else -> resetJob()
         }

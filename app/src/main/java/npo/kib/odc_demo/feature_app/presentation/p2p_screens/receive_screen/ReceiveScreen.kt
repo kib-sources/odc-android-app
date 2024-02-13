@@ -32,14 +32,14 @@ import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissio
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.presentation.common.LocalReceiveViewModelFactory
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.MultiplePermissionsRequestBlock
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientActionButton
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.DeviceItem
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenSubScreens.ResultScreen
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveViewModel.Companion.LocalReceiveViewModelFactory
 import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
-
+import androidx.compose.material3.CircularProgressIndicator
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -61,9 +61,8 @@ fun ReceiveRoute(
             )
         )
         //todo change type from ReceiveUiState to ReceiveScreenState
-        val receiveUiState by viewModel.uiState.collectAsStateWithLifecycle()
-        val receiveScreenState by viewModel.uiState.collectAsStateWithLifecycle()
-        ReceiveScreen(uiState = receiveUiState, onEvent = viewModel::onEvent)
+        val receiveScreenState by viewModel.state.collectAsStateWithLifecycle()
+        ReceiveScreen(screenState = receiveScreenState, onEvent = viewModel::onEvent)
     }
     else {
         MultiplePermissionsRequestBlock(permissionsRequestText = getTextToShowGivenPermissions(
@@ -77,7 +76,7 @@ fun ReceiveRoute(
 
 @Composable
 private fun ReceiveScreen(
-    uiState: ReceiveUiState,
+    screenState: ReceiveScreenState,
     onEvent: (ReceiveScreenEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
@@ -90,7 +89,7 @@ private fun ReceiveScreen(
             Text(text = "Receive banknotes", modifier = Modifier.align(Alignment.CenterHorizontally))
         }
         with(ReceiveScreenSubScreens) {
-            when (uiState) {
+            when (screenState.uiState) {
                 ReceiveUiState.Initial -> InitialScreen(onClickStartAdvertising = {
                     onEvent(
                         ReceiveScreenEvent.SetAdvertising(true)
@@ -100,11 +99,9 @@ private fun ReceiveScreen(
                 ReceiveUiState.Advertising -> AdvertisingScreen(onClickStopAdvertising = {
                     onEvent(ReceiveScreenEvent.SetAdvertising(false))
                 })
+                ReceiveUiState.Loading -> CircularProgressIndicator()
                 //todo on this screen could already have received the other UserInfo automatically
                 // to react to connection request
-                is ReceiveUiState.ConnectionRequestReceived -> ConnectionRequestedScreen(fromDevice = /*todo change uiState to ReceiveScreenState*/ uiState.fromDevice,
-                    onClickAccept = { onEvent(ReceiveScreenEvent.ReactToConnection(accept = true)) },
-                    onClickReject = { onEvent(ReceiveScreenEvent.ReactToConnection(accept = false)) })
                 //todo on this screen could already have received the other UserInfo automatically
                 is ReceiveUiState.Connected -> ConnectedScreen(CustomBluetoothDevice("Test", "Test"))
                 is ReceiveUiState.OfferReceived -> OfferReceivedScreen(/*todo change to SendScreenState.transactionDataBuffer.amountRequest later*/
@@ -118,9 +115,9 @@ private fun ReceiveScreen(
                 ReceiveUiState.ReceivingAllBanknotes -> ReceivingAllBanknotesScreen()
                 ReceiveUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = -1)
 
-                is ReceiveUiState.Result -> when (uiState.result) {
-                    is ReceiveUiState.ResultType.Failure -> FailureScreen(onClickRetry = {})
-                    ReceiveUiState.ResultType.Success -> SuccessScreen(onClickFinish = {})
+                is ReceiveUiState.OperationResult -> when (uiState.result) {
+                    is ReceiveUiState.OperationResult.ResultType.Failure -> FailureScreen(onClickRetry = {})
+                    ReceiveUiState.OperationResult.ResultType.Success -> SuccessScreen(onClickFinish = {})
                 }
 
             }
@@ -177,6 +174,8 @@ private object ReceiveScreenSubScreens {
             Text(text = "Connected to device:")
             Spacer(modifier = Modifier.height(5.dp))
             DeviceItem(name = bluetoothDevice.name ?: "No name", address = bluetoothDevice.address, onItemClick = {})
+            Spacer(modifier = Modifier.height(5.dp))
+
         }
     }
 

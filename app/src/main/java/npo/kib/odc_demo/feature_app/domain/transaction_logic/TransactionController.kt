@@ -1,13 +1,18 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.update
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
@@ -16,63 +21,84 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole
 
-abstract class TransactionController(val role: TransactionRole) {
+abstract class TransactionController(private val externalScope: CoroutineScope, val role: TransactionRole) {
 
-    protected val _transactionDataBuffer: MutableStateFlow<TransactionDataBuffer> = MutableStateFlow(
-        TransactionDataBuffer()
-    )
+    abstract val currentStep : StateFlow<TransactionSteps>
 
-    val transactionDataBuffer: StateFlow<TransactionDataBuffer> = _transactionDataBuffer.asStateFlow()
+    protected val _transactionDataBuffer: MutableStateFlow<TransactionDataBuffer> =
+        MutableStateFlow(
+            TransactionDataBuffer()
+        )
 
-    protected val _outputDataPacketChannel: Channel<DataPacketVariant> = Channel(capacity = UNLIMITED)
-    val outputDataPacketFlow: Flow<DataPacketVariant> = _outputDataPacketChannel.receiveAsFlow()
+    val transactionDataBuffer: StateFlow<TransactionDataBuffer> =
+        _transactionDataBuffer.asStateFlow()
 
-    val receivedPacketsChannel : Channel<DataPacketVariant> = Channel(capacity = UNLIMITED)
-    protected val receivedPacketsFlow: Flow<DataPacketVariant> = receivedPacketsChannel.receiveAsFlow()
+    protected val _errors = MutableSharedFlow<String>(extraBufferCapacity = 10)
+    val errors: SharedFlow<String> = _errors.asSharedFlow()
 
-    protected var currentJob: Job? = null
+    //todo change to nullable ?
+    protected lateinit var outputDataPacketChannel: Channel<DataPacketVariant>
+        private set
+    val outputDataPacketFlow: Flow<DataPacketVariant>
+        get() = outputDataPacketChannel.consumeAsFlow()
+
+    lateinit var receivedPacketsChannel: Channel<DataPacketVariant>
+        private set
+    protected val receivedPacketsFlow: Flow<DataPacketVariant>
+        get() = receivedPacketsChannel.consumeAsFlow()
+
+
+    private var started: Boolean = false
+
+    fun initController(): Boolean {
+        return if (!started) {
+            receivedPacketsChannel = Channel(capacity = UNLIMITED)
+            outputDataPacketChannel = Channel(capacity = UNLIMITED)
+            started = true
+            true
+        } else false
+    }
 
     protected fun updateOtherUserInfo(userInfo: UserInfo) {
-        _transactionDataBuffer.update {
+        if (started) _transactionDataBuffer.update {
             it.copy(otherUserInfo = userInfo)
         }
     }
 
-    suspend fun sendUserInfo(userInfo: UserInfo){
-        _outputDataPacketChannel.send(userInfo)
+    suspend fun sendUserInfo(userInfo: UserInfo) {
+        if (started) outputDataPacketChannel.send(userInfo)
     }
 
-    protected suspend fun sendPositiveResult(){
-        _outputDataPacketChannel.send(TransactionResult(ResultType.Success))
-
+    protected suspend fun sendPositiveResult() {
+        if (started) outputDataPacketChannel.send(TransactionResult(ResultType.Success))
     }
 
-    protected suspend fun sendNegativeResult(message: String? = null){
-        _outputDataPacketChannel.send(TransactionResult(ResultType.Failure(message)))
+    protected suspend fun sendNegativeResult(message: String? = null) {
+        if (started) outputDataPacketChannel.send(TransactionResult(ResultType.Failure(message)))
     }
 
-    fun resetTransaction() {
-        resetJob()
-        _transactionDataBuffer.update { TransactionDataBuffer() }
-        //todo something like this to reset all channels?
-//        receivedPacketsChannel.cancel()
-
+    fun resetTransactionController(): Boolean {
+        return if (started) {
+            //reset and clear all channels with .cancel() and to restart assign new channel instances to properties
+            // old channels with no references will be GC'd
+            receivedPacketsChannel.cancel()
+            outputDataPacketChannel.cancel()
+            _transactionDataBuffer.update { TransactionDataBuffer() }
+            started = false
+            externalScope.cancel()
+            true
+        } else false
     }
-    private fun resetJob() {
-        currentJob?.cancel()
-        currentJob = null
-    }
 
-    class InvalidStepsOrderException(
-        lastStep: TransactionSteps,
-        attemptedStep: TransactionSteps
+    protected class InvalidStepsOrderException(
+        lastStep: TransactionSteps, attemptedStep: TransactionSteps
     ) : Exception(
         """Invalid step order. 
         |Last step was: $lastStep
         |Tried to do step: $attemptedStep""".trimMargin()
     )
 
-    class WrongPacketTypeReceived(
+    protected class WrongPacketTypeReceived(
         message: String? = null,
         expectedPacketType: DataPacketType? = null,
         receivedPacketType: DataPacketType? = null

@@ -3,26 +3,29 @@ package npo.kib.odc_demo.feature_app.domain.transaction_logic.di
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.components.SingletonComponent
+import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.CoroutineScope
+import npo.kib.odc_demo.feature_app.di.P2PTransactionScope
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
-import javax.inject.Singleton
 
 @Module
-@InstallIn(SingletonComponent::class)
+@InstallIn(ViewModelComponent::class)
 object TransactionControllersModule {
 
-    @Singleton
-    @Provides
-    fun provideReceiverTransactionControllerBl(
-        walletRepository: WalletRepository
-    ) = ReceiverTransactionController(walletRepository)
 
-    @Singleton
     @Provides
+    @ViewModelScoped
+    fun provideReceiverTransactionControllerBl(
+        walletRepository: WalletRepository, @P2PTransactionScope scope: CoroutineScope
+    ) = ReceiverTransactionController(walletRepository, scope)
+
+    @Provides
+    @ViewModelScoped
     fun provideSenderTransactionController(
-        walletRepository: WalletRepository
-    ) = SenderTransactionController(walletRepository)
+        walletRepository: WalletRepository, @P2PTransactionScope scope: CoroutineScope
+    ) = SenderTransactionController(walletRepository, scope)
 
 }

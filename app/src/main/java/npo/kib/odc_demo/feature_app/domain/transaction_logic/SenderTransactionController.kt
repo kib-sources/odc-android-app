@@ -1,6 +1,8 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.*
@@ -15,11 +17,14 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.Fo
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.Sender
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.util.findBanknotesWithSum
-import org.bouncycastle.asn1.cmp.PKIStatus.waiting
 
 
-class SenderTransactionController(private val walletRepository: WalletRepository) :
-    TransactionController(role = Sender) {
+class SenderTransactionController(
+    private val walletRepository: WalletRepository,
+    private val externalScope: CoroutineScope,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) : TransactionController(role = Sender) {
 
 //    private val _currentStep: Channel<ForSender> = Channel(UNLIMITED)
 //    val currentStep: Flow<ForSender> = _currentStep.receiveAsFlow()
@@ -32,10 +37,10 @@ class SenderTransactionController(private val walletRepository: WalletRepository
 
     private val _errors = Channel<TransactionResult>(capacity = UNLIMITED)
 
-    fun CoroutineScope.startProcessingIncomingPackets() {
-        currentJob = receivedPacketsFlow.onEach { packet ->
+    fun startProcessingIncomingPackets() {
+        receivedPacketsFlow.onEach { packet ->
             processDataPacket(packet)
-        }.launchIn(this)
+        }.launchIn(externalScope)
     }
 
     @Throws(WrongPacketTypeReceived::class)
@@ -69,7 +74,7 @@ class SenderTransactionController(private val walletRepository: WalletRepository
             SEND_OFFER -> if (result.value is Success) {
 //                doStep(SEND_BANKNOTES)
             } else {
-                resetTransaction()
+                resetTransactionController()
             }
 
             SEND_BANKNOTES -> {/*nothing here, assume banknotes sending is successful*/
@@ -147,12 +152,12 @@ class SenderTransactionController(private val walletRepository: WalletRepository
     private suspend fun sendOffer() {
         if (transactionDataBuffer.value.isAmountAvailable == true) {
             updateStep(SEND_OFFER)
-            _outputDataPacketChannel.send(transactionDataBuffer.value.amountRequest!!)
+            outputDataPacketChannel.send(transactionDataBuffer.value.amountRequest!!)
         } else throw Exception("Cannot send the offer, the amount is not available")
     }
 
     private suspend fun sendBanknotesList(banknotesList: BanknotesList) {
-        _outputDataPacketChannel.send(banknotesList)
+        outputDataPacketChannel.send(banknotesList)
     }
 
 

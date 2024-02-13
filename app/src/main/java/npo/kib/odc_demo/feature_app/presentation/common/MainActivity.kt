@@ -25,16 +25,12 @@ import npo.kib.odc_demo.feature_app.presentation.common.ui.ODCApp
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCTopBar
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveViewModel
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveViewModel.Companion.LocalReceiveViewModelFactory
 import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeScreen
 import npo.kib.odc_demo.ui.DevicePreviews
 import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 import javax.inject.Inject
-
-val LocalReceiveViewModelFactory =
-    compositionLocalOf<ReceiveViewModel.Factory?> { null }
-
-
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 

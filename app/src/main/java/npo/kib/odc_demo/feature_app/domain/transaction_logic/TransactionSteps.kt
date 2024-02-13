@@ -6,6 +6,7 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.Tr
 sealed interface TransactionSteps {
     val role: TransactionRole
 
+    //todo maybe change to "OFFER_RECEIVED" style steps and such
     enum class ForReceiver : TransactionSteps {
         INITIAL,
         WAIT_FOR_OFFER,
@@ -17,6 +18,18 @@ sealed interface TransactionSteps {
         VERIFY_SIGNATURE,
         SAVE_BANKNOTES_TO_WALLET,
         SEND_RESULT;
+
+        override val role = Receiver
+    }
+
+    enum class ForReceiver2 : TransactionSteps {
+//        STOPPED,
+        WAITING_FOR_OFFER,
+        WAITING_FOR_BANKNOTES,
+        INIT_VERIFICATION, //steps 2-4
+        SENDING_ACCEPTANCE_BLOCKS, //or SENDING_UNSIGNED_BLOCK
+        VERIFYING_SIGNATURE,
+        SAVING_BANKNOTES_TO_WALLET;
 
         override val role = Receiver
     }

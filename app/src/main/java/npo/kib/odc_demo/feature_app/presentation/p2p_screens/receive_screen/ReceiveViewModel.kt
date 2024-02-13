@@ -1,57 +1,50 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
 import androidx.activity.result.ActivityResultRegistry
+import androidx.compose.runtime.compositionLocalOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.flow.SharingStarted.Companion
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionStatus
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCaseNew
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.Advertising
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.Connected
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.Initial
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OfferReceived
 
 class ReceiveViewModel @AssistedInject constructor(
     private val useCase: P2PReceiveUseCaseNew,
     @Assisted private val registry: ActivityResultRegistry
 ) : ViewModel() {
 
+    private val transactionDataBuffer: StateFlow<TransactionDataBuffer> =
+        useCase.transactionDataBuffer
+    private val bluetoothState: StateFlow<BluetoothState> = useCase.bluetoothState
 
-    //todo combine different flows here in one flow of receiveScreenState
+    private val _uiState: MutableStateFlow<ReceiveUiState> = MutableStateFlow(Initial)
 
-    private val _uiState: MutableStateFlow<ReceiveUiState> = MutableStateFlow(ReceiveUiState.Initial)
-//    val uiState = _uiState.asStateFlow()
-
-
-    private val _state = MutableStateFlow(ReceiveScreenState())
-    val state : StateFlow<ReceiveScreenState> = combine(_state,_uiState){ state,uiState ->
-        state.copy(
-            uiState = uiState
+    val state: StateFlow<ReceiveScreenState> = combine(
+        _uiState, transactionDataBuffer, bluetoothState
+    ) { uiState, buffer, btState ->
+        ReceiveScreenState(
+            uiState = uiState, transactionDataBuffer = buffer, bluetoothState = btState
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), _state.value)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), ReceiveScreenState())
 
-
-
-//    private val receivedPacketsChannel = Channel<DataPacket?>(capacity = UNLIMITED)
-//    private val receivedPacketsFlow: Flow<DataPacket?> = receivedPacketsChannel.receiveAsFlow()
-
-
-    //    val state : MutableStateFlow<ReceiveScreenState> = MutableStateFlow(
-//        ReceiveScreenState()
-//    )
-
-
-    //TODO
-//    val state: StateFlow<ReceiveScreenState> = combine<ReceiveUiState,ReceiveScreenState>(_uiState,_uiState2 ){}
-
-    init {
-        useCase.scope = viewModelScope
-    }
-
-    private var deviceConnectionJob: Job? = null
-
+    val errors = useCase.errors
 
     fun onEvent(event: ReceiveScreenEvent) {
         when (event) {
@@ -60,48 +53,44 @@ class ReceiveViewModel @AssistedInject constructor(
                 else stopAdvertising()
             }
 
+            is ReceiveScreenEvent.Disconnect -> disconnect()
+
             is ReceiveScreenEvent.ReactToOffer -> {
                 if (event.accept) {
-                    useCase.acceptOffer()
+                    acceptOffer()
                 } else {
-                    useCase.rejectOffer()
-                }
-            }
-
-            is ReceiveScreenEvent.ReactToConnection -> {
-                when (event.accept) {
-                    false -> {}
-                    true -> {}
+                    rejectOffer()
                 }
             }
 
             ReceiveScreenEvent.Reset -> {
-                stopAdvertising()
-//                p2pUseCase.stopDiscovery()
+                reset()
             }
 
-            ReceiveScreenEvent.Finish -> {}
+            ReceiveScreenEvent.Finish -> {
+
+            }
         }
 
     }
 
 
     private fun startAdvertising() {
-        viewModelScope.launch {
-            //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
-            //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
-            useCase.startAdvertising(
-                registry = registry,
-                duration = 10,
-                callback = { resultDuration ->
-                    resultDuration?.run {
-                        _uiState.update { ReceiveUiState.Advertising }
+
+        //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
+        //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
+        useCase.startAdvertising(registry = registry, duration = 10, callback = { resultDuration ->
+            resultDuration?.run {
+                _uiState.update { Advertising }
+                viewModelScope.launch {
+                    TODO()
+                }
 //                        deviceConnectionJob?.cancel()
 //                        deviceConnectionJob =
 //                            p2pBluetoothConnection.startBluetoothServerAndGetFlow().listen()
-                    }
-                })
-        }
+            }
+        })
+
 
     }
 
@@ -113,16 +102,16 @@ class ReceiveViewModel @AssistedInject constructor(
         }
     }
 
-    private fun acceptConnection() {
-        //update ui state
-        //...
-        TODO()
-    }
+    private fun disconnect() {
+//        if (Connected)||f(OfferReceived)||f(ReceiveUiState.TransactionResult))
+        when (state.value.uiState) {
+            Connected, OfferReceived, is ReceiveUiState.OperationResult -> {
+                useCase.disconnect()
+            }
 
-    private fun rejectConnection() {
-        //update ui state
-        //...
-        TODO()
+            else -> {/* Should not disconnect during critical operations */
+            }
+        }
     }
 
     private fun acceptOffer() {
@@ -132,50 +121,19 @@ class ReceiveViewModel @AssistedInject constructor(
     }
 
     private fun rejectOffer() {
-        //update ui state
-        //...
-        TODO()
+
     }
 
 
     private fun reset() {
-        //TODO
-//        useCase.resetTransaction()
+
+        useCase.reset()
     }
-
-
-//    private fun Flow<BluetoothConnectionStatus>.listen(): Job {
-//        return onEach { result ->
-//            when (result) {
-//                is BluetoothConnectionStatus.ConnectionEstablished -> {
-//                    _uiState.update {
-//                        ReceiveUiState.Connected
-//                    }
-//                }
-//
-//                is BluetoothConnectionStatus.TransferSucceeded -> {
-////                    receivedBluetoothPacketsChannel.send(result.bytes)
-//                }
-//
-//                is BluetoothConnectionStatus.Error -> {}
-//                BluetoothConnectionStatus.WaitingForConnection -> {}
-//                BluetoothConnectionStatus.Disconnected -> {}
-//                BluetoothConnectionStatus.NoConnection -> {}
-//                BluetoothConnectionStatus.ConnectionInitiated -> {}
-//                BluetoothConnectionStatus.Discovering -> {}
-//            }
-//        }.catch { throwable ->
-//            p2pBluetoothConnection.closeConnection()
-//            _uiState.update {
-//                ReceiveUiState.Result(ReceiveUiState.ResultType.Failure("Exception: ${throwable.message}"))
-//            }
-//        }.launchIn(viewModelScope)
-//    }
 
 
     override fun onCleared() {
         super.onCleared()
-//        useCase.reset()
+        useCase.reset()
     }
 
     @AssistedFactory
@@ -184,7 +142,6 @@ class ReceiveViewModel @AssistedInject constructor(
     }
 
     companion object {
-
         fun provideReceiveViewModelNewFactory(
             factory: Factory, registry: ActivityResultRegistry
         ): ViewModelProvider.Factory {
@@ -196,5 +153,7 @@ class ReceiveViewModel @AssistedInject constructor(
 
             }
         }
+
+        val LocalReceiveViewModelFactory = compositionLocalOf<Factory?> { null }
     }
 }

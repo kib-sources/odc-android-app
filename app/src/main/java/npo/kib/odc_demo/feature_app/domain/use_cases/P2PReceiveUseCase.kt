@@ -7,7 +7,6 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 
 class P2PReceiveUseCase(

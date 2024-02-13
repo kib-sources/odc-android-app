@@ -3,13 +3,18 @@ package npo.kib.odc_demo.feature_app.di
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.components.ViewModelComponent
+import dagger.hilt.android.scopes.ViewModelScoped
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.CoroutineScope
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothControllerImpl
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.P2PConnectionBluetooth
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCaseNew
 import javax.inject.Singleton
 
 
@@ -32,29 +37,39 @@ import javax.inject.Singleton
 //Don't need "includes=" here because the AppModule is already added to the
 //same SingletonComponent and, thus, to Hilt's object graph
 @Module(/*includes = [AppModule::class]*/)
-@InstallIn(SingletonComponent::class)
+@InstallIn(ViewModelComponent::class)
 object UseCasesModule {
 
-    @Provides
-    @Singleton
-    @SendUseCase
-    fun provideSendUseCase(
-        walletRepository: WalletRepository,
-        p2p: P2PConnectionBluetooth
-    ): P2PBaseUseCase = P2PSendUseCase(walletRepository = walletRepository, p2pConnection = p2p)
+//    @Provides
+//    @Singleton
+//    @SendUseCase
+//    fun provideSendUseCase(
+//        walletRepository: WalletRepository,
+//        p2p: P2PConnectionBluetooth
+//    ): P2PBaseUseCase = P2PSendUseCase(walletRepository = walletRepository, p2pConnection = p2p)
+
+//    @Provides
+//    @Singleton
+//    @ReceiveUseCase
+//    fun provideReceiveUseCase(
+//        walletRepository: WalletRepository, p2p: P2PConnectionBluetooth
+//    ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
 
     @Provides
-    @Singleton
-    @ReceiveUseCase
-    fun provideReceiveUseCase(
-        walletRepository: WalletRepository, p2p: P2PConnectionBluetooth
-    ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
-
-    @Provides
-    @Singleton
+    @ViewModelScoped
     @AtmUseCase
     fun provideAtmUseCase(
         walletRepository: WalletRepository, @NfcP2PConnection p2p: P2PConnection
     ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
+
+
+    @Provides
+    @ViewModelScoped
+//    @ReceiveUseCase
+    fun provideReceiveUseCase(
+        transactionController: ReceiverTransactionController,
+        bluetoothController: BluetoothController,
+        @P2PCoroutineScope scope: CoroutineScope
+    ) = P2PReceiveUseCaseNew(transactionController, bluetoothController, scope)
 
 }

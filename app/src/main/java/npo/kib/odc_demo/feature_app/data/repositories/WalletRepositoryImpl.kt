@@ -1,6 +1,10 @@
 package npo.kib.odc_demo.feature_app.data.repositories
 
 import android.util.Log
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey
 import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey.*
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.data.db.BanknotesDao
@@ -18,6 +22,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Prot
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.WalletRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
 import npo.kib.odc_demo.feature_app.domain.repository.KeysDataStoreRepository
@@ -31,6 +36,7 @@ class WalletRepositoryImpl(
     private val bankRepository: BankRepository,
     private val keysDataStoreRepository: KeysDataStoreRepository,
     private val defaultDataStoreRepository: DefaultDataStoreRepository,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : WalletRepository {
 
 
@@ -88,6 +94,17 @@ class WalletRepositoryImpl(
 
     override suspend fun getStoredInWalletSum() = banknotesDao.getStoredSum()
 
+    override suspend fun getLocalUserInfo(): UserInfo {
+        val userInfo: UserInfo
+        withContext(ioDispatcher) {
+            userInfo = UserInfo(
+                defaultDataStoreRepository.readValue(DefaultDataStoreKey.USER_NAME)
+                    ?: "Unspecified User", getOrRegisterWallet().walletId
+            )
+        }
+        return userInfo
+    }
+
     override suspend fun walletBanknoteVerification(banknote: Banknote) {
         val wallet = getOrRegisterWallet()
         wallet.banknoteVerification(banknote)
@@ -109,17 +126,14 @@ class WalletRepositoryImpl(
     }
 
     override suspend fun walletAcceptanceInit(
-        blocks: List<Block>,
-        protectedBlock: ProtectedBlock
+        blocks: List<Block>, protectedBlock: ProtectedBlock
     ): AcceptanceBlocks {
         val wallet = getOrRegisterWallet()
         return wallet.acceptanceInit(blocks, protectedBlock)
     }
 
     override suspend fun walletSignature(
-        parentBlock: Block,
-        childBlock: Block,
-        protectedBlock: ProtectedBlock
+        parentBlock: Block, childBlock: Block, protectedBlock: ProtectedBlock
     ): Block {
         val wallet = getOrRegisterWallet()
         return wallet.signature(parentBlock, childBlock, protectedBlock)
@@ -152,11 +166,13 @@ class WalletRepositoryImpl(
             return WALLET_ERROR
         }
         return bankRepository.issueBanknotes(wallet = wallet,
-            amount = amount,
-            walletInsertionCallback = { banknoteWithProtectedBlock, block ->
-                banknotesDao.insertBanknote(banknoteWithProtectedBlock)
-                blockDao.insertBlock(block)
-            })
+                                             amount = amount,
+                                             walletInsertionCallback = { banknoteWithProtectedBlock, block ->
+                                                 banknotesDao.insertBanknote(
+                                                     banknoteWithProtectedBlock
+                                                 )
+                                                 blockDao.insertBlock(block)
+                                             })
     }
 
     override suspend fun insertBlock(block: Block) {
@@ -192,9 +208,7 @@ class WalletRepositoryImpl(
 
 
     private fun verifySokSign(
-        sok: PublicKey,
-        sokSignature: String,
-        bokString: String
+        sok: PublicKey, sokSignature: String, bokString: String
     ) {
         val sokHash = Crypto.hash(sok.getStringPem())
         if (!Crypto.verifySignature(sokHash, sokSignature, bokString.loadPublicKey())) {

@@ -25,7 +25,7 @@ sealed interface SendUiState {
     data object OfferSent : SendUiState
     data class OfferResponse(val isAccepted: Boolean) : SendUiState
     data object ProcessingBanknote : SendUiState
-    data class Result(val result: ReceiveUiState.ResultType) : SendUiState
+    data class Result(val result: ResultType) : SendUiState
     sealed interface ResultType {
         data object Success : ResultType
         data class Failure(val failureMessage: String) : ResultType

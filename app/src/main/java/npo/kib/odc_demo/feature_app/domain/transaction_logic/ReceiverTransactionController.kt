@@ -1,7 +1,12 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
@@ -10,18 +15,33 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver.*
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver2
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.Receiver
 
-class ReceiverTransactionController(private val walletRepository: WalletRepository) :
-    TransactionController(role = Receiver) {
+class ReceiverTransactionController(
+    private val walletRepository: WalletRepository,
+    private val externalScope: CoroutineScope,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) : TransactionController(externalScope = externalScope, role = Receiver) {
 
-//    private val _currentStep: MutableStateFlow<ForReceiver> = MutableStateFlow(INITIAL)
-//    override val currentStep: StateFlow<ForReceiver> = _currentStep.asStateFlow()
+    private val _currentStep = MutableStateFlow(ForReceiver2.WAITING_FOR_OFFER)
+    override val currentStep = _currentStep.asStateFlow()
 
 
-    private val _awaitedPacketType: MutableStateFlow<DataPacketType> = MutableStateFlow(AMOUNT_REQUEST)
+    private val _awaitedPacketType: MutableStateFlow<DataPacketType> =
+        MutableStateFlow(AMOUNT_REQUEST)
     val awaitedPacketType: StateFlow<DataPacketType> = _awaitedPacketType.asStateFlow()
 
+    init {
+        initController()
+        //instantly after the connection the first thing to be queued for sending is UserInfo
+        externalScope.launch {
+            val userInfo = walletRepository.getLocalUserInfo()
+            updateLocalUserInfo(userInfo)
+            outputDataPacketChannel.send(userInfo)
+        }
+    }
 
     /*    @Throws(InvalidStepsOrderException::class)
         suspend fun updateStep(step: ForReceiver) {
@@ -44,22 +64,46 @@ class ReceiverTransactionController(private val walletRepository: WalletReposito
             )
         }*/
 
-
-    fun CoroutineScope.startProcessingIncomingPackets() {
-        currentJob = receivedPacketsFlow.onEach { packet ->
+    fun startProcessingIncomingPackets() {
+        receivedPacketsFlow.onEach { packet ->
             processDataPacket(packet)
-        }.launchIn(this)
+        }.launchIn(externalScope)
+    }
+
+    fun startProcessingIncomingPackets2() {
+        receivedPacketsFlow.onEach { packet ->
+            processDataPacket2(packet)
+        }.launchIn(externalScope)
+    }
+
+    private suspend fun processDataPacket2(packet: DataPacketVariant) {
+        //UserInfo packet can be processed at any moment now
+        if (packet.packetType == USER_INFO) updateOtherUserInfo(packet as UserInfo)
+        else if (packet.packetType != awaitedPacketType.value) {
+            throw WrongPacketTypeReceived(
+                expectedPacketType = awaitedPacketType.value, receivedPacketType = packet.packetType
+            )
+        } else when (currentStep.value) {
+//            ForReceiver2.STOPPED -> {/* shouldn't receive packets at this point yet */}
+            ForReceiver2.WAITING_FOR_OFFER -> {
+
+            }
+
+            ForReceiver2.WAITING_FOR_BANKNOTES -> {
+
+            }
+
+            ForReceiver2.INIT_VERIFICATION -> TODO()
+            ForReceiver2.SENDING_ACCEPTANCE_BLOCKS -> TODO()
+            ForReceiver2.VERIFYING_SIGNATURE -> TODO()
+            ForReceiver2.SAVING_BANKNOTES_TO_WALLET -> TODO()
+        }
     }
 
     @Throws(WrongPacketTypeReceived::class)
     private suspend fun processDataPacket(packet: DataPacketVariant) {
         //UserInfo packet can be processed at any moment now
-        if (packet.packetType != awaitedPacketType.value && packet.packetType != USER_INFO) {
-            throw WrongPacketTypeReceived(
-                expectedPacketType = awaitedPacketType.value, receivedPacketType = packet.packetType
-            )
-        }
-        else when (packet.packetType) {
+        if (packet.packetType == awaitedPacketType.value || packet.packetType == USER_INFO) when (packet.packetType) {
             USER_INFO -> updateOtherUserInfo(packet as UserInfo)
             AMOUNT_REQUEST -> updateAmountRequest(packet as AmountRequest)
             BANKNOTES_LIST -> onReceivedBanknotesList(packet as BanknotesList)
@@ -72,28 +116,41 @@ class ReceiverTransactionController(private val walletRepository: WalletReposito
                 //todo actually can wait for result and only then move to the next step (return transaction steps)
                 // but for now don't need to receive results, only data, and then send results back
             }
+        } else {
+            throw WrongPacketTypeReceived(
+                expectedPacketType = awaitedPacketType.value, receivedPacketType = packet.packetType
+            )
         }
 
 
     }
 
-    suspend fun startWaitingForOffer() {
+    private fun startWaitingForOffer() {
         _awaitedPacketType.update { AMOUNT_REQUEST }
     }
 
     //Staying in WAIT_FOR_OFFER state when rejected so as to be able to receive another offer
     suspend fun sendOfferRejection() {
-        _outputDataPacketChannel.send(TransactionResult(ResultType.Failure(message = "Offer rejected")))
-        _transactionDataBuffer.update { it.copy(amountRequest = null) }
+        sendNegativeResult("Offer rejected")
+        updateAmountRequest(null)
     }
 
     suspend fun sendOfferApproval() {
         sendPositiveResult()
         _awaitedPacketType.update { BANKNOTES_LIST }
+        _currentStep.value = ForReceiver2.WAITING_FOR_BANKNOTES
     }
 
     private suspend fun onReceivedBanknotesList(banknotesList: BanknotesList) {
-        if (banknotesList.list.isEmpty()) throw WrongPacketTypeReceived(message = "Received empty banknotes list")
+        if (banknotesList.list.isEmpty()) {
+            _errors.emit("Received empty banknotes list, terminating session in 1 s")
+            sendNegativeResult("Received empty banknotes list, terminating session in 1 s")
+            delay(1000)
+            resetTransactionController()
+            return
+        }
+
+        /*throw WrongPacketTypeReceived(message = "Received empty banknotes list")*/
         _transactionDataBuffer.update { it.copy(banknotesList = banknotesList) }
         //confirm that banknotes are received
         sendPositiveResult()
@@ -104,11 +161,13 @@ class ReceiverTransactionController(private val walletRepository: WalletReposito
 
     private suspend fun createAcceptanceBlocksAndSend() {
         val banknoteIndex = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
-        val currentProcessedBanknote = transactionDataBuffer.value.banknotesList!!.list[banknoteIndex]
+        val currentProcessedBanknote =
+            transactionDataBuffer.value.banknotesList!!.list[banknoteIndex]
         val acceptanceBlocks = walletRepository.walletAcceptanceInit(
-            currentProcessedBanknote.blocks, currentProcessedBanknote.banknoteWithProtectedBlock.protectedBlock
+            currentProcessedBanknote.blocks,
+            currentProcessedBanknote.banknoteWithProtectedBlock.protectedBlock
         )
-        _outputDataPacketChannel.send(acceptanceBlocks)
+        outputDataPacketChannel.send(acceptanceBlocks)
         _awaitedPacketType.update { SIGNED_BLOCK }
     }
 
@@ -127,8 +186,9 @@ class ReceiverTransactionController(private val walletRepository: WalletReposito
         val resultBlocks = currentProcessedBanknote.blocks + block
         //an easy (but inefficient) way to deep copy banknoteWithProtectedBlock would be to serialize and deserialize it,
         //but there is no need to create a deep copy here
-        val resultBanknote =
-            BanknoteWithBlockchain(currentProcessedBanknote.banknoteWithProtectedBlock.copy(), resultBlocks)
+        val resultBanknote = BanknoteWithBlockchain(
+            currentProcessedBanknote.banknoteWithProtectedBlock.copy(), resultBlocks
+        )
         _transactionDataBuffer.update {
             it.copy(
                 finalBanknotesToDB = it.finalBanknotesToDB + resultBanknote,
@@ -148,7 +208,18 @@ class ReceiverTransactionController(private val walletRepository: WalletReposito
         walletRepository.addBanknotesToWallet(transactionDataBuffer.value.finalBanknotesToDB)
     }
 
-    private fun updateAmountRequest(amountRequest: AmountRequest) {
+    private fun processAmountRequest(amountRequest: AmountRequest) {
+        if (amountRequest.amount <= 0) {
+            //Invalid amount requested, may throw an exception
+        } /*else if (amountRequest.walletId != transactionDataBuffer.value.otherUserInfo?.walletId ?: true) {
+            //As an additional check, may throw an exception if request wid is not equal to otherUser wid or if either is null
+        }*/
+        else {
+            
+        }
+    }
+
+    private fun updateAmountRequest(amountRequest: AmountRequest?) {
         _transactionDataBuffer.update { it.copy(amountRequest = amountRequest) }
     }
 
@@ -184,5 +255,7 @@ class ReceiverTransactionController(private val walletRepository: WalletReposito
     }
 
 
+    fun updateLocalUserInfo(userInfo: UserInfo) =
+        _transactionDataBuffer.update { it.copy(thisUserInfo = userInfo) }
 }
 

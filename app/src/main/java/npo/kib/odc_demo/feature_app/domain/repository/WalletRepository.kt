@@ -9,12 +9,14 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 
 interface WalletRepository {
 
     suspend fun isWalletRegistered(): Boolean
     suspend fun getOrRegisterWallet(): Wallet
     suspend fun getStoredInWalletSum(): Int?
+    suspend fun getLocalUserInfo() : UserInfo
 
     //Wallet operations
     suspend fun walletBanknoteVerification(banknote: Banknote)

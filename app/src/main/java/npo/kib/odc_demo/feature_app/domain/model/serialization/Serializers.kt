@@ -31,7 +31,7 @@ object BytesToTypeConverter {
     /**
      * Specify generic type as type of [DataPacketVariant] to deserialize [ByteArray] to given type
      * */
-    inline fun <reified T : DataPacketVariant> ByteArray.deserializeToDataPacketType(): T {
+    private inline fun <reified T : DataPacketVariant> ByteArray.deserializeToDataPacketType(): T {
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -39,31 +39,9 @@ object BytesToTypeConverter {
         return json.decodeFromString(cbor.ToJSONString())
     }
 
-    fun ByteArray.deserializeToDataPacket(): DataPacket {
+    private fun ByteArray.deserializeToDataPacket(): DataPacket {
         val cbor = CBORObject.DecodeFromBytes(this)
         return json.decodeFromString(cbor.ToJSONString())
-    }
-
-    /**
-     * Fully deserializes [DataPacket] based on [DataPacketType]
-     * @return [Pair] of [DataPacketType] and [DataPacketVariant]
-     * */
-    fun ByteArray.deserializeToTypeAndPacketPair(): Pair<DataPacketType, DataPacketVariant> {
-        val dataPacket = this.deserializeToDataPacket()
-        val packetType = dataPacket.packetType
-        val packetBytes = dataPacket.bytes
-        val deserializedPacket: DataPacketVariant
-        with(packetBytes) {
-            deserializedPacket = when (packetType) {
-                DataPacketType.USER_INFO -> deserializeToDataPacketType<UserInfo>()
-                DataPacketType.AMOUNT_REQUEST -> deserializeToDataPacketType<AmountRequest>()
-                DataPacketType.BANKNOTES_LIST -> deserializeToDataPacketType<BanknotesList>()
-                DataPacketType.ACCEPTANCE_BLOCKS -> deserializeToDataPacketType<AcceptanceBlocks>()
-                DataPacketType.SIGNED_BLOCK -> deserializeToDataPacketType<Block>()
-                DataPacketType.RESULT -> deserializeToDataPacketType<TransactionResult>()
-            }
-        }
-        return packetType to deserializedPacket
     }
 
     /**
