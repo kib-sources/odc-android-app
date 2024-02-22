@@ -13,5 +13,5 @@ enum class DataPacketType {
     BANKNOTES_LIST,
     SIGNED_BLOCK,
     ACCEPTANCE_BLOCKS,
-    RESULT
+    TRANSACTION_RESULT
 }

@@ -116,9 +116,7 @@ data class Block(
             if (!transactionHash.contentEquals(other.transactionHash)) return false
         }
         else if (other.transactionHash != null) return false
-        if (transactionHashSignature != other.transactionHashSignature) return false
-
-        return true
+        return transactionHashSignature == other.transactionHashSignature
     }
 
     override fun hashCode(): Int {

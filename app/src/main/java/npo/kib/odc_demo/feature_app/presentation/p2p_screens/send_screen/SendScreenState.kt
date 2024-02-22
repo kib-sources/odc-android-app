@@ -1,5 +1,6 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen
 
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
@@ -8,12 +9,7 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.Rece
 data class SendScreenState(
     val uiState: SendUiState = SendUiState.Initial,
     val transactionDataBuffer: TransactionDataBuffer = TransactionDataBuffer(),
-    val localUser: AppUser? = null,
-    val remoteUser: AppUser? = null,
-    val scannedDevices: List<CustomBluetoothDevice> = emptyList(),
-    val pairedDevices: List<CustomBluetoothDevice> = emptyList(),
-    val isConnected: Boolean = false,
-    val connectedDevice: CustomBluetoothDevice? = null
+    val bluetoothState: BluetoothState = BluetoothState()
 )
 
 sealed interface SendUiState {

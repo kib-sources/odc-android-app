@@ -7,6 +7,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -26,7 +27,6 @@ class P2PReceiveUseCaseNew(
     private val packetsToSend = transactionController.outputDataPacketFlow
     private val transactionControllerInputChannel = transactionController.receivedPacketsChannel
 
-    //    val connectionStatus: StateFlow<BluetoothConnectionStatus>
     val transactionDataBuffer = transactionController.transactionDataBuffer
 
     val bluetoothState = bluetoothController.bluetoothStateColdFlow.stateIn(
@@ -40,10 +40,12 @@ class P2PReceiveUseCaseNew(
     ) {
         bluetoothController.startAdvertising(registry, duration) {
             callback(it)
-            startBluetoothServerAndRoutePacketsToTransactionController()
-            with(transactionController) {
-                initController()
-                startProcessingIncomingPackets()
+            it?.let {
+                startBluetoothServerAndRoutePacketsToTransactionController()
+                with(transactionController) {
+                    initController()
+                    startProcessingIncomingPackets()
+                }
             }
         }
     }
@@ -55,38 +57,43 @@ class P2PReceiveUseCaseNew(
     private fun startBluetoothServerAndRoutePacketsToTransactionController() {
         bluetoothController.startBluetoothServerAndGetFlow().onEach { connectionResult ->
             when (connectionResult) {
-//                is BluetoothConnectionResult.ConnectionEstablished -> {}
+                is BluetoothConnectionResult.ConnectionEstablished -> {
+                    transactionController.initController()
+                    startSendingPacketsFromTransactionController()
+                    transactionController.startProcessingIncomingPackets()
+                }
                 is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
                     connectionResult.bytes.deserializeToDataPacketVariant()
                 )
-
 //                else -> {}
             }
-        }.launchIn(externalScope)
+        }.onCompletion { transactionController.resetTransactionController() }.launchIn(externalScope)
     }
 
 
-    fun startSendingPacketsFromTransactionController() {
-        externalScope.launch {
-            if (bluetoothState.value.isConnected) packetsToSend.flowOn(Dispatchers.IO)
-                .collect { packet ->
-                    if (bluetoothState.value.isConnected) bluetoothController.trySendBytes(
-                        packet.serializeToByteArray()
-                    )
-                }
-            else throw Exception("Tried sending packets from transaction controller but no remote device is connected")
-        }
+    private fun startSendingPacketsFromTransactionController(): Boolean {
+        return if (bluetoothState.value.isConnected) {
+            packetsToSend.onEach { packet ->
+                if (bluetoothState.value.isConnected) bluetoothController.trySendBytes(
+                    packet.serializeToByteArray()
+                )
+                else throw Exception(
+                    "Tried sending packets from transaction controller but no remote device is connected"
+                )
+            }.flowOn(Dispatchers.IO).launchIn(externalScope)
+            true
+        } else false
     }
 
     fun acceptOffer() {
         externalScope.launch {
-            transactionController.sendOfferApproval()
+            transactionController.sendAmountRequestApproval()
         }
     }
 
     suspend fun rejectOffer() {
         externalScope.launch {
-            transactionController.sendOfferRejection()
+            transactionController.sendAmountRequestRejection()
         }
     }
 

@@ -8,7 +8,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data
 @Dao
 interface BlockDao {
     @Insert
-    fun insertBlock(block: Block)
+    suspend fun insertBlock(block: Block)
 
     @Query("SELECT * FROM block WHERE block_bnid = :requiredBnid")
     suspend fun getBlocksByBnid(requiredBnid: String): List<Block>

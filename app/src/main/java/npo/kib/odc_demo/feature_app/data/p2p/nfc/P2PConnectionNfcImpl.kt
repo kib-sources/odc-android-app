@@ -26,7 +26,7 @@ class P2PConnectionNfcImpl(val context: Context) : P2PConnection {
     override fun stopAdvertising() {
     }
 
-    override suspend fun sendBytes(bytes: ByteArray): ByteArray? {
+    override suspend fun sendBytes(bytes: ByteArray): ByteArray {
         return byteArrayOf(0)
     }
 

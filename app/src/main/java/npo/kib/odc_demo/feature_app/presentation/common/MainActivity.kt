@@ -86,15 +86,15 @@ private fun HomeScreenPreview() {
                 )
             }, bottomBar = {
                 ODCBottomBar(
-                    destinations = TopLevelDestination.values().asList(),
+                    destinations = TopLevelDestination.entries,
                     {},
                     currentDestination = null,
                     modifier = Modifier/*.height(bottomBarHeightPercentage)*/
                 )
             }) { paddingValues ->
                 BoxWithConstraints(modifier = Modifier.padding(paddingValues = paddingValues)) {
+                    val a = maxHeight
                     HomeScreen(modifier = Modifier, onHistoryClick = {})
-
                 }
             }
         }

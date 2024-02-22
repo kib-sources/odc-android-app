@@ -1,2 +1,1 @@
-object Modules {
-}
+object Modules

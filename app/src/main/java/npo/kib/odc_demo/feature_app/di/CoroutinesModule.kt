@@ -19,19 +19,20 @@ object CoroutinesModule {
     @Provides
     @P2PCoroutineScope
     @ViewModelScoped
-    fun provideP2PCoroutineScope() = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    fun provideP2PCoroutineScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+//    fun provideP2PCoroutineScope() = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
 
-    @Provides
-    @P2PConnectionScope
-    @ViewModelScoped
-    fun provideP2PConnectionScope() = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+//    @Provides
+//    @P2PConnectionScope
+//    @ViewModelScoped
+//    fun provideP2PConnectionScope() = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 
-    @Provides
-    @P2PTransactionScope
-    @ViewModelScoped
-    fun provideP2PTransactionScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+//    @Provides
+//    @P2PTransactionScope
+//    @ViewModelScoped
+//    fun provideP2PTransactionScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
 }
 
@@ -39,8 +40,8 @@ object CoroutinesModule {
 @Qualifier
 annotation class P2PCoroutineScope
 
-@Qualifier
-annotation class P2PConnectionScope
-
-@Qualifier
-annotation class P2PTransactionScope
+//@Qualifier
+//annotation class P2PConnectionScope
+//
+//@Qualifier
+//annotation class P2PTransactionScope

@@ -46,7 +46,8 @@ import androidx.compose.material3.CircularProgressIndicator
 fun ReceiveRoute(
     navBackStackEntry: NavBackStackEntry
 ) {
-    val multiplePermissionsState = rememberMultiplePermissionsState(permissions = LocalAppBluetoothPermissions.current)
+    val multiplePermissionsState =
+        rememberMultiplePermissionsState(permissions = LocalAppBluetoothPermissions.current)
     if (multiplePermissionsState.allPermissionsGranted) {
 //    If all the required bluetooth permissions are granted, the viewmodel is created and ReceiveScreen() is launched
 
@@ -55,20 +56,20 @@ fun ReceiveRoute(
 //    creating a viewmodel scoped to the NavBackStackEntry with Hilt 's Assisted injection
 //    providing activityResultRegistry to be able to use ActivityResult API in the viewmodel.
         val viewModel = viewModel<ReceiveViewModel>(
-            viewModelStoreOwner = navBackStackEntry, factory = ReceiveViewModel.provideReceiveViewModelNewFactory(
+            viewModelStoreOwner = navBackStackEntry,
+            factory = ReceiveViewModel.provideReceiveViewModelNewFactory(
                 LocalReceiveViewModelFactory.current!!,
                 registry = LocalActivityResultRegistryOwner.current!!.activityResultRegistry
             )
         )
-        //todo change type from ReceiveUiState to ReceiveScreenState
         val receiveScreenState by viewModel.state.collectAsStateWithLifecycle()
         ReceiveScreen(screenState = receiveScreenState, onEvent = viewModel::onEvent)
-    }
-    else {
+    } else {
         MultiplePermissionsRequestBlock(permissionsRequestText = getTextToShowGivenPermissions(
             multiplePermissionsState.revokedPermissions,
             multiplePermissionsState.shouldShowRationale,
-        ), onRequestPermissionsClick = { multiplePermissionsState.launchMultiplePermissionRequest() })
+        ),
+                                        onRequestPermissionsClick = { multiplePermissionsState.launchMultiplePermissionRequest() })
     }
 
 }
@@ -86,7 +87,10 @@ private fun ReceiveScreen(
             enter = fadeIn() + slideInVertically(),
             exit = fadeOut() + slideOutVertically()
         ) {
-            Text(text = "Receive banknotes", modifier = Modifier.align(Alignment.CenterHorizontally))
+            Text(
+                text = "Receive banknotes",
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
         }
         with(ReceiveScreenSubScreens) {
             when (screenState.uiState) {
@@ -99,24 +103,30 @@ private fun ReceiveScreen(
                 ReceiveUiState.Advertising -> AdvertisingScreen(onClickStopAdvertising = {
                     onEvent(ReceiveScreenEvent.SetAdvertising(false))
                 })
+
                 ReceiveUiState.Loading -> CircularProgressIndicator()
                 //todo on this screen could already have received the other UserInfo automatically
                 // to react to connection request
                 //todo on this screen could already have received the other UserInfo automatically
-                is ReceiveUiState.Connected -> ConnectedScreen(CustomBluetoothDevice("Test", "Test"))
-                is ReceiveUiState.OfferReceived -> OfferReceivedScreen(/*todo change to SendScreenState.transactionDataBuffer.amountRequest later*/
-                    amountRequest = AmountRequest(
-                        1000, ""
-                    ),/*todo change to SendScreenState.transactionDataBuffer.otherUserInfo later*/
-                    fromUser = UserInfo(userName = "Other user", walletId = ""),
+
+                //todo change to show wid and UserInfo actually (?)
+                is ReceiveUiState.Connected -> ConnectedScreen(
+                    screenState.bluetoothState.connectedDevice
+                )
+
+                is ReceiveUiState.OfferReceived -> OfferReceivedScreen(
+                    amount = screenState.transactionDataBuffer.amountRequest?.amount,
+                    fromUser = screenState.transactionDataBuffer.otherUserInfo,
                     onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
                     onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
 
                 ReceiveUiState.ReceivingAllBanknotes -> ReceivingAllBanknotesScreen()
                 ReceiveUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = -1)
 
-                is ReceiveUiState.OperationResult -> when (uiState.result) {
-                    is ReceiveUiState.OperationResult.ResultType.Failure -> FailureScreen(onClickRetry = {})
+                is ReceiveUiState.OperationResult -> when (screenState.uiState.result) {
+                    is ReceiveUiState.OperationResult.ResultType.Failure -> FailureScreen(
+                        onClickRetry = {})
+
                     ReceiveUiState.OperationResult.ResultType.Success -> SuccessScreen(onClickFinish = {})
                 }
 
@@ -169,11 +179,14 @@ private object ReceiveScreenSubScreens {
     }
 
     @Composable
-    fun ConnectedScreen(bluetoothDevice: CustomBluetoothDevice) {
+    fun ConnectedScreen(bluetoothDevice: CustomBluetoothDevice?) {
         Column {
             Text(text = "Connected to device:")
             Spacer(modifier = Modifier.height(5.dp))
-            DeviceItem(name = bluetoothDevice.name ?: "No name", address = bluetoothDevice.address, onItemClick = {})
+            DeviceItem(
+                name = bluetoothDevice?.name ?: "No name",
+                address = bluetoothDevice?.address ?: "No address",
+                onItemClick = {})
             Spacer(modifier = Modifier.height(5.dp))
 
         }
@@ -181,8 +194,8 @@ private object ReceiveScreenSubScreens {
 
     @Composable
     fun OfferReceivedScreen(
-        fromUser: UserInfo,
-        amountRequest: AmountRequest,
+        amount: Int?,
+        fromUser: UserInfo?,
         onClickAccept: () -> Unit,
         onClickReject: () -> Unit
     ) {
@@ -190,15 +203,15 @@ private object ReceiveScreenSubScreens {
             Column {
                 Text(text = "Offer received from: ")
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(text = fromUser.userName)
+                Text(text = fromUser?.userName ?: "null")
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(text = "Wallet ID:")
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(text = fromUser.walletId)
+                Text(text = fromUser?.walletId ?: "null")
                 Spacer(modifier = Modifier.height(5.dp))
                 Text(text = "Amount:")
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(text = "${amountRequest.amount} RUB")
+                Text(text = "$amount RUB")
                 Column {
                     ODCGradientActionButton(
                         text = "Accept offer",
@@ -235,9 +248,9 @@ private object ReceiveScreenSubScreens {
     }
 
     @Composable
-    fun ResultScreen(result: ReceiveUiState.ResultType) {
+    fun ResultScreen(result: ReceiveUiState.OperationResult.ResultType) {
         when (result) {
-            ReceiveUiState.ResultType.Success -> Column {
+            ReceiveUiState.OperationResult.ResultType.Success -> Column {
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     text = "Receiving success!",
@@ -245,7 +258,7 @@ private object ReceiveScreenSubScreens {
                 )
             }
 
-            is ReceiveUiState.ResultType.Failure -> Column {
+            is ReceiveUiState.OperationResult.ResultType.Failure -> Column {
                 Text(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     text = "Failure: \n${result.failureMessage}",
@@ -259,7 +272,11 @@ private object ReceiveScreenSubScreens {
     fun SuccessScreen(onClickFinish: () -> Unit) {
         Column {
             Text(text = "Transaction successful")
-            ODCGradientActionButton(text = "Finish", gradientColors = GradientColors.ColorSet2, onClick = onClickFinish)
+            ODCGradientActionButton(
+                text = "Finish",
+                gradientColors = GradientColors.ColorSet2,
+                onClick = onClickFinish
+            )
         }
     }
 
@@ -279,8 +296,8 @@ private object ReceiveScreenSubScreens {
 private fun ResultScreenPreviews() {
     ODCAppTheme {
         Column {
-            ResultScreen(result = ReceiveUiState.ResultType.Success)
-            ResultScreen(result = ReceiveUiState.ResultType.Failure("Some error"))
+            ResultScreen(result = ReceiveUiState.OperationResult.ResultType.Success)
+            ResultScreen(result = ReceiveUiState.OperationResult.ResultType.Failure("Some error"))
         }
     }
 }

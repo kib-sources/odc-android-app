@@ -37,7 +37,7 @@ fun ODCTopBar(modifier: Modifier = Modifier) {
             Image(
                 painter = painterResource(id = R.drawable.logo_1),
                 contentDescription = "logo_1",
-                modifier = Modifier.align(Alignment.CenterHorizontally))
+                modifier = Modifier.align(CenterHorizontally))
         }
         Column(
             modifier = Modifier

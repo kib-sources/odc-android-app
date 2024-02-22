@@ -8,6 +8,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.launch
@@ -24,4 +26,9 @@ fun <T> LifecycleOwner.collectFlow(flow: Flow<T>, block: suspend (T) -> Unit) {
             flow.collect(FlowCollector(block))
         }
     }
+}
+
+
+fun CoroutineScope.cancelChildren(){
+    coroutineContext.cancelChildren()
 }

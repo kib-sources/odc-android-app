@@ -16,6 +16,7 @@ import java.security.PublicKey
 import java.util.Calendar
 import java.util.UUID
 
+//todo make the methods suspend ?
 class Wallet(
     private val spk: PrivateKey,
     private val sok: PublicKey,

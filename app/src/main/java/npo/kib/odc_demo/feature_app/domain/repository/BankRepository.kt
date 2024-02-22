@@ -17,7 +17,7 @@ interface BankRepository {
     suspend fun issueBanknotes(
         wallet: Wallet,
         amount: Int,
-        walletInsertionCallback: (BanknoteWithProtectedBlock, Block) -> Unit
+        walletInsertionCallback: suspend (BanknoteWithProtectedBlock, Block) -> Unit
     ): ServerConnectionStatus
 
 }

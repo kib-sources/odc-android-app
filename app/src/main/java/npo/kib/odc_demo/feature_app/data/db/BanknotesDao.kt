@@ -8,7 +8,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 @Dao
 interface BanknotesDao {
     @Insert
-    fun insertBanknote(banknoteWithProtectedBlock: BanknoteWithProtectedBlock)
+    suspend fun insertBanknote(banknoteWithProtectedBlock: BanknoteWithProtectedBlock)
 
     @Query("SELECT bnid, amount FROM banknotes")
     suspend fun getBnidsAndAmounts(): List<Amount>

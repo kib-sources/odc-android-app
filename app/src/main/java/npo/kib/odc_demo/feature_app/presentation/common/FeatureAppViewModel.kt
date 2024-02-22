@@ -57,7 +57,7 @@ class FeatureAppViewModel @AssistedInject constructor(
 
     companion object {
         fun provideFeatureAppViewModelFactory(
-            factory: FeatureAppViewModel.Factory,
+            factory: Factory,
             appUser: AppUser
         ): ViewModelProvider.Factory {
             return object : ViewModelProvider.Factory {

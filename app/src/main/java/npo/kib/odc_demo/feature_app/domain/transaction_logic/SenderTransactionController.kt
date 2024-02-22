@@ -3,8 +3,6 @@ package npo.kib.odc_demo.feature_app.domain.transaction_logic
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.yield
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
@@ -15,27 +13,27 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.*
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.Sender
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.SENDER
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.util.findBanknotesWithSum
 
 
 class SenderTransactionController(
-    private val walletRepository: WalletRepository,
-    private val externalScope: CoroutineScope,
+    walletRepository: WalletRepository,
+    externalScope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
-) : TransactionController(role = Sender) {
+) : TransactionController(externalScope = externalScope, walletRepository = walletRepository, role = SENDER) {
 
 //    private val _currentStep: Channel<ForSender> = Channel(UNLIMITED)
 //    val currentStep: Flow<ForSender> = _currentStep.receiveAsFlow()
 
     private val _currentStep: MutableStateFlow<ForSender> = MutableStateFlow(INITIAL)
-    val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
+    override val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
 
     private val _awaitedPacketType: MutableStateFlow<DataPacketType> = MutableStateFlow(USER_INFO)
     val awaitedPacketType: StateFlow<DataPacketType> = _awaitedPacketType.asStateFlow()
 
-    private val _errors = Channel<TransactionResult>(capacity = UNLIMITED)
+//     override val _errors = Channel<TransactionResult>(capacity = UNLIMITED)
 
     fun startProcessingIncomingPackets() {
         receivedPacketsFlow.onEach { packet ->
@@ -56,7 +54,7 @@ class SenderTransactionController(
 
             }
 
-            RESULT -> {
+            TRANSACTION_RESULT -> {
                 doNextStepOnResult(packet as TransactionResult)
             }
 
@@ -71,13 +69,13 @@ class SenderTransactionController(
 
     suspend fun doNextStepOnResult(result: TransactionResult) {
         when (currentStep.value) {
-            SEND_OFFER -> if (result.value is Success) {
+            OFFER_SENT -> if (result.value is Success) {
 //                doStep(SEND_BANKNOTES)
             } else {
                 resetTransactionController()
             }
 
-            SEND_BANKNOTES -> {/*nothing here, assume banknotes sending is successful*/
+            BANKNOTES_LIST_SENT -> {/*nothing here, assume banknotes sending is successful*/
             }
 
             WAITING_FOR_ACCEPTANCE_BLOCKS -> {/*nothing here, no result should be expected here, only acceptance blocks*/
@@ -151,7 +149,7 @@ class SenderTransactionController(
 
     private suspend fun sendOffer() {
         if (transactionDataBuffer.value.isAmountAvailable == true) {
-            updateStep(SEND_OFFER)
+            updateStep(OFFER_SENT)
             outputDataPacketChannel.send(transactionDataBuffer.value.amountRequest!!)
         } else throw Exception("Cannot send the offer, the amount is not available")
     }
@@ -179,7 +177,19 @@ class SenderTransactionController(
         _currentStep.update { step }
     }
 
-
+    fun processPacketOnCurrentStep(packet: DataPacketVariant) {
+        if (packet.packetType == USER_INFO) {
+            updateOtherUserInfo(packet as UserInfo)
+        } else when (currentStep.value) {
+            INITIAL -> TODO()
+            INIT_TRANSACTION -> TODO()
+            OFFER_SENT -> TODO()
+            BANKNOTES_LIST_SENT -> TODO()
+            WAITING_FOR_ACCEPTANCE_BLOCKS -> TODO()
+            SIGN_AND_SEND_BLOCK -> TODO()
+            FINISH -> TODO()
+        }
+    }
 //    /** This function is designed for a p2p sender.
 //     *  Used to check if the new step can be invoked right after some other step.
 //     *  Think of it as of a finite-state machine connection validity checker.

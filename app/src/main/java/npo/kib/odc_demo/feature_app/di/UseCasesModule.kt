@@ -5,17 +5,16 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothControllerImpl
 import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCaseNew
-import javax.inject.Singleton
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
 
 
 //https://developer.android.com/training/dependency-injection/dagger-android
@@ -65,11 +64,19 @@ object UseCasesModule {
 
     @Provides
     @ViewModelScoped
-//    @ReceiveUseCase
     fun provideReceiveUseCase(
         transactionController: ReceiverTransactionController,
         bluetoothController: BluetoothController,
         @P2PCoroutineScope scope: CoroutineScope
     ) = P2PReceiveUseCaseNew(transactionController, bluetoothController, scope)
+
+
+    @Provides
+    @ViewModelScoped
+    fun provideSendUseCase(
+        transactionController: SenderTransactionController,
+        bluetoothController: BluetoothController,
+        @P2PCoroutineScope scope: CoroutineScope
+    ) = P2PSendUseCaseNew(transactionController, bluetoothController, scope)
 
 }

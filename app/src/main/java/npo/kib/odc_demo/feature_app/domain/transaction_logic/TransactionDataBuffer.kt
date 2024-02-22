@@ -20,8 +20,8 @@ data class TransactionDataBuffer(
     val isAmountAvailable: Boolean? = null,
     val banknotesList: BanknotesList? = null,
     val currentlyProcessedBanknoteOrdinal: Int = 0,
-    val lastAcceptanceBlocks: AcceptanceBlocks? = null,
-    val lastSignedBlock: Block? = null,
+    val lastAcceptanceBlocks: AcceptanceBlocks? = null, //might be useful later on
+    val lastSignedBlock: Block? = null, //might be useful later on
     val allBanknotesProcessed: Boolean = false,
     val finalBanknotesToDB: List<BanknoteWithBlockchain> = emptyList(),
     val transactionResult: TransactionResult? = null

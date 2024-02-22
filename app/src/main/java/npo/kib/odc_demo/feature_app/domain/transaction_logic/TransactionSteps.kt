@@ -2,57 +2,39 @@ package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.*
 
-//todo right now not needed, later can change awaited packet type with changing steps and come up with something else
 sealed interface TransactionSteps {
     val role: TransactionRole
 
-    //todo maybe change to "OFFER_RECEIVED" style steps and such
     enum class ForReceiver : TransactionSteps {
-        INITIAL,
-        WAIT_FOR_OFFER,
-        REJECT_OFFER,
-        ACCEPT_OFFER,
-        WAIT_FOR_BANKNOTES,
-        INIT_VERIFICATION, //steps 2-4
-        SEND_ACCEPTANCE_BLOCKS, //or SEND_UNSIGNED_BLOCK
-        VERIFY_SIGNATURE,
-        SAVE_BANKNOTES_TO_WALLET,
-        SEND_RESULT;
+        //        STOPPED,
+        WAITING_FOR_AMOUNT_REQUEST,
+        AMOUNT_REQUEST_RECEIVED,
+        WAITING_FOR_BANKNOTES_LIST,
+        WAITING_FOR_SIGNED_BLOCK,
+        WAITING_FOR_RESULT,
+        FINISHED;
+        //todo maybe add FAILED (?)
 
-        override val role = Receiver
-    }
-
-    enum class ForReceiver2 : TransactionSteps {
-//        STOPPED,
-        WAITING_FOR_OFFER,
-        WAITING_FOR_BANKNOTES,
-        INIT_VERIFICATION, //steps 2-4
-        SENDING_ACCEPTANCE_BLOCKS, //or SENDING_UNSIGNED_BLOCK
-        VERIFYING_SIGNATURE,
-        SAVING_BANKNOTES_TO_WALLET;
-
-        override val role = Receiver
+        override val role = RECEIVER
     }
 
     enum class ForSender : TransactionSteps {
         INITIAL,
         INIT_TRANSACTION,
-        SEND_OFFER,
-//        WAIT_FOR_RESULT,
-        SEND_BANKNOTES,
+        OFFER_SENT,
+
+        //        WAIT_FOR_RESULT, //todo used to wait for receiver confirmation that they received banknotesList or signature was verified, etc
+        BANKNOTES_LIST_SENT,
         WAITING_FOR_ACCEPTANCE_BLOCKS, //OR WAITING_FOR_UNSIGNED_BLOCK
         SIGN_AND_SEND_BLOCK, //step 5
-        FINISH
-//        , SAVE_BANKNOTES_TO_WALLET
-        ;
-        //not needed right now for sending side, sender does not need to send any results, only data
-//       ,SEND_RESULT;
+        FINISH;
 
-        override val role = Sender
+
+        override val role = SENDER
     }
 
-    sealed interface TransactionRole {
-        data object Receiver : TransactionRole
-        data object Sender : TransactionRole
+    enum class TransactionRole {
+        RECEIVER,
+        SENDER
     }
 }

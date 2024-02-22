@@ -46,6 +46,16 @@ class ReceiveViewModel @AssistedInject constructor(
 
     val errors = useCase.errors
 
+    //TODO
+    // How to read current bluetooth/transactionBuffer state and adapt UI to it?
+    // Do I even need to keep UI state in ReceiveScreenState? I think I do.
+    // UseCase does not have access to ReceiveUiState and can not change it, so I will have to
+    // subscribe to bluetoothState and transactionDataBuffer changes and adapt
+    // uiState accordingly (?)
+    // or use TransactionSteps as UI current state reference, and map
+    // current transactionStep to the corresponding ReceiveUiState (?)
+    // confusion ...
+
     fun onEvent(event: ReceiveScreenEvent) {
         when (event) {
             is ReceiveScreenEvent.SetAdvertising -> {
@@ -67,6 +77,11 @@ class ReceiveViewModel @AssistedInject constructor(
                 reset()
             }
 
+            //todo maybe pass a finish callback from p2pRoot through to receiveScreen, sendScreen, atmScreen, etc
+            // should save transaction to history? Or just reset everything with p2p, pop the backStack and
+            // navigate the inner NavHost to p2pRootScreen.
+            // So there will be no "Finish" called from the viewModel but rather from the outside to
+            // pop this destination with this viewModel from the backstack altogether.
             ReceiveScreenEvent.Finish -> {
 
             }
@@ -76,12 +91,11 @@ class ReceiveViewModel @AssistedInject constructor(
 
 
     private fun startAdvertising() {
-
         //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
         //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
         useCase.startAdvertising(registry = registry, duration = 10, callback = { resultDuration ->
             resultDuration?.run {
-                _uiState.update { Advertising }
+                _uiState.value = Advertising
                 viewModelScope.launch {
                     TODO()
                 }
@@ -98,7 +112,6 @@ class ReceiveViewModel @AssistedInject constructor(
     private fun stopAdvertising() {
         viewModelScope.launch {
             useCase.stopAdvertising(registry)
-//            _uiState.update { ReceiveUiState.Initial }
         }
     }
 
@@ -115,9 +128,7 @@ class ReceiveViewModel @AssistedInject constructor(
     }
 
     private fun acceptOffer() {
-        //update ui state
-        //...
-        TODO()
+
     }
 
     private fun rejectOffer() {
@@ -126,7 +137,6 @@ class ReceiveViewModel @AssistedInject constructor(
 
 
     private fun reset() {
-
         useCase.reset()
     }
 

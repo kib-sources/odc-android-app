@@ -28,6 +28,8 @@ object BytesToTypeConverter {
         ignoreUnknownKeys = true
     }
 
+
+    //todo change to internal when separating to a module, will be accessible from the test source set
     /**
      * Specify generic type as type of [DataPacketVariant] to deserialize [ByteArray] to given type
      * */
@@ -60,7 +62,7 @@ object BytesToTypeConverter {
                 DataPacketType.BANKNOTES_LIST -> deserializeToDataPacketType<BanknotesList>()
                 DataPacketType.ACCEPTANCE_BLOCKS -> deserializeToDataPacketType<AcceptanceBlocks>()
                 DataPacketType.SIGNED_BLOCK -> deserializeToDataPacketType<Block>()
-                DataPacketType.RESULT -> deserializeToDataPacketType<TransactionResult>()
+                DataPacketType.TRANSACTION_RESULT -> deserializeToDataPacketType<TransactionResult>()
             }
         }
         return deserializedPacket

@@ -19,6 +19,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,7 +44,6 @@ import java.util.UUID
 @SuppressLint("MissingPermission")
 class BluetoothControllerImpl(
     private val context: Context,
-    private val externalScope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : BluetoothController {
 
@@ -88,7 +88,7 @@ class BluetoothControllerImpl(
         if (bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == true) {
             _isConnected.value = isConnected
         } else {
-            externalScope.launch(ioDispatcher) {
+            CoroutineScope(ioDispatcher).launch {
                 _errors.emit("Can't connect to a non-paired device.")
             }
         }
@@ -270,7 +270,6 @@ class BluetoothControllerImpl(
         context.unregisterReceiver(bluetoothStateReceiver)
         closeConnection()
         enableDiscoverableLauncher.unregister()
-        externalScope.cancel()
     }
 
     private fun updateBondedDevices() {
@@ -282,11 +281,11 @@ class BluetoothControllerImpl(
     //Todo save name to datastore preferences then change to pattern, filter found devices to match pattern,
     // then return the name back when finished
     suspend fun changeMyDeviceName() {
-        withContext(ioDispatcher) {/*externalScope.launch{...}*/}
+        withContext(ioDispatcher) {/* */}
     }
 
     suspend fun changeMyDeviceNameBack() {
-        withContext(ioDispatcher) {/*externalScope.launch{...}*/}
+        withContext(ioDispatcher) {/* */}
     }
 
     companion object {
