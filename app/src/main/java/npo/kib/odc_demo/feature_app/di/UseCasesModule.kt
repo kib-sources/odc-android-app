@@ -67,7 +67,7 @@ object UseCasesModule {
     fun provideReceiveUseCase(
         transactionController: ReceiverTransactionController,
         bluetoothController: BluetoothController,
-        @P2PCoroutineScope scope: CoroutineScope
+        @P2PUseCaseScope scope: CoroutineScope
     ) = P2PReceiveUseCaseNew(transactionController, bluetoothController, scope)
 
 
@@ -76,7 +76,7 @@ object UseCasesModule {
     fun provideSendUseCase(
         transactionController: SenderTransactionController,
         bluetoothController: BluetoothController,
-        @P2PCoroutineScope scope: CoroutineScope
+        @P2PUseCaseScope scope: CoroutineScope
     ) = P2PSendUseCaseNew(transactionController, bluetoothController, scope)
 
 }

@@ -1,16 +1,13 @@
 package npo.kib.odc_demo.feature_app.domain.use_cases
 
 import androidx.activity.result.ActivityResultRegistry
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
@@ -18,19 +15,22 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConver
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
+import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
 
 class P2PReceiveUseCaseNew(
     private val transactionController: ReceiverTransactionController,
     private val bluetoothController: BluetoothController,
-    private val externalScope: CoroutineScope
+    private val scope: CoroutineScope
 ) {
     private val packetsToSend = transactionController.outputDataPacketFlow
     private val transactionControllerInputChannel = transactionController.receivedPacketsChannel
 
     val transactionDataBuffer = transactionController.transactionDataBuffer
 
+    val currentTransactionStep = transactionController.currentStep
+
     val bluetoothState = bluetoothController.bluetoothStateColdFlow.stateIn(
-        externalScope, SharingStarted.WhileSubscribed(), BluetoothState()
+        scope, SharingStarted.WhileSubscribed(), BluetoothState()
     )
 
     val errors = bluetoothController.errors
@@ -42,17 +42,12 @@ class P2PReceiveUseCaseNew(
             callback(it)
             it?.let {
                 startBluetoothServerAndRoutePacketsToTransactionController()
-                with(transactionController) {
-                    initController()
-                    startProcessingIncomingPackets()
-                }
             }
         }
     }
 
     fun stopAdvertising(registry: ActivityResultRegistry) =
         bluetoothController.stopAdvertising(registry)
-
 
     private fun startBluetoothServerAndRoutePacketsToTransactionController() {
         bluetoothController.startBluetoothServerAndGetFlow().onEach { connectionResult ->
@@ -67,9 +62,9 @@ class P2PReceiveUseCaseNew(
                 )
 //                else -> {}
             }
-        }.onCompletion { transactionController.resetTransactionController() }.launchIn(externalScope)
+        }.onCompletion { withContext(NonCancellable) { transactionController.resetController() } }
+            .launchIn(scope)
     }
-
 
     private fun startSendingPacketsFromTransactionController(): Boolean {
         return if (bluetoothState.value.isConnected) {
@@ -80,31 +75,32 @@ class P2PReceiveUseCaseNew(
                 else throw Exception(
                     "Tried sending packets from transaction controller but no remote device is connected"
                 )
-            }.flowOn(Dispatchers.IO).launchIn(externalScope)
+            }.flowOn(Dispatchers.IO).launchIn(scope)
             true
         } else false
     }
 
     fun acceptOffer() {
-        externalScope.launch {
+        scope.launch {
             transactionController.sendAmountRequestApproval()
         }
     }
 
     suspend fun rejectOffer() {
-        externalScope.launch {
+        scope.launch {
             transactionController.sendAmountRequestRejection()
         }
     }
 
     fun disconnect() {
         bluetoothController.closeConnection()
-        transactionController.resetTransactionController()
+        //invoked automatically in onCompletion{} for bl packets flow
+//        transactionController.resetController()
     }
 
     fun reset() {
-        externalScope.cancel("Cancelled scope in P2PReceiveUseCase")
-        transactionController.resetTransactionController()
+        scope.cancelChildren()
+        transactionController.resetController()
         bluetoothController.reset()
     }
 
@@ -112,8 +108,6 @@ class P2PReceiveUseCaseNew(
         transactionController.updateLocalUserInfo(userInfo)
 
     fun sendUserInfo(userInfo: UserInfo) {
-        externalScope.launch { transactionController.sendUserInfo(userInfo) }
+        scope.launch { transactionController.sendUserInfo(userInfo) }
     }
-
-
 }

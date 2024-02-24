@@ -2,7 +2,6 @@ package npo.kib.odc_demo.feature_app.domain.use_cases
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -20,8 +19,6 @@ class P2PSendUseCaseNew(
     private val bluetoothController: BluetoothController,
     private val externalScope: CoroutineScope
 ) {
-
-    val a = transactionController.e
 
     private val packetsToSend = transactionController.outputDataPacketFlow
     private val transactionControllerInputChannel = transactionController.receivedPacketsChannel
@@ -70,14 +67,19 @@ class P2PSendUseCaseNew(
         } else false
     }
 
+
+    suspend fun tryConstructAmount(amount : Int) : Boolean {
+       return transactionController.tryConstructAmount(amount)
+    }
+
     fun disconnect() {
         bluetoothController.closeConnection()
-        transactionController.resetTransactionController()
+        transactionController.resetController()
     }
 
     fun reset() {
         externalScope.cancel("Cancelled scope in P2PSendUseCase")
-        transactionController.resetTransactionController()
+        transactionController.resetController()
         bluetoothController.reset()
     }
 

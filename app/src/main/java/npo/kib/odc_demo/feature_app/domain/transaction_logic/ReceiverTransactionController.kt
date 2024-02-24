@@ -1,26 +1,26 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.RECEIVER
 
 class ReceiverTransactionController(
     walletRepository: WalletRepository,
-    externalScope: CoroutineScope,
+    scope: CoroutineScope,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : TransactionController(
-    externalScope = externalScope, walletRepository = walletRepository, role = RECEIVER
+    scope = scope, walletRepository = walletRepository, role = RECEIVER
 ) {
 
+    //todo this controller state could be used to partially signal changes to UI
+    // (along with bluetoothControllerState)
 //    companion object {
 //        enum class ReceiverTransactionState {
 //            INITIAL, ERROR
@@ -30,46 +30,26 @@ class ReceiverTransactionController(
     private val _currentStep = MutableStateFlow(WAITING_FOR_AMOUNT_REQUEST)
     override val currentStep = _currentStep.asStateFlow()
 
-
     init {
         initController()
     }
 
+    //fixme probably should be used in a single place (entrypoint)
+    // like in the startProcessingIncomingPackets() and be private
     public override fun initController(): Boolean {
         val result = super.initController()
-        _currentStep.value = WAITING_FOR_AMOUNT_REQUEST
+        if (result) updateStep(WAITING_FOR_AMOUNT_REQUEST)
         return result
     }
-
-    /*    @Throws(InvalidStepsOrderException::class)
-        suspend fun updateStep(step: ForReceiver) {
-            if (step.canFollowStep(currentStep.value)) {
-                when (step) {
-                    INITIAL -> reset()
-                    WAIT_FOR_OFFER -> listenForOffer()
-                    REJECT_OFFER -> sendOfferRejection()
-                    ACCEPT_OFFER -> sendOfferApproval() //or just replace with sending Result (SEND_RESULT)
-                    WAIT_FOR_BANKNOTES -> listenForBanknotes() //send offer approval and wait for banknotes, can do in the same step
-                    INIT_VERIFICATION -> initBanknoteVerification() //steps 2-4 todo split the steps' names and attach the appropriate name and documentation to each function
-                    SEND_ACCEPTANCE_BLOCKS -> sendAcceptanceBlocks()
-                    VERIFY_SIGNATURE -> verifyReceivedBlockSignature()
-                    SAVE_BANKNOTES_TO_WALLET -> saveBanknotesToWallet()
-                    SEND_RESULT -> sendResult()
-                }
-            }
-            else throw InvalidStepsOrderException(
-                lastStep = currentStep.value, attemptedStep = step
-            )
-        }*/
 
     fun startProcessingIncomingPackets() {
         receivedPacketsFlow.onEach { packet ->
             processPacketOnCurrentStep(packet)
-        }.launchIn(externalScope)
+        }.onCompletion { withContext(NonCancellable) { resetController() } }.launchIn(scope)
     }
 
 
-    //todo maybe send out events in a flow, about what happened, "initializing verification", etc?
+    //todo maybe send out all small events in a flow, "initializing verification", etc?
     // use ReceiverTransactionState ...?
     private suspend fun processPacketOnCurrentStep(packet: DataPacketVariant) {
         if (packet.packetType == USER_INFO) {
@@ -79,25 +59,27 @@ class ReceiverTransactionController(
                 //we are on this step initially or when have rejected the offer
                 packet.requireToBeOfTypes(AMOUNT_REQUEST)
                 updateAmountRequest(amountRequest = packet as AmountRequest)
-                _currentStep.value = AMOUNT_REQUEST_RECEIVED
+                updateStep(AMOUNT_REQUEST_RECEIVED)
             }
-
             AMOUNT_REQUEST_RECEIVED -> {
                 packet.requireToBeOfTypes() //should not receive anything until reacting to the offer (except userInfo that can be received at any moment now)
                 //when have reacted to the offer, the step will be switched manually from the UI to the next one or back to the previous one
+                //if the amount request is invalid, send rejection immediately
+                try {
+                    (packet as AmountRequest).isValid()
+                } catch (e: WrongPacketTypeReceived) {
+                    sendAmountRequestRejection(e.message)
+                }
             }
-
             WAITING_FOR_BANKNOTES_LIST -> {
                 //we are on this step when have accepted the offer
                 packet.requireToBeOfTypes(BANKNOTES_LIST)
                 onReceivedBanknotesList(packet as BanknotesList)
             }
-
             WAITING_FOR_SIGNED_BLOCK -> {
                 packet.requireToBeOfTypes(SIGNED_BLOCK)
                 verifyReceivedBlock(packet as Block)
             }
-
             WAITING_FOR_RESULT -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
                 val result = (packet as TransactionResult).value
@@ -106,13 +88,10 @@ class ReceiverTransactionController(
                 if (transactionDataBuffer.value.allBanknotesProcessed) {
                     if (result is TransactionResult.ResultType.Success) {
                         saveBanknotesToWallet()
-                        _currentStep.value = FINISHED
                     }
                 }
                 //todo check for results on other steps if needed
-
             }
-
             FINISHED -> {
                 //nothing is expected after the transaction has finished
 //                packet.requireToBeOfTypes()
@@ -121,16 +100,24 @@ class ReceiverTransactionController(
     }
 
     /** Will be called when on the [AMOUNT_REQUEST_RECEIVED] step to reject the offer.
-    Staying in [WAITING_FOR_AMOUNT_REQUEST] state when rejected so as to be able to receive another offer*/
-    suspend fun sendAmountRequestRejection() {
-        sendNegativeResult("Offer rejected")
-        updateAmountRequest(null)
-        _currentStep.value = WAITING_FOR_AMOUNT_REQUEST
+    Going back to [WAITING_FOR_AMOUNT_REQUEST] step so as to be able to receive another offer*/
+    suspend fun sendAmountRequestRejection(cause: String? = null) {
+        if (currentStep.value == AMOUNT_REQUEST_RECEIVED) {
+            sendNegativeResult(cause)
+            updateAmountRequest(null)
+            updateStep(WAITING_FOR_AMOUNT_REQUEST)
+        } else throw TransactionException(
+            "Tried sending OFFER REJECTION when not on AMOUNT_REQUEST_RECEIVED step"
+        )
     }
 
     suspend fun sendAmountRequestApproval() {
-        sendPositiveResult()
-        _currentStep.value = WAITING_FOR_BANKNOTES_LIST
+        if (currentStep.value == AMOUNT_REQUEST_RECEIVED) {
+            sendPositiveResult()
+            updateStep(WAITING_FOR_BANKNOTES_LIST)
+        } else throw TransactionException(
+            "Tried sending OFFER APPROVAL when not on AMOUNT_REQUEST_RECEIVED step"
+        )
     }
 
     private suspend fun onReceivedBanknotesList(banknotesList: BanknotesList) {
@@ -141,10 +128,9 @@ class ReceiverTransactionController(
                 "Received empty banknotes list, terminating session in $delay s"
             )/*throw WrongPacketTypeReceived(message = "Received empty banknotes list")*/
             delay(1000 * delay)
-            resetTransactionController()
+            resetController()
             return
         }
-
         updateBanknotesList(banknotesList)
         //confirm that banknotes are received
         sendPositiveResult()
@@ -163,7 +149,7 @@ class ReceiverTransactionController(
         )
         updateLastAcceptanceBLocks(acceptanceBlocks)
         outputDataPacketChannel.send(acceptanceBlocks)
-        _currentStep.value = WAITING_FOR_SIGNED_BLOCK
+        updateStep(WAITING_FOR_SIGNED_BLOCK)
     }
 
     // TODO verification disabled for demo (?)
@@ -198,25 +184,37 @@ class ReceiverTransactionController(
             //notify that all the banknotes were successfully processed
             sendPositiveResult()
             //wait for confirmation of reception from the other side
-            _currentStep.value = WAITING_FOR_RESULT
+            updateStep(WAITING_FOR_RESULT)
         }
     }
 
     private suspend fun saveBanknotesToWallet() {
-        walletRepository.addBanknotesToWallet(transactionDataBuffer.value.finalBanknotesToDB)
+        withContext(NonCancellable) {
+            walletRepository.addBanknotesToWallet(transactionDataBuffer.value.finalBanknotesToDB)
+            updateStep(FINISHED)
+        }
     }
 
-    /*    private fun validateAmountRequest(amountRequest: AmountRequest) {
-            if (amountRequest.amount <= 0) {
-                throw WrongPacketTypeReceived("Received an invalid amount request, amount is <= 0 ")
-            } else if (amountRequest.walletId != (transactionDataBuffer.value.otherUserInfo?.walletId
-                    ?: true )
-            ) {
-                //As an additional check, may throw an exception if request wid is not equal to otherUser wid or if either is null
-            }
-            else {
 
-            }
-        }*/
+    private fun updateStep(step: ForReceiver) {
+        _currentStep.value = step
+    }
+
+    @Throws(WrongPacketTypeReceived::class)
+    private fun AmountRequest.isValid() {
+        when {
+            amount <= 0 -> throw WrongPacketTypeReceived(
+                "Received an invalid amount request, amount is <= 0 "
+            )
+            walletId.isBlank() -> throw WrongPacketTypeReceived(
+                "The wid in the amount request was empty or blank"
+            )
+            walletId != transactionDataBuffer.value.otherUserInfo?.walletId -> throw WrongPacketTypeReceived(
+                """The wid in the amount request was different from your saved UserInfo wid. 
+                    |Request wid: $walletId .
+                    |Saved UserInfo wid: ${transactionDataBuffer.value.otherUserInfo?.walletId}""".trimMargin()
+            )
+        }
+    }
 
 }

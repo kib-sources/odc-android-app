@@ -1,6 +1,8 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic.util
 
+import kotlinx.coroutines.ensureActive
 import npo.kib.odc_demo.feature_app.data.db.Amount
+import kotlin.coroutines.coroutineContext
 
 
 /** Generic solution with IntArray for numbers and Int for target sum.
@@ -84,7 +86,6 @@ fun _findBanknotesWithSum(
     return selectedBanknotes.takeIf { it.isNotEmpty() }
 }
 
-//todo turn into suspend fun
 /**
  *  More memory-efficient algorithm with [Boolean] stored in dp table.
  *  - 100%-tested.
@@ -93,25 +94,32 @@ fun _findBanknotesWithSum(
  *  - Solved here with Dynamic Programming.
  *  @see <a href="https://en.wikipedia.org/wiki/Subset_sum_problem">Subset Sum Problem</a>
  * */
-fun findBanknotesWithSum(banknotesIdsAmounts: List<Amount>, targetSum: Int): List<Amount>? {
+suspend fun findBanknotesWithSum(banknotesIdsAmounts: List<Amount>, targetSum: Int): List<Amount>? {
     if (targetSum <= 0 || banknotesIdsAmounts.isEmpty()) return null
 
+    coroutineContext.ensureActive()
     val n = banknotesIdsAmounts.size
-    val dp: Array<Array<Boolean>> = Array(n + 1) { Array(targetSum + 1) { it == 0 } }
+    val dp: Array<Array<Boolean>> = Array(n + 1) {
+        coroutineContext.ensureActive()
+        Array(targetSum + 1) {
+            coroutineContext.ensureActive()
+            it == 0
+        }
+    }
 
     for (i in 1..n) {
         for (j in 1..targetSum) {
+            coroutineContext.ensureActive()
             dp[i][j] =
                 dp[i - 1][j] || (j >= banknotesIdsAmounts[i - 1].amount && dp[i - 1][j - banknotesIdsAmounts[i - 1].amount])
         }
     }
-
     if (!dp[n][targetSum]) return null
-
     val selectedBanknotes = mutableListOf<Amount>()
     var i = n
     var j = targetSum
     while (i > 0 && j > 0) {
+        coroutineContext.ensureActive()
         if (dp[i][j] && !dp[i - 1][j]) {
             selectedBanknotes.add(banknotesIdsAmounts[i - 1])
             j -= banknotesIdsAmounts[i - 1].amount

@@ -5,11 +5,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.*
 import javax.inject.Qualifier
-import javax.inject.Singleton
 
 
 @Module
@@ -17,31 +14,26 @@ import javax.inject.Singleton
 object CoroutinesModule {
 
     @Provides
-    @P2PCoroutineScope
+    @P2PUseCaseScope
     @ViewModelScoped
-    fun provideP2PCoroutineScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-//    fun provideP2PCoroutineScope() = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    fun provideP2PCoroutineScope() = CoroutineScope(Job() + Dispatchers.Default)
 
+    @Provides
+    @P2PTransactionScope
+    @ViewModelScoped
+    fun provideP2PTransactionScope() = CoroutineScope(Job() + Dispatchers.Default)
 
 //    @Provides
 //    @P2PConnectionScope
 //    @ViewModelScoped
 //    fun provideP2PConnectionScope() = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-
-//    @Provides
-//    @P2PTransactionScope
-//    @ViewModelScoped
-//    fun provideP2PTransactionScope() = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-
 }
 
+@Qualifier
+annotation class P2PUseCaseScope
 
 @Qualifier
-annotation class P2PCoroutineScope
+annotation class P2PTransactionScope
 
 //@Qualifier
 //annotation class P2PConnectionScope
-//
-//@Qualifier
-//annotation class P2PTransactionScope

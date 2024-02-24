@@ -1,7 +1,6 @@
 package npo.kib.odc_demo.feature_app.data.repositories
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import npo.kib.odc_demo.feature_app.data.api.BankApi
 import npo.kib.odc_demo.feature_app.domain.core.Wallet
 import npo.kib.odc_demo.feature_app.domain.core.getStringPem
@@ -15,7 +14,8 @@ import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import npo.kib.odc_demo.feature_app.domain.util.myLogs
 
 class BankRepositoryImpl(
-    private val bankApi: BankApi,
+    private val bankApi: BankApi, private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : BankRepository {
     override suspend fun getCredentials(): CredentialsResponse {
         return bankApi.getCredentials()
@@ -33,84 +33,75 @@ class BankRepositoryImpl(
     override suspend fun issueBanknotes(
         wallet: Wallet,
         amount: Int,
-        walletInsertionCallback: (BanknoteWithProtectedBlock, Block) -> Unit
+        walletInsertionCallback: suspend (BanknoteWithProtectedBlock, Block) -> Unit
     ): ServerConnectionStatus {
-
-        val request = IssueRequest(amount, wallet.walletId)
-        val issueResponse = try {
-            bankApi.issueBanknotes(request)
-        } catch (e: Exception) {
-            return ServerConnectionStatus.ERROR
-        }
-
-        val rawBanknotes = issueResponse.issuedBanknotes ?: return ServerConnectionStatus.WALLET_ERROR
-        val banknotes = parseBanknotes(rawBanknotes)
-
-        try {
-            coroutineScope {
-                banknotes.map { banknote ->
-                    wallet.banknoteVerification(banknote)
-                    val (block, protectedBlock) = wallet.firstBlock(banknote)
-                    async {
-                        BanknoteWithProtectedBlock(
-                            banknote = banknote, protectedBlock = protectedBlock
-                        ) to receiveBanknoteBlock(
-                            wallet, block, protectedBlock
-                        )
-                    }
-                }.forEach {
-                    val registered = it.await()
-                    walletInsertionCallback(registered.first, registered.second)
-                }
+        return withContext(ioDispatcher) {
+            val request = IssueRequest(amount, wallet.walletId)
+            val issueResponse = try {
+                bankApi.issueBanknotes(request)
+            } catch (e: Exception) {
+                return@withContext ServerConnectionStatus.ERROR
             }
-        } catch (e: Exception) {
-            myLogs(e)
-            return ServerConnectionStatus.ERROR
+
+            val rawBanknotes = issueResponse.issuedBanknotes
+                ?: return@withContext ServerConnectionStatus.WALLET_ERROR
+            val banknotes = parseBanknotes(rawBanknotes)
+
+            try {
+                coroutineScope {
+                    banknotes.map { banknote ->
+                        ensureActive()
+                        wallet.banknoteVerification(banknote)
+                        val (block, protectedBlock) = wallet.firstBlock(banknote)
+                        async {
+                            BanknoteWithProtectedBlock(
+                                banknote = banknote, protectedBlock = protectedBlock
+                            ) to receiveBanknoteBlock(
+                                wallet, block, protectedBlock
+                            )
+                        }
+                    }.forEach {
+                        val registered = it.await()
+                        walletInsertionCallback(registered.first, registered.second)
+                    }
+                }
+            } catch (e: Exception) {
+                myLogs(e)
+                return@withContext ServerConnectionStatus.ERROR
+            }
+            return@withContext ServerConnectionStatus.SUCCESS
         }
-        return ServerConnectionStatus.SUCCESS
     }
 
 
     private suspend fun receiveBanknoteBlock(
-        wallet: Wallet,
-        block: Block,
-        protectedBlock: ProtectedBlock
+        wallet: Wallet, block: Block, protectedBlock: ProtectedBlock
     ): Block {
         val request = ReceiveRequest(
-            bnid = block.bnid,
-            otok = block.otok.getStringPem(),
-            otokSignature = protectedBlock.otokSignature,
-            time = block.time,
-            transactionSign = protectedBlock.transactionSignature,
-            uuid = block.uuid.toString(),
+            bnid = block.bnid, otok = block.otok.getStringPem(),
+            otokSignature = protectedBlock.otokSignature, time = block.time,
+            transactionSign = protectedBlock.transactionSignature, uuid = block.uuid.toString(),
             wid = wallet.walletId
         )
         val response = bankApi.receiveBanknote(request)
         val fullBlock = Block(
-            uuid = block.uuid,
-            parentUuid = null,
-            bnid = block.bnid,
-            otok = block.otok,
-            time = block.time,
-            magic = response.magic,
-            transactionHash = response.transactionHash,
+            uuid = block.uuid, parentUuid = null, bnid = block.bnid, otok = block.otok,
+            time = block.time, magic = response.magic, transactionHash = response.transactionHash,
             transactionHashSignature = response.transactionHashSigned
         )
         wallet.firstBlockVerification(fullBlock)
         return fullBlock
     }
 
-    private fun parseBanknotes(banknotesRaw: List<BanknoteRaw>): List<Banknote> {
-        return banknotesRaw.map {
-            Banknote(
-                bin = it.bin.toInt(),
-                amount = it.amount,
-                code = it.code,
-                bnid = it.bnid,
-                signature = it.signature,
-                time = it.time
-            )
+    private suspend fun parseBanknotes(banknotesRaw: List<BanknoteRaw>): List<Banknote> =
+        withContext(ioDispatcher) {
+            banknotesRaw.map {
+                ensureActive()
+                Banknote(
+                    bin = it.bin.toInt(), amount = it.amount, code = it.code, bnid = it.bnid,
+                    signature = it.signature, time = it.time
+                )
+            }
         }
-    }
 
 }

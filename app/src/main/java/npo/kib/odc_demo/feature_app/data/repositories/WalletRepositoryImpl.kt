@@ -9,27 +9,17 @@ import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey.*
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.data.db.BanknotesDao
 import npo.kib.odc_demo.feature_app.data.db.BlockDao
-import npo.kib.odc_demo.feature_app.domain.core.Crypto
-import npo.kib.odc_demo.feature_app.domain.core.Wallet
-import npo.kib.odc_demo.feature_app.domain.core.getStringPem
-import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
+import npo.kib.odc_demo.feature_app.domain.core.*
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus.WALLET_ERROR
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.WalletRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
-import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.repository.KeysDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.repository.*
 import java.security.PrivateKey
 import java.security.PublicKey
-import kotlin.coroutines.coroutineContext
 
 class WalletRepositoryImpl(
     private val banknotesDao: BanknotesDao,
@@ -40,10 +30,13 @@ class WalletRepositoryImpl(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : WalletRepository {
 
-
+    //todo better add field isRegistered : Boolean (?) here or
+    // maybe inside the wallet class itself
     private var wallet: Wallet? = null
 
-    //todo adjust blocks of code to use different dispatchers (withContext(){})
+    //todo actually should not need to use Wallet directly anywhere outside,
+    // only inside the repositories, so better not to return it
+
     override suspend fun getOrRegisterWallet(): Wallet {
         wallet?.let { return it }
         return withContext(ioDispatcher) {
@@ -142,70 +135,75 @@ class WalletRepositoryImpl(
         return wallet.signature(parentBlock, childBlock, protectedBlock)
     }
 
-    override suspend fun insertBanknote(banknoteWithProtectedBlock: BanknoteWithProtectedBlock) {
-        banknotesDao.insertBanknote(banknoteWithProtectedBlock)
-    }
+    override suspend fun insertBanknote(banknoteWithProtectedBlock: BanknoteWithProtectedBlock) =
+        withContext(ioDispatcher) {
+            banknotesDao.insertBanknote(banknoteWithProtectedBlock)
+        }
 
 
-    override suspend fun getBanknotesIdsAndAmounts(): List<Amount> {
-        return banknotesDao.getBnidsAndAmounts()
-    }
+    override suspend fun getBanknotesIdsAndAmounts(): List<Amount> =
+        withContext(ioDispatcher) { banknotesDao.getBnidsAndAmounts() }
 
-    override suspend fun getBanknoteByBnid(requiredBnid: String): BanknoteWithProtectedBlock {
-        return banknotesDao.getBanknoteByBnid(requiredBnid)
-    }
 
-    override suspend fun deleteBanknoteByBnid(bnid: String) {
+    override suspend fun getBanknoteByBnid(requiredBnid: String): BanknoteWithProtectedBlock =
+        withContext(ioDispatcher) { banknotesDao.getBanknoteByBnid(requiredBnid) }
+
+
+    override suspend fun deleteBanknoteByBnid(bnid: String) = withContext(ioDispatcher) {
         banknotesDao.deleteBanknoteByBnid(bnid)
     }
 
     override suspend fun issueBanknotes(
         amount: Int
-    ): ServerConnectionStatus {
+    ): ServerConnectionStatus = withContext(ioDispatcher) {
         val wallet = try {
             getOrRegisterWallet()
         } catch (e: Exception) {
-            return WALLET_ERROR
+            return@withContext WALLET_ERROR
         }
-        return bankRepository.issueBanknotes(wallet = wallet, amount = amount,
-                                             walletInsertionCallback = { banknoteWithProtectedBlock, block ->
-                                                 banknotesDao.insertBanknote(
-                                                     banknoteWithProtectedBlock
-                                                 )
-                                                 blockDao.insertBlock(block)
-                                             })
+        return@withContext bankRepository.issueBanknotes(wallet = wallet, amount = amount,
+                                                         walletInsertionCallback = { banknoteWithProtectedBlock, block ->
+                                                             banknotesDao.insertBanknote(
+                                                                 banknoteWithProtectedBlock
+                                                             )
+                                                             blockDao.insertBlock(block)
+                                                         })
     }
 
-    override suspend fun insertBlock(block: Block) {
+    override suspend fun insertBlock(block: Block) = withContext(ioDispatcher) {
         blockDao.insertBlock(block)
     }
 
-    override suspend fun getBlocksByBnid(requiredBnid: String): List<Block> {
-        return blockDao.getBlocksByBnid(requiredBnid)
-    }
-
-
-    override suspend fun getBanknotesWithBlockchainByBnids(bnidList: List<String>): List<BanknoteWithBlockchain>? {
-        if (bnidList.isEmpty()) return null
-        val resultList = bnidList.map { bnid ->
-            BanknoteWithBlockchain(getBanknoteByBnid(bnid), getBlocksByBnid(bnid))
+    override suspend fun getBlocksByBnid(requiredBnid: String): List<Block> =
+        withContext(ioDispatcher) {
+            blockDao.getBlocksByBnid(requiredBnid)
         }
-        return resultList.takeIf { bnidList.size == resultList.size }
-    }
 
-    override suspend fun addBanknotesToWallet(banknotes: List<BanknoteWithBlockchain>) {
-        banknotes.forEach {
-            banknotesDao.insertBanknote(it.banknoteWithProtectedBlock)
-            it.blocks.forEach { block -> blockDao.insertBlock(block) }
+
+    override suspend fun getBanknotesWithBlockchainByBnids(bnidList: List<String>): List<BanknoteWithBlockchain>? =
+        withContext(ioDispatcher) {
+            if (bnidList.isEmpty()) return@withContext null
+            val resultList = bnidList.map { bnid ->
+                BanknoteWithBlockchain(getBanknoteByBnid(bnid), getBlocksByBnid(bnid))
+            }
+            resultList.takeIf { bnidList.size == resultList.size }
         }
-    }
 
-
-    override suspend fun deleteBanknotesWithBlockchainByBnids(bnidList: List<String>) {
-        bnidList.forEach {
-            this.deleteBanknoteByBnid(it)
+    override suspend fun addBanknotesToWallet(banknotes: List<BanknoteWithBlockchain>) =
+        withContext(ioDispatcher) {
+            banknotes.forEach {
+                banknotesDao.insertBanknote(it.banknoteWithProtectedBlock)
+                it.blocks.forEach { block -> blockDao.insertBlock(block) }
+            }
         }
-    }
+
+
+    override suspend fun deleteBanknotesWithBlockchainByBnids(bnidList: List<String>) =
+        withContext(ioDispatcher) {
+            bnidList.forEach {
+                deleteBanknoteByBnid(it)
+            }
+        }
 
 
     private fun verifySokSign(

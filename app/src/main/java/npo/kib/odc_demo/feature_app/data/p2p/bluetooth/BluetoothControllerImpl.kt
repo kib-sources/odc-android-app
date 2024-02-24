@@ -268,8 +268,8 @@ class BluetoothControllerImpl(
     override fun reset() {
         context.unregisterReceiver(deviceFoundReceiver)
         context.unregisterReceiver(bluetoothStateReceiver)
-        closeConnection()
         enableDiscoverableLauncher.unregister()
+        closeConnection()
     }
 
     private fun updateBondedDevices() {

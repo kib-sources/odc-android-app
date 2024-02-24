@@ -16,6 +16,6 @@ object BluetoothModule {
     @Provides
     @ViewModelScoped
     fun provideBluetoothController(
-        @ApplicationContext context: Context/*, @P2PCoroutineScope scope : CoroutineScope*/
-    ): BluetoothController = BluetoothControllerImpl(context/*, scope*/)
+        @ApplicationContext context: Context
+    ): BluetoothController = BluetoothControllerImpl(context)
 }

@@ -16,7 +16,13 @@ import java.security.PublicKey
 import java.util.Calendar
 import java.util.UUID
 
-//todo make the methods suspend ?
+/**
+todo
+1. make the methods that may take time suspend.
+2. better make Wallet inaccessible from the general code,
+later make it internal, and separate it to another module, that would
+contain repositories related to it.
+ */
 class Wallet(
     private val spk: PrivateKey,
     private val sok: PublicKey,
@@ -38,6 +44,11 @@ class Wallet(
         }
     }
 
+    /**
+     *  Probably some noticeable time consumed.
+     *
+     *  Todo run tests for the time taken and decide if worth making suspend
+     * */
     fun firstBlock(banknote: Banknote): Pair<Block, ProtectedBlock> {
         val uuid = UUID.randomUUID()
         val otok = Crypto.initOTKP(uuid)
@@ -55,47 +66,41 @@ class Wallet(
         val transactionHash = block.makeBlockHashValue()
         val transactionHashSign = Crypto.signature(transactionHash, this.spk)
         val protectedBlock = ProtectedBlock(
-            parentSok = null,
-            parentSokSignature = null,
-            parentOtokSignature = null,
-            refUuid = uuid,
-            sok = this.sok,
-            sokSignature = this.sokSignature,
-            otokSignature = otokSignature(otok),
-            transactionSignature = transactionHashSign,
-            time = banknote.time
+            parentSok = null, parentSokSignature = null, parentOtokSignature = null, refUuid = uuid,
+            sok = this.sok, sokSignature = this.sokSignature, otokSignature = otokSignature(otok),
+            transactionSignature = transactionHashSign, time = banknote.time
         )
         return Pair(block, protectedBlock)
     }
 
     //A
     fun initProtectedBlock(protectedBlock: ProtectedBlock) = ProtectedBlock(
-        parentSok = protectedBlock.sok,
-        parentSokSignature = protectedBlock.sokSignature,
-        parentOtokSignature = protectedBlock.otokSignature,
-        refUuid = null,
-        sok = null,
-        sokSignature = null,
-        otokSignature = "",
-        transactionSignature = "",
+        parentSok = protectedBlock.sok, parentSokSignature = protectedBlock.sokSignature,
+        parentOtokSignature = protectedBlock.otokSignature, refUuid = null, sok = null,
+        sokSignature = null, otokSignature = "", transactionSignature = "",
         time = (Calendar.getInstance().timeInMillis / 1000).toInt()
     )
 
+    /** No time consumed */
     fun firstBlockVerification(block: Block) {
-        if (!block.verification(bok))
-            throw Exception("Некорректный Block")
+        if (!block.verification(bok)) throw Exception("Некорректный Block")
     }
 
     private fun blockchainVerification(blocks: List<Block>) {
         var lastKey = bok
         for (block in blocks) {
-            if (!block.verification(lastKey))
-                throw Exception("Некорректный blockchain")
+            if (!block.verification(lastKey)) throw Exception("Некорректный blockchain")
             lastKey = block.otok
         }
     }
 
+
     //B
+    /**
+     *  Probably some noticeable time consumed.
+     *
+     *   Todo need to run tests for the time taken and decide if worth making suspend
+     * */
     fun acceptanceInit(blocks: List<Block>, protectedBlock: ProtectedBlock): AcceptanceBlocks {
         // TODO verification disabled for demo
 //        blockchainVerification(blocks)
@@ -148,21 +153,15 @@ class Wallet(
         val protectedBlockNew = ProtectedBlock(
             parentSok = protectedBlock.parentSok,
             parentSokSignature = protectedBlock.parentSokSignature,
-            parentOtokSignature = protectedBlock.parentOtokSignature,
-            refUuid = uuid,
-            sok = sok,
-            sokSignature = sokSignature,
-            otokSignature = otokSignature(otok),
-            transactionSignature = transactionHashSign,
-            time = protectedBlock.time
+            parentOtokSignature = protectedBlock.parentOtokSignature, refUuid = uuid, sok = sok,
+            sokSignature = sokSignature, otokSignature = otokSignature(otok),
+            transactionSignature = transactionHashSign, time = protectedBlock.time
         )
         return AcceptanceBlocks(childBlock, protectedBlockNew)
     }
 
     private fun acceptanceInitVerification(
-        childBlock: Block,
-        protectedBlock: ProtectedBlock,
-        bok: PublicKey
+        childBlock: Block, protectedBlock: ProtectedBlock, bok: PublicKey
     ) {
         if (!checkTimeIsNearCurrent(childBlock.time, 60)) {
             throw Exception("Некорректное время")
@@ -180,6 +179,11 @@ class Wallet(
     }
 
     //A
+    /**
+     *  Probably some noticeable time consumed.
+     *
+     *   Todo need to run tests for the time taken and decide if worth making suspend
+     * */
     fun signature(parentBlock: Block, childBlock: Block, protectedBlock: ProtectedBlock): Block {
         acceptanceInitVerification(childBlock, protectedBlock, bok)
 

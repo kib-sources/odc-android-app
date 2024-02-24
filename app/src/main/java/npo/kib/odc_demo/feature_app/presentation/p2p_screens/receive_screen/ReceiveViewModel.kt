@@ -32,8 +32,9 @@ class ReceiveViewModel @AssistedInject constructor(
 
     private val transactionDataBuffer: StateFlow<TransactionDataBuffer> =
         useCase.transactionDataBuffer
-    private val bluetoothState: StateFlow<BluetoothState> = useCase.bluetoothState
+    private val currentTransactionStep = useCase.currentTransactionStep
 
+    private val bluetoothState: StateFlow<BluetoothState> = useCase.bluetoothState
     private val _uiState: MutableStateFlow<ReceiveUiState> = MutableStateFlow(Initial)
 
     val state: StateFlow<ReceiveScreenState> = combine(
