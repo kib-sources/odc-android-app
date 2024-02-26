@@ -97,12 +97,15 @@ class Wallet(
 
     //B
     /**
-     *  Probably some noticeable time consumed.
+     * Create the new [ProtectedBlock] for the banknote from the old [protectedBlock] and create a new
+     * [childBlock][Block] based on the last parent block from the [blocks]
+     *
+     * Probably some noticeable time consumed.
      *
      *   Todo need to run tests for the time taken and decide if worth making suspend
      * */
     fun acceptanceInit(blocks: List<Block>, protectedBlock: ProtectedBlock): AcceptanceBlocks {
-        // TODO verification disabled for demo
+        // TODO blockchain verification disabled for demo
 //        blockchainVerification(blocks)
 
         if (protectedBlock.parentSokSignature == null) {
@@ -160,6 +163,12 @@ class Wallet(
         return AcceptanceBlocks(childBlock, protectedBlockNew)
     }
 
+    /**
+     *  Verifying
+     *  - That the new block is created within 60 seconds prior to the current time
+     *  - Protected block's signature,
+     *  - Child block's signature
+     * */
     private fun acceptanceInitVerification(
         childBlock: Block, protectedBlock: ProtectedBlock, bok: PublicKey
     ) {

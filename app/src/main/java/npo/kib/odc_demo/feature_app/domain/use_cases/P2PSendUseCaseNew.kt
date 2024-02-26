@@ -1,11 +1,7 @@
 package npo.kib.odc_demo.feature_app.domain.use_cases
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
@@ -13,21 +9,23 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConver
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
+import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
 
 class P2PSendUseCaseNew(
     private val transactionController: SenderTransactionController,
     private val bluetoothController: BluetoothController,
-    private val externalScope: CoroutineScope
+    private val scope: CoroutineScope
 ) {
 
     private val packetsToSend = transactionController.outputDataPacketFlow
     private val transactionControllerInputChannel = transactionController.receivedPacketsChannel
 
-    //    val connectionStatus: StateFlow<BluetoothConnectionStatus>
     val transactionDataBuffer = transactionController.transactionDataBuffer
 
+    val currentTransactionStep = transactionController.currentStep
+
     val bluetoothState = bluetoothController.bluetoothStateColdFlow.stateIn(
-        externalScope, SharingStarted.WhileSubscribed(), BluetoothState()
+        scope, SharingStarted.WhileSubscribed(), BluetoothState()
     )
 
     val errors = bluetoothController.errors
@@ -43,42 +41,57 @@ class P2PSendUseCaseNew(
     fun connectToDevice(device: CustomBluetoothDevice) {
         bluetoothController.connectToDevice(device).onEach { connectionResult ->
             when (connectionResult) {
-                BluetoothConnectionResult.ConnectionEstablished -> transactionController.
-
+                BluetoothConnectionResult.ConnectionEstablished -> {
+                    transactionController.initController()
+                    startSendingPacketsFromTransactionController()
+                    transactionController.startProcessingIncomingPackets()
+                }
                 is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
                     connectionResult.bytes.deserializeToDataPacketVariant()
                 )
-
             }
-        }.launchIn(externalScope)
+        }.onCompletion {
+            withContext(
+                NonCancellable
+            ) { transactionController.resetController() }
+        }.launchIn(scope)
     }
 
-    fun startSendingPacketsFromTransactionController(): Boolean {
+    private fun startSendingPacketsFromTransactionController(): Boolean {
         return if (bluetoothState.value.isConnected) {
             packetsToSend.onEach { packet ->
                 if (bluetoothState.value.isConnected) bluetoothController.trySendBytes(
                     packet.serializeToByteArray()
                 )
-                else throw Exception(
-                    "Tried sending packets from transaction controller but no remote device is connected"
-                )
-            }.launchIn(externalScope)
+//                else throw Exception(
+//                    "Tried sending packets from transaction controller but no remote device is connected"
+//                )
+            }.launchIn(scope)
             true
         } else false
     }
 
+    fun updateLocalUserInfo() = transactionController.updateLocalUserInfo()
 
-    suspend fun tryConstructAmount(amount : Int) : Boolean {
-       return transactionController.tryConstructAmount(amount)
+    suspend fun tryConstructAmount(amount: Int): Boolean {
+        return transactionController.tryConstructAmount(amount)
+    }
+
+    /**
+     *  Can call only after a successful tryConstructAmount()
+     * */
+    suspend fun trySendOffer(){
+        transactionController.trySendOffer()
     }
 
     fun disconnect() {
         bluetoothController.closeConnection()
-        transactionController.resetController()
+        //invoked automatically in onCompletion{} for bl packets flow
+//        transactionController.resetController()
     }
 
     fun reset() {
-        externalScope.cancel("Cancelled scope in P2PSendUseCase")
+        scope.cancelChildren()
         transactionController.resetController()
         bluetoothController.reset()
     }

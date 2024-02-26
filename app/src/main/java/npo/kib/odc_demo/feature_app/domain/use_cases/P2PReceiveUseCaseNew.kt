@@ -49,37 +49,6 @@ class P2PReceiveUseCaseNew(
     fun stopAdvertising(registry: ActivityResultRegistry) =
         bluetoothController.stopAdvertising(registry)
 
-    private fun startBluetoothServerAndRoutePacketsToTransactionController() {
-        bluetoothController.startBluetoothServerAndGetFlow().onEach { connectionResult ->
-            when (connectionResult) {
-                is BluetoothConnectionResult.ConnectionEstablished -> {
-                    transactionController.initController()
-                    startSendingPacketsFromTransactionController()
-                    transactionController.startProcessingIncomingPackets()
-                }
-                is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
-                    connectionResult.bytes.deserializeToDataPacketVariant()
-                )
-//                else -> {}
-            }
-        }.onCompletion { withContext(NonCancellable) { transactionController.resetController() } }
-            .launchIn(scope)
-    }
-
-    private fun startSendingPacketsFromTransactionController(): Boolean {
-        return if (bluetoothState.value.isConnected) {
-            packetsToSend.onEach { packet ->
-                if (bluetoothState.value.isConnected) bluetoothController.trySendBytes(
-                    packet.serializeToByteArray()
-                )
-                else throw Exception(
-                    "Tried sending packets from transaction controller but no remote device is connected"
-                )
-            }.flowOn(Dispatchers.IO).launchIn(scope)
-            true
-        } else false
-    }
-
     fun acceptOffer() {
         scope.launch {
             transactionController.sendAmountRequestApproval()
@@ -104,10 +73,36 @@ class P2PReceiveUseCaseNew(
         bluetoothController.reset()
     }
 
-    fun updateLocalUserInfo(userInfo: UserInfo) =
-        transactionController.updateLocalUserInfo(userInfo)
+    fun updateLocalUserInfo() = transactionController.updateLocalUserInfo()
 
-    fun sendUserInfo(userInfo: UserInfo) {
-        scope.launch { transactionController.sendUserInfo(userInfo) }
+
+    private fun startBluetoothServerAndRoutePacketsToTransactionController() {
+        bluetoothController.startBluetoothServerAndGetFlow().onEach { connectionResult ->
+            when (connectionResult) {
+                is BluetoothConnectionResult.ConnectionEstablished -> {
+                    transactionController.initController()
+                    startSendingPacketsFromTransactionController()
+                    transactionController.startProcessingIncomingPackets()
+                }
+                is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
+                    connectionResult.bytes.deserializeToDataPacketVariant()
+                )
+            }
+        }.onCompletion { withContext(NonCancellable) { transactionController.resetController() } }
+            .launchIn(scope)
+    }
+
+    private fun startSendingPacketsFromTransactionController(): Boolean {
+        return if (bluetoothState.value.isConnected) {
+            packetsToSend.onEach { packet ->
+                if (bluetoothState.value.isConnected) bluetoothController.trySendBytes(
+                    packet.serializeToByteArray()
+                )
+//                else throw Exception(
+//                    "Tried sending packets from transaction controller but no remote device is connected"
+//                )
+            }.flowOn(Dispatchers.IO).launchIn(scope)
+            true
+        } else false
     }
 }

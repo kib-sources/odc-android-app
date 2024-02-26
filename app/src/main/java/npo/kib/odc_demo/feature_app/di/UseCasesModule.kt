@@ -38,29 +38,12 @@ import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
 @Module(/*includes = [AppModule::class]*/)
 @InstallIn(ViewModelComponent::class)
 object UseCasesModule {
-
-//    @Provides
-//    @Singleton
-//    @SendUseCase
-//    fun provideSendUseCase(
-//        walletRepository: WalletRepository,
-//        p2p: P2PConnectionBluetooth
-//    ): P2PBaseUseCase = P2PSendUseCase(walletRepository = walletRepository, p2pConnection = p2p)
-
-//    @Provides
-//    @Singleton
-//    @ReceiveUseCase
-//    fun provideReceiveUseCase(
-//        walletRepository: WalletRepository, p2p: P2PConnectionBluetooth
-//    ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
-
     @Provides
     @ViewModelScoped
     @AtmUseCase
     fun provideAtmUseCase(
         walletRepository: WalletRepository, @NfcP2PConnection p2p: P2PConnection
     ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
-
 
     @Provides
     @ViewModelScoped
@@ -70,7 +53,6 @@ object UseCasesModule {
         @P2PUseCaseScope scope: CoroutineScope
     ) = P2PReceiveUseCaseNew(transactionController, bluetoothController, scope)
 
-
     @Provides
     @ViewModelScoped
     fun provideSendUseCase(
@@ -78,5 +60,4 @@ object UseCasesModule {
         bluetoothController: BluetoothController,
         @P2PUseCaseScope scope: CoroutineScope
     ) = P2PSendUseCaseNew(transactionController, bluetoothController, scope)
-
 }

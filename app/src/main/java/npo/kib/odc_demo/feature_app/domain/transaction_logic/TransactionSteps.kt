@@ -26,8 +26,8 @@ sealed interface TransactionSteps {
         //        WAIT_FOR_RESULT, //todo used to wait for receiver confirmation that they received banknotesList or signature was verified, etc
         WAITING_FOR_BANKNOTES_LIST_RECEIVED_RESPONSE,
         WAITING_FOR_ACCEPTANCE_BLOCKS, //OR WAITING_FOR_UNSIGNED_BLOCK
-        SIGN_AND_SEND_BLOCK, //step 5
-        FINISH;
+        WAITING_FOR_RESULT, //step 5
+        FINISHED;
 
 
         override val role = SENDER

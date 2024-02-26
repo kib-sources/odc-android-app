@@ -12,6 +12,8 @@ import java.util.UUID
 
 /**
  * Accompanying block for additional verification on server
+ * Inseparable part of the banknote, containing information about
+ * the current owner. Has to be recreated when the banknote changes hands.
  * @param refUuid Link to a [Block]
  */
 @Serializable

@@ -1,9 +1,7 @@
 package npo.kib.odc_demo.feature_app.data.repositories
 
 import android.util.Log
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey
 import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey.*
 import npo.kib.odc_demo.feature_app.data.db.Amount
@@ -100,7 +98,6 @@ class WalletRepositoryImpl(
         )
     }
 
-    //todo make wallet methods suspend as well (?) (to support redispatching to defaultDispatcher and cancellation)
     override suspend fun walletBanknoteVerification(banknote: Banknote) {
         val wallet = getOrRegisterWallet()
         wallet.banknoteVerification(banknote)
@@ -121,6 +118,9 @@ class WalletRepositoryImpl(
         return wallet.initProtectedBlock(protectedBlock)
     }
 
+
+    /**Create the new [ProtectedBlock] for the banknote from the old [protectedBlock] and create a new
+     * [childBlock][Block] based on the last parent block from the [blocks]*/
     override suspend fun walletAcceptanceInit(
         blocks: List<Block>, protectedBlock: ProtectedBlock
     ): AcceptanceBlocks {
@@ -184,6 +184,7 @@ class WalletRepositoryImpl(
         withContext(ioDispatcher) {
             if (bnidList.isEmpty()) return@withContext null
             val resultList = bnidList.map { bnid ->
+                ensureActive()
                 BanknoteWithBlockchain(getBanknoteByBnid(bnid), getBlocksByBnid(bnid))
             }
             resultList.takeIf { bnidList.size == resultList.size }
@@ -192,8 +193,9 @@ class WalletRepositoryImpl(
     override suspend fun addBanknotesToWallet(banknotes: List<BanknoteWithBlockchain>) =
         withContext(ioDispatcher) {
             banknotes.forEach {
+                ensureActive()
                 banknotesDao.insertBanknote(it.banknoteWithProtectedBlock)
-                it.blocks.forEach { block -> blockDao.insertBlock(block) }
+                it.blocks.forEach { block -> ensureActive(); blockDao.insertBlock(block) }
             }
         }
 
@@ -201,6 +203,7 @@ class WalletRepositoryImpl(
     override suspend fun deleteBanknotesWithBlockchainByBnids(bnidList: List<String>) =
         withContext(ioDispatcher) {
             bnidList.forEach {
+                ensureActive()
                 deleteBanknoteByBnid(it)
             }
         }

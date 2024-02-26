@@ -89,23 +89,15 @@ class P2PSendUseCase(
     }
 
     private suspend fun sendBanknoteWithBlockchain(banknoteWithBlockchain: BanknoteWithBlockchain?) {
-        if (banknoteWithBlockchain == null) {
-//            _isSendingFlow.update { false }
-            return
-        }
-
+        banknoteWithBlockchain ?: return
         //Создание нового ProtectedBlock
         val newProtectedBlock =
-            wallet.initProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
-        //old code where protectedBlock was *var* in banknote
-//        banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock = newProtectedBlock
+            walletRepository.walletInitProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
         val resultBanknoteWithBlockchain = banknoteWithBlockchain.copy(
             banknoteWithProtectedBlock = banknoteWithBlockchain.banknoteWithProtectedBlock.copy(protectedBlock = newProtectedBlock)
         )
         val payloadContainer = PayloadContainer(banknoteWithBlockchain = resultBanknoteWithBlockchain)
-        val blockchainJson = payloadContainer.toByteArray()
-        p2pConnection.sendBytes(blockchainJson)
-
+        p2pConnection.sendBytes(payloadContainer.toByteArray())
         //Запоминаем отправленный parentBlock для последующей верификации
         sentBlock = resultBanknoteWithBlockchain.blocks.last()
     }
@@ -125,9 +117,10 @@ class P2PSendUseCase(
 
     //Шаг 5
     private suspend fun onAcceptanceBlocksReceived(acceptanceBlocks: AcceptanceBlocks) {
-        val childBlockFull = wallet.signature(
-            sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock
-        )
+//        val childBlockFull = wallet.signature(
+//            sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock
+//        )
+        val childBlockFull = walletRepository.walletSignature(sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock)
         walletRepository.deleteBanknoteByBnid(acceptanceBlocks.childBlock.bnid)
         sendChildBlockFull(childBlockFull)
         sendBanknoteWithBlockchain(sendingList.poll())

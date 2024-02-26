@@ -52,6 +52,7 @@ class ReceiverTransactionController(
     //todo maybe send out all small events in a flow, "initializing verification", etc?
     // use ReceiverTransactionState ...?
     private suspend fun processPacketOnCurrentStep(packet: DataPacketVariant) {
+        // user info can be processed at any moment now
         if (packet.packetType == USER_INFO) {
             updateOtherUserInfo(packet as UserInfo)
         } else when (currentStep.value) {
@@ -88,8 +89,9 @@ class ReceiverTransactionController(
                 if (transactionDataBuffer.value.allBanknotesProcessed) {
                     if (result is TransactionResult.ResultType.Success) {
                         saveBanknotesToWallet()
+                        updateStep(FINISHED)
                     }
-                }
+                } else throw TransactionException("on WAITING_FOR_RESULT step, received result but no conditions were satisfied")
                 //todo check for results on other steps if needed
             }
             FINISHED -> {
@@ -131,6 +133,10 @@ class ReceiverTransactionController(
             resetController()
             return
         }
+        //this banknotes list contains banknotes with partly filled protectedBlock's
+        //Final banknotes to be saved, with verified new signed blocks and
+        // new protected blocks (created on this side),
+        //will be saved separately in the finalBanknotesToDB property.
         updateBanknotesList(banknotesList)
         //confirm that banknotes are received
         sendPositiveResult()
@@ -143,6 +149,7 @@ class ReceiverTransactionController(
         val banknoteIndex = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
         val currentProcessedBanknote =
             transactionDataBuffer.value.banknotesList!!.list[banknoteIndex]
+        //new childBlock. New protected block from the old partly filled protected block's data.
         val acceptanceBlocks = walletRepository.walletAcceptanceInit(
             currentProcessedBanknote.blocks,
             currentProcessedBanknote.banknoteWithProtectedBlock.protectedBlock
@@ -155,10 +162,7 @@ class ReceiverTransactionController(
     // TODO verification disabled for demo (?)
     private suspend fun verifyReceivedBlock(block: Block) {
         updateLastSignedBLock(block)
-        val index = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
-        val banknotesList = transactionDataBuffer.value.banknotesList!!.list
-
-        val currentProcessedBanknote = banknotesList[index]
+        val currentProcessedBanknote = currentProcessedBanknote!!
         // TODO verification disabled for demo
 //        if (!block.verification(current_banknote_blocks.last().otok)) {
 //            sendNegativeResult("received block is incorrectly signed")
@@ -166,10 +170,16 @@ class ReceiverTransactionController(
 //        }
         //if verification is successful, add new block to the blockchain
         val resultBlocks = currentProcessedBanknote.blocks + block
-        //an easy (but inefficient) way to deep copy banknoteWithProtectedBlock would be to serialize and deserialize it,
-        //but there is no need to create a deep copy here
+        //Previously in AcceptanceBlocks we sent a new unsigned block and a new protected block for current banknote
+        //but they do not return the protected block back, so we've saved it in lastAcceptanceBlocks.
+        //Since inside walletSignature() they have also verified this new protected block, we assume
+        //that what we've sent was correct, because we've received a new signed block and not a failure result.
+        val lastSentNewProtectedBlock =
+            transactionDataBuffer.value.lastAcceptanceBlocks!!.protectedBlock
         val resultBanknote = BanknoteWithBlockchain(
-            currentProcessedBanknote.banknoteWithProtectedBlock.copy(), resultBlocks
+            currentProcessedBanknote.banknoteWithProtectedBlock.copy(
+                protectedBlock = lastSentNewProtectedBlock
+            ), resultBlocks
         )
         _transactionDataBuffer.update {
             it.copy(
@@ -178,7 +188,7 @@ class ReceiverTransactionController(
             )
         }
         //start processing next banknote if not all banknotes are processed
-        if (index + 1 < banknotesList.size) createAcceptanceBlocksAndSend()
+        if (currentBanknoteOrdinal < banknotesList!!.size) createAcceptanceBlocksAndSend()
         else {
             _transactionDataBuffer.update { it.copy(allBanknotesProcessed = true) }
             //notify that all the banknotes were successfully processed
@@ -191,7 +201,6 @@ class ReceiverTransactionController(
     private suspend fun saveBanknotesToWallet() {
         withContext(NonCancellable) {
             walletRepository.addBanknotesToWallet(transactionDataBuffer.value.finalBanknotesToDB)
-            updateStep(FINISHED)
         }
     }
 

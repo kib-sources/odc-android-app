@@ -29,6 +29,4 @@ fun <T> LifecycleOwner.collectFlow(flow: Flow<T>, block: suspend (T) -> Unit) {
 }
 
 
-fun CoroutineScope.cancelChildren(){
-    coroutineContext.cancelChildren()
-}
+fun CoroutineScope.cancelChildren() = coroutineContext.cancelChildren()
