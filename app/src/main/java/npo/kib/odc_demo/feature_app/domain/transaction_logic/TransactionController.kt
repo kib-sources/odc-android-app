@@ -19,7 +19,7 @@ abstract class TransactionController(
     val role: TransactionRole
 ) {
 
-    abstract val currentStep: StateFlow<TransactionSteps>
+    protected abstract val currentStep: StateFlow<TransactionSteps>
 
     protected val _transactionDataBuffer: MutableStateFlow<TransactionDataBuffer> =
         MutableStateFlow(
@@ -55,8 +55,9 @@ abstract class TransactionController(
         get() = transactionDataBuffer.value.banknotesList?.list?.get(currentBanknoteOrdinal)
     protected val banknotesList: List<BanknoteWithBlockchain>?
         get() = transactionDataBuffer.value.banknotesList?.list
-    private var started: Boolean = false
 
+    protected var started: Boolean = false
+        private set
 
     /** Initializes controller
      * @return **false** if already started, else **true** */
@@ -104,6 +105,11 @@ abstract class TransactionController(
 
     protected suspend fun sendNegativeResult(message: String? = null) {
         if (started) outputDataPacketChannel.send(TransactionResult(ResultType.Failure(message)))
+    }
+
+    protected fun updateReceivedTransactionResult(result: TransactionResult){
+        if (started) _transactionDataBuffer.update { it.copy(transactionResult = result) }
+
     }
 
     protected fun updateAmountRequest(amountRequest: AmountRequest?) {

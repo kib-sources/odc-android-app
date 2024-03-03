@@ -1,18 +1,11 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.*
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
@@ -20,7 +13,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.CancelTransactionBlock
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UsersList
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.ResultType.*
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.ResultType.Failure
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.ResultType.Success
 
 @Composable
 fun SendRoute(
@@ -56,14 +50,14 @@ private fun SendScreen(
             when (uiState.uiState) {
                 SendUiState.Initial -> InitialScreen(onClickStartSearching = {
                     onEvent(
-                        SendScreenEvent.StartSearching
+                        SendScreenEvent.`SetDiscovering(val active: Boolean)`
                     )
                 })
 
-                is SendUiState.Searching -> SearchingScreen(users = uiState.scannedDevices /*todo should pass paired devices too? Likely not.*/,
+                is SendUiState.Discovering -> SearchingScreen(users = uiState.bluetoothState.scannedDevices /*todo should pass paired devices too? Likely not.*/,
                                                             onUserClicked = { device ->
                                                                 onEvent(
-                                                                    SendScreenEvent.ConnectToUser(
+                                                                    SendScreenEvent.ConnectToDevice(
                                                                         device = device
                                                                     )
                                                                 )
@@ -73,7 +67,7 @@ private fun SendScreen(
                 SendUiState.Connecting -> ConnectingScreen()
                 SendUiState.ConnectionRejected -> ConnectionRejectedScreen(onClickSearchAgain = {
                     onEvent(
-                        SendScreenEvent.StartSearching
+                        SendScreenEvent.`SetDiscovering(val active: Boolean)`
                     )
                 })
 
@@ -87,14 +81,14 @@ private fun SendScreen(
                 }*/
 
                 is SendUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = uiState.transactionDataBuffer.currentlyProcessedBanknoteOrdinal)
-                is SendUiState.Result -> when (uiState.uiState.result) {
+                is SendUiState.OperationResult -> when (uiState.uiState.result) {
                     is Failure -> FailureScreen(onClickRetry = {})
                     Success -> SuccessScreen()
                 }
             }
         }
         AnimatedVisibility(
-            visible = ((uiState.uiState !is SendUiState.Initial) && (uiState.uiState != SendUiState.Result(
+            visible = ((uiState.uiState !is SendUiState.Initial) && (uiState.uiState != SendUiState.OperationResult(
                 Success
             ))),
             //todo animate sliding from bottom to top

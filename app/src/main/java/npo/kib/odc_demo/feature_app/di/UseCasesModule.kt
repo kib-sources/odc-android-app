@@ -11,10 +11,8 @@ import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCaseNew
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
+import npo.kib.odc_demo.feature_app.domain.use_cases.*
+import javax.inject.Singleton
 
 
 //https://developer.android.com/training/dependency-injection/dagger-android
@@ -38,12 +36,13 @@ import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
 @Module(/*includes = [AppModule::class]*/)
 @InstallIn(ViewModelComponent::class)
 object UseCasesModule {
-    @Provides
+
+    /*@Provides
     @ViewModelScoped
     @AtmUseCase
     fun provideAtmUseCase(
         walletRepository: WalletRepository, @NfcP2PConnection p2p: P2PConnection
-    ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)
+    ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)*/
 
     @Provides
     @ViewModelScoped
@@ -60,4 +59,9 @@ object UseCasesModule {
         bluetoothController: BluetoothController,
         @P2PUseCaseScope scope: CoroutineScope
     ) = P2PSendUseCaseNew(transactionController, bluetoothController, scope)
+
+
+    @Provides
+    @Singleton
+    fun provideGetInfoFromWalletUseCase(walletRepository: WalletRepository) = GetInfoFromWalletUseCase(walletRepository)
 }

@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus.*
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
@@ -56,21 +57,23 @@ class BluetoothControllerImpl(
 
     private var dataTransferService: BluetoothDataTransferService? = null
 
-    private val _isConnecting = MutableStateFlow(false)
-    private val _isConnected = MutableStateFlow(false)
+    private val _connectionStatus: MutableStateFlow<BluetoothConnectionStatus> =
+        MutableStateFlow(DISCONNECTED)
     private val _connectedDevice: MutableStateFlow<CustomBluetoothDevice?> = MutableStateFlow(null)
     private val _scannedDevices = MutableStateFlow<List<CustomBluetoothDevice>>(emptyList())
     private val _bondedDevices = MutableStateFlow<List<CustomBluetoothDevice>>(emptyList())
 
     override val bluetoothStateColdFlow: Flow<BluetoothState> = combine(
-        _isConnecting, _isConnected, _connectedDevice, _scannedDevices, _bondedDevices
-    ) { a, b, c, d, e ->
+        _connectionStatus,
+        _connectedDevice,
+        _scannedDevices,
+        _bondedDevices
+    ) { status, device, scanned, bonded ->
         BluetoothState(
-            isConnecting = a,
-            isConnected = b,
-            connectedDevice = c,
-            scannedDevices = d,
-            bondedDevices = e
+            connectionStatus = status,
+            connectedDevice = device,
+            scannedDevices = scanned,
+            bondedDevices = bonded
         )
     }
 
@@ -86,7 +89,7 @@ class BluetoothControllerImpl(
 
     private val bluetoothStateReceiver = BluetoothStateReceiver { isConnected, bluetoothDevice ->
         if (bluetoothAdapter?.bondedDevices?.contains(bluetoothDevice) == true) {
-            _isConnected.value = isConnected
+            _connectionStatus.value = if (isConnected) CONNECTED else DISCONNECTED
         } else {
             CoroutineScope(ioDispatcher).launch {
                 _errors.emit("Can't connect to a non-paired device.")
@@ -101,11 +104,12 @@ class BluetoothControllerImpl(
 
     init {
         updateBondedDevices()
-        context.registerReceiver(bluetoothStateReceiver, IntentFilter().apply {
-            addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
-            addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
-        })
+        context.registerReceiver(bluetoothStateReceiver,
+            IntentFilter().apply {
+                addAction(BluetoothAdapter.ACTION_CONNECTION_STATE_CHANGED)
+                addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+            })
     }
 
 
@@ -113,24 +117,39 @@ class BluetoothControllerImpl(
      * As a receiving side, start advertising
      * */
     override fun startAdvertising(
-        registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit
+        registry: ActivityResultRegistry,
+        duration: Int,
+        callback: (Int?) -> Unit
     ) {
         var actualDuration: Int?
         enableDiscoverableLauncher = registry.register(
-            "DISCOVERABLE_LAUNCHER", ActivityResultContracts.StartActivityForResult()
+            "DISCOVERABLE_LAUNCHER",
+            ActivityResultContracts.StartActivityForResult()
         ) { //result.resultCode is advertising duration actually
                 result ->
             val resultCode = result.resultCode
 
-            Toast.makeText(context, "Result code = $resultCode", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Result code = $resultCode",
+                Toast.LENGTH_SHORT
+            ).show()
 
             actualDuration = if (resultCode == Activity.RESULT_CANCELED) {
                 // The case where the user rejected the system prompt to become discoverable
-                Toast.makeText(context, "Rejected", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    context,
+                    "Rejected",
+                    Toast.LENGTH_SHORT
+                ).show()
                 null
             } else {
-                Toast.makeText(context, "started advertising for $resultCode", Toast.LENGTH_SHORT)
-                    .show()
+                Toast.makeText(
+                    context,
+                    "started advertising for $resultCode",
+                    Toast.LENGTH_SHORT
+                ).show()
+
                 resultCode
             }
             callback(actualDuration)
@@ -138,33 +157,49 @@ class BluetoothControllerImpl(
 
         val discoverableIntent: Intent =
             Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
-                putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, duration)
+                putExtra(
+                    BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
+                    duration
+                )
             }
-        enableDiscoverableLauncher.launch(discoverableIntent, ActivityOptionsCompat.makeBasic())
+        enableDiscoverableLauncher.launch(
+            discoverableIntent,
+            ActivityOptionsCompat.makeBasic()
+        )
     }
 
     /**
-     * Start advertising for 1 second, no other way to cancel advertising (except disabling bluetooth).
-     * When bluetooth is enabled back the phone starts advertising by default for some duration.
+     * No other way to cancel advertising other that starting advertising again for 1 second or disabling bluetooth.
+     * When bluetooth is enabled back, the phone starts advertising by default for some duration.
      * On some devices the advertising is bugged and always starts for default 120 seconds.
-     */
+     */ //todo probably should delete this method
     override fun stopAdvertising(registry: ActivityResultRegistry) {
         enableDiscoverableLauncher = registry.register(
-            "DISCOVERABLE_LAUNCHER", ActivityResultContracts.StartActivityForResult()
+            "DISCOVERABLE_LAUNCHER",
+            ActivityResultContracts.StartActivityForResult()
         ) {}
         val discoverableIntent: Intent =
             Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE).apply {
-                putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 1)
+                putExtra(
+                    BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION,
+                    1
+                )
             }
         Toast.makeText(
-            context, "stopAdvertising() invoked from BluetoothController", Toast.LENGTH_SHORT
+            context,
+            "stopAdvertising() invoked from BluetoothController",
+            Toast.LENGTH_SHORT
         ).show()
-        enableDiscoverableLauncher.launch(discoverableIntent, ActivityOptionsCompat.makeBasic())
+        enableDiscoverableLauncher.launch(
+            discoverableIntent,
+            ActivityOptionsCompat.makeBasic()
+        )
     }
 
     override fun startDiscovery() {
         context.registerReceiver(
-            deviceFoundReceiver, IntentFilter(BluetoothDevice.ACTION_FOUND)
+            deviceFoundReceiver,
+            IntentFilter(BluetoothDevice.ACTION_FOUND)
         )
         updateBondedDevices()
         bluetoothAdapter?.startDiscovery()
@@ -178,12 +213,13 @@ class BluetoothControllerImpl(
     override fun startBluetoothServerAndGetFlow(): Flow<BluetoothConnectionResult> {
         return flow {
             currentServerSocket = bluetoothAdapter?.listenUsingRfcommWithServiceRecord(
-                "odc_service", UUID.fromString(SERVICE_UUID)
+                "odc_service",
+                UUID.fromString(SERVICE_UUID)
             )
             var shouldLoop = true
             while (shouldLoop) {
                 currentClientSocket = try {
-                    _isConnecting.value = true
+                    _connectionStatus.value = CONNECTING
                     currentServerSocket?.accept()
                 } catch (e: IOException) {
                     shouldLoop = false
@@ -193,10 +229,9 @@ class BluetoothControllerImpl(
                 currentClientSocket?.let {
                     currentServerSocket?.close()
                     val otherDevice = currentClientSocket?.remoteDevice?.toCustomBluetoothDevice()
-                    _isConnecting.value = false
-                    _isConnected.value = true
+                    setConnectionStatus(CONNECTED)
                     _connectedDevice.value = otherDevice
-//                    emit(BluetoothConnectionResult.ConnectionEstablished)
+                    emit(BluetoothConnectionResult.ConnectionEstablished)
                     val service = BluetoothDataTransferService(it)
                     dataTransferService = service
 
@@ -220,12 +255,11 @@ class BluetoothControllerImpl(
 
             currentClientSocket?.let { socket ->
                 try {
-                    _isConnecting.value = true
+                    setConnectionStatus(CONNECTING)
                     socket.connect()
-                    _isConnecting.value = false
-                    _isConnected.value = true
+                    setConnectionStatus(CONNECTED)
                     _connectedDevice.value = device
-//                    emit(BluetoothConnectionResult.ConnectionEstablished)
+                    emit(BluetoothConnectionResult.ConnectionEstablished)
 
                     BluetoothDataTransferService(socket).let {
                         dataTransferService = it
@@ -260,8 +294,7 @@ class BluetoothControllerImpl(
         currentServerSocket?.close()
         currentClientSocket = null
         currentServerSocket = null
-        _isConnecting.value = false
-        _isConnected.value = false
+        _connectionStatus.value = DISCONNECTED
         _connectedDevice.value = null
     }
 
@@ -278,14 +311,18 @@ class BluetoothControllerImpl(
         }
     }
 
+    private fun setConnectionStatus(status: BluetoothConnectionStatus) {
+        _connectionStatus.value = status
+    }
+
     //Todo save name to datastore preferences then change to pattern, filter found devices to match pattern,
     // then return the name back when finished
     suspend fun changeMyDeviceName() {
-        withContext(ioDispatcher) {/* */}
+        withContext(ioDispatcher) {/* */ }
     }
 
     suspend fun changeMyDeviceNameBack() {
-        withContext(ioDispatcher) {/* */}
+        withContext(ioDispatcher) {/* */ }
     }
 
     companion object {

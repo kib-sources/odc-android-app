@@ -16,19 +16,22 @@ class ReceiverTransactionController(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : TransactionController(
-    scope = scope, walletRepository = walletRepository, role = RECEIVER
+    scope = scope,
+    walletRepository = walletRepository,
+    role = RECEIVER
 ) {
-
-    //todo this controller state could be used to partially signal changes to UI
-    // (along with bluetoothControllerState)
-//    companion object {
-//        enum class ReceiverTransactionState {
-//            INITIAL, ERROR
-//        }
-//    }
-
     private val _currentStep = MutableStateFlow(WAITING_FOR_AMOUNT_REQUEST)
     override val currentStep = _currentStep.asStateFlow()
+
+    private val _transactionStatus: MutableStateFlow<ReceiverTransactionStatus> =
+        MutableStateFlow(ReceiverTransactionStatus.WAITING_FOR_OFFER)
+    val transactionStatus = _transactionStatus.asStateFlow()
+
+    //todo add usages in this class everywhere where needed
+    private fun updateStatus(newStatus: ReceiverTransactionStatus) {
+        _transactionStatus.value = newStatus
+    }
+
 
     init {
         initController()
@@ -37,9 +40,9 @@ class ReceiverTransactionController(
     //fixme probably should be used in a single place (entrypoint)
     // like in the startProcessingIncomingPackets() and be private
     public override fun initController(): Boolean {
-        val result = super.initController()
-        if (result) updateStep(WAITING_FOR_AMOUNT_REQUEST)
-        return result
+        val started = super.initController()
+        if (started) updateStep(WAITING_FOR_AMOUNT_REQUEST)
+        return started
     }
 
     fun startProcessingIncomingPackets() {
@@ -48,9 +51,6 @@ class ReceiverTransactionController(
         }.onCompletion { withContext(NonCancellable) { resetController() } }.launchIn(scope)
     }
 
-
-    //todo maybe send out all small events in a flow, "initializing verification", etc?
-    // use ReceiverTransactionState ...?
     private suspend fun processPacketOnCurrentStep(packet: DataPacketVariant) {
         // user info can be processed at any moment now
         if (packet.packetType == USER_INFO) {
@@ -83,11 +83,12 @@ class ReceiverTransactionController(
             }
             WAITING_FOR_RESULT -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
-                val result = (packet as TransactionResult).value
+                val result = packet as TransactionResult
+                updateReceivedTransactionResult(result)
                 //if all banknotes are processed then the result should indicate that the other side received our positive result
                 //then we can save banknotes and the other side will delete the corresponding ones from their wallet
                 if (transactionDataBuffer.value.allBanknotesProcessed) {
-                    if (result is TransactionResult.ResultType.Success) {
+                    if (result.value is TransactionResult.ResultType.Success) {
                         saveBanknotesToWallet()
                         updateStep(FINISHED)
                     }
@@ -179,7 +180,8 @@ class ReceiverTransactionController(
         val resultBanknote = BanknoteWithBlockchain(
             currentProcessedBanknote.banknoteWithProtectedBlock.copy(
                 protectedBlock = lastSentNewProtectedBlock
-            ), resultBlocks
+            ),
+            resultBlocks
         )
         _transactionDataBuffer.update {
             it.copy(
@@ -225,5 +227,4 @@ class ReceiverTransactionController(
             )
         }
     }
-
 }

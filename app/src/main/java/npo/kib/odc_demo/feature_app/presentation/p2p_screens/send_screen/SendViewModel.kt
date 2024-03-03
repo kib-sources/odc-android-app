@@ -4,71 +4,141 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionStatus
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenState
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendScreenEvent.*
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.ResultType.Failure
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.ResultType.Success
 import javax.inject.Inject
-
 
 @HiltViewModel
 class SendViewModel @Inject constructor(
     private val useCase: P2PSendUseCaseNew
 ) : ViewModel() {
+    private var amountConstructionJob: Job? = null
 
     private val transactionDataBuffer: StateFlow<TransactionDataBuffer> =
         useCase.transactionDataBuffer
+
+    private val currentTransactionStatus: StateFlow<SenderTransactionStatus> =
+        useCase.transactionStatus
+
     private val bluetoothState: StateFlow<BluetoothState> = useCase.bluetoothState
 
-    private val _uiState: MutableStateFlow<SendUiState> = MutableStateFlow(
-        SendUiState.Initial
+    private val combinedUiState: StateFlow<SendUiState> = combine(
+        currentTransactionStatus,
+        bluetoothState
+    ) { transactionStatus, blState ->
+        when (blState.connectionStatus) {
+            BluetoothConnectionStatus.DISCONNECTED -> Initial
+            BluetoothConnectionStatus.ADVERTISING -> {/*should not be advertising as a sender*/ Loading }
+            BluetoothConnectionStatus.DISCOVERING -> Discovering
+            BluetoothConnectionStatus.CONNECTING -> Loading
+            BluetoothConnectionStatus.CONNECTED -> {
+                when (transactionStatus) {
+                    ERROR -> OperationResult(Failure("Transaction Error"))
+                    FINISHED_SUCCESSFULLY -> OperationResult(Success)
+                    else -> InTransaction(status = transactionStatus)
+                }
+            }
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(),
+        Initial
     )
 
     val state: StateFlow<SendScreenState> = combine(
-        _uiState, transactionDataBuffer, bluetoothState
+        combinedUiState,
+        transactionDataBuffer,
+        bluetoothState
     ) { uiState, buffer, btState ->
         SendScreenState(
-            uiState = uiState, transactionDataBuffer = buffer, bluetoothState = btState
+            uiState = uiState,
+            transactionDataBuffer = buffer,
+            bluetoothState = btState
         )
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(1000), SendScreenState())
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(1000),
+        SendScreenState()
+    )
 
-    val errors = useCase.errors
-
+    private val vmErrors: MutableSharedFlow<String> = MutableSharedFlow(extraBufferCapacity = 10)
+    val errors: SharedFlow<String> = merge(
+        useCase.blErrors,
+        useCase.transactionErrors,
+        vmErrors
+    ).shareIn(
+        viewModelScope,
+        SharingStarted.Lazily
+    )
 
     fun onEvent(event: SendScreenEvent) {
         when (event) {
-            is SendScreenEvent.StartSearching -> startSearching()
-            SendScreenEvent.Reset -> reset()
-            is SendScreenEvent.ConnectToUser -> {}
-            is SendScreenEvent.SendOffer -> {}
-            is SendScreenEvent.Retry -> {}
-            is SendScreenEvent.Finish -> {
-//             same as reset but when operation is successful, or probably can navigate to p2p root screen on click
+            is SetDiscovering -> when (event.active) {
+                true -> startDiscovering()
+                false -> stopDiscovering()
             }
+            Disconnect -> disconnect()
+            is ConnectToDevice -> connectToDevice(device = event.device)
+            is TryConstructAmount -> tryConstructAmount(event.amount)
+            CancelConstructingAmount -> cancelAmountConstructionJob()
+            TrySendOffer -> trySendOffer()
         }
     }
 
-    private fun startSearching() {
-        //TODO replace with combine where the flow is created (combine with uiState flow)
-        _uiState.value = SendUiState.Searching
-
+    private fun startDiscovering() {
+        useCase.startDiscovery()
     }
 
-    private fun reset() {
-        _uiState.value = SendUiState.Initial
-//        transactionController.reset()
+    private fun stopDiscovering() {
+        useCase.stopDiscovery()
     }
 
-    private fun connectTouser() {
-        _uiState.value = SendUiState.Connecting
+    private fun connectToDevice(device: CustomBluetoothDevice) {
+        useCase.connectToDevice(device)
+    }
+
+    private fun tryConstructAmount(amount: Int) {
+        amountConstructionJob = viewModelScope.launch { useCase.tryConstructAmount(amount) }
+    }
+
+    private fun trySendOffer() {
+        useCase.trySendOffer()
+    }
+
+    private fun disconnect() {
+        when (val state = state.value.uiState) {
+            Connected, is OperationResult -> useCase.disconnect()
+            is InTransaction -> if (listOf(
+                    CONSTRUCTING_AMOUNT,
+                    AMOUNT_AVAILABLE,
+                    AMOUNT_NOT_AVAILABLE,
+                    WAITING_FOR_OFFER_RESPONSE,
+                    FINISHED_SUCCESSFULLY,
+                    ERROR
+                ).contains(state.status)
+            ) useCase.disconnect()
+            else -> viewModelScope.launch { vmErrors.emit("Cannot disconnect during critical operations!") }
+        }
+    }
+
+    private fun cancelAmountConstructionJob() {
+        amountConstructionJob?.cancel()
+        amountConstructionJob = null
+    }
+
+    override fun onCleared() {
+        useCase.reset()
+        super.onCleared()
     }
 }

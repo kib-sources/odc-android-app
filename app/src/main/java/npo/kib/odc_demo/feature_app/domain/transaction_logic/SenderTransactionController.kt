@@ -18,20 +18,30 @@ class SenderTransactionController(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : TransactionController(
-    scope = scope, walletRepository = walletRepository, role = SENDER
+    scope = scope,
+    walletRepository = walletRepository,
+    role = SENDER
 ) {
-
     private val _currentStep: MutableStateFlow<ForSender> = MutableStateFlow(INITIAL)
     override val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
+
+    private val _transactionStatus: MutableStateFlow<SenderTransactionStatus> =
+        MutableStateFlow(SenderTransactionStatus.INITIAL)
+    val transactionStatus = _transactionStatus.asStateFlow()
+
+    //todo add usages in this class everywhere where needed
+    private fun updateStatus(newStatus: SenderTransactionStatus) {
+        _transactionStatus.value = newStatus
+    }
 
     init {
         initController()
     }
 
     public override fun initController(): Boolean {
-        val result = super.initController()
-        if (result) updateStep(INITIAL)
-        return result
+        val started = super.initController()
+        if (started) updateStep(INITIAL)
+        return started
     }
 
     fun startProcessingIncomingPackets() {
@@ -68,7 +78,9 @@ class SenderTransactionController(
             }
             WAITING_FOR_BANKNOTES_LIST_RECEIVED_RESPONSE -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
-                when ((packet as TransactionResult).value) {
+                val result = packet as TransactionResult
+                updateReceivedTransactionResult(result)
+                when (result.value) {
                     TransactionResult.ResultType.Success -> {
                         updateStep(WAITING_FOR_ACCEPTANCE_BLOCKS)
                     }
@@ -101,6 +113,10 @@ class SenderTransactionController(
         }
     }
 
+    /**
+     *  Trying to construct amount, update transaction buffer on result,
+     *  or throw [TransactionException][TransactionController.TransactionException] if called on the wrong step
+     * */
     suspend fun tryConstructAmount(amount: Int): Boolean {
         return withContext(defaultDispatcher) {
             if (currentStep.value == INITIAL) {
@@ -135,7 +151,7 @@ class SenderTransactionController(
                     }
                     true
                 }
-            } else return@withContext false
+            } else throw TransactionException("Tried constructing amount while not on INITIAL step")
         }
     }
 
@@ -170,7 +186,8 @@ class SenderTransactionController(
         withContext(defaultDispatcher) {
             val currentBanknoteLastBlock = currentProcessedBanknote!!.blocks.last()
             val resultBlock = walletRepository.walletSignature(
-                parentBlock = currentBanknoteLastBlock, childBlock = acceptanceBlocks.childBlock,
+                parentBlock = currentBanknoteLastBlock,
+                childBlock = acceptanceBlocks.childBlock,
                 protectedBlock = acceptanceBlocks.protectedBlock
             )
             outputDataPacketChannel.send(resultBlock)
@@ -207,7 +224,8 @@ class SenderTransactionController(
         val allAmounts = withContext(ioDispatcher) { walletRepository.getBanknotesIdsAndAmounts() }
         return withContext(defaultDispatcher) {
             val resultAmounts = findBanknotesWithSum(
-                banknotesIdsAmounts = allAmounts, targetSum = amount
+                banknotesIdsAmounts = allAmounts,
+                targetSum = amount
             ) ?: return@withContext null
             val resultBnids = resultAmounts.map { ensureActive(); it.bnid }
             return@withContext walletRepository.getBanknotesWithBlockchainByBnids(resultBnids)

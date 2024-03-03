@@ -1,10 +1,8 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen
 
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState
 
 data class SendScreenState(
     val uiState: SendUiState = SendUiState.Initial,
@@ -14,14 +12,12 @@ data class SendScreenState(
 
 sealed interface SendUiState {
     data object Initial : SendUiState
-    data object Searching : SendUiState
+    data object Discovering : SendUiState
     data object Connecting : SendUiState
-    data object ConnectionRejected : SendUiState
     data object Connected : SendUiState
-    data object OfferSent : SendUiState
-    data class OfferResponse(val isAccepted: Boolean) : SendUiState
-    data object ProcessingBanknote : SendUiState
-    data class Result(val result: ResultType) : SendUiState
+    data object Loading : SendUiState
+    data class InTransaction(val status: SenderTransactionStatus) : SendUiState
+    data class OperationResult(val result: ResultType) : SendUiState
     sealed interface ResultType {
         data object Success : ResultType
         data class Failure(val failureMessage: String) : ResultType

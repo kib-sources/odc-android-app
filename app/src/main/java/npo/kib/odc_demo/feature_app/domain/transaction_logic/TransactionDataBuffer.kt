@@ -26,3 +26,4 @@ data class TransactionDataBuffer(
     val finalBanknotesToDB: List<BanknoteWithBlockchain> = emptyList(),
     val transactionResult: TransactionResult? = null
 )
+//todo can add lastError property to catch the latest error and show it in UI on ERROR status

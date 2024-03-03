@@ -28,8 +28,9 @@ fun DeviceItem(
     address: String,
     onItemClick: () -> Unit
 ) {
-    Surface(color = Color.Transparent, shape = RoundedCornerShape(10.dp)) {
-    ODCGradientBackground(gradientColors = GradientColors.ColorSet2) {
+    ODCGradientBackground(
+        gradientColors = GradientColors.ColorSet2, shape = RoundedCornerShape(10.dp)
+    ) {
         Row(modifier = modifier
 //            .clip(shape = RoundedCornerShape(10.dp))
             .border(
@@ -49,7 +50,7 @@ fun DeviceItem(
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.weight(0.05f))
-            }
+            } ?: Spacer(modifier = Modifier.weight(0.15f))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "name = ${name ?: "Unknown name"}",
@@ -62,7 +63,7 @@ fun DeviceItem(
             }
             Spacer(modifier = Modifier.weight(0.05f))
         }
-    }}
+    }
 }
 
 
@@ -76,11 +77,15 @@ private fun DeviceItemPreview() {
                        name = "Sample name",
                        address = "00:00:00:00:00:00",
                        onItemClick = {})
+            DeviceItem(name = "Sample name",
+                       address = "00:00:00:00:00:00",
+                       onItemClick = {})
         }
     }
 }
 
 
+//todo animated device item (?)
 //@Composable
 //fun AnimatedDeviceItem(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
 //    var visible by remember { mutableStateOf(true) }

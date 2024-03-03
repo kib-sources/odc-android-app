@@ -29,11 +29,12 @@ object BytesToTypeConverter {
     }
 
 
-    //todo change to internal when separating to a module, will be accessible from the test source set
+    //todo changed to internal. When separating to a module,
+    // will be accessible from the test source set but not from general code
     /**
      * Specify generic type as type of [DataPacketVariant] to deserialize [ByteArray] to given type
      * */
-    private inline fun <reified T : DataPacketVariant> ByteArray.deserializeToDataPacketType(): T {
+    internal inline fun <reified T : DataPacketVariant> ByteArray.deserializeToDataPacketType(): T {
         val json = Json {
             ignoreUnknownKeys = true
         }
@@ -41,7 +42,7 @@ object BytesToTypeConverter {
         return json.decodeFromString(cbor.ToJSONString())
     }
 
-    private fun ByteArray.deserializeToDataPacket(): DataPacket {
+    internal fun ByteArray.deserializeToDataPacket(): DataPacket {
         val cbor = CBORObject.DecodeFromBytes(this)
         return json.decodeFromString(cbor.ToJSONString())
     }

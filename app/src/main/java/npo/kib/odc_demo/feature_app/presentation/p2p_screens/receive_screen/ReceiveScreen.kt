@@ -1,45 +1,31 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
 import androidx.activity.compose.LocalActivityResultRegistryOwner
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.material3.Button
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.animation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
 import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissions
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionStatus
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.MultiplePermissionsRequestBlock
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientActionButton
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.DeviceItem
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UserInfoBlock
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenSubScreens.ResultScreen
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveViewModel.Companion.LocalReceiveViewModelFactory
 import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
-import androidx.compose.material3.CircularProgressIndicator
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -51,25 +37,24 @@ fun ReceiveRoute(
     if (multiplePermissionsState.allPermissionsGranted) {
 //    If all the required bluetooth permissions are granted, the viewmodel is created and ReceiveScreen() is launched
 
-//    val viewModel = hiltViewModel<ReceiveViewModelNew>(viewModelStoreOwner = it) <- without assisted injection.
-//    Using CompositionLocalProvider to provide ReceiveViewModelNew.Factory and then
-//    creating a viewmodel scoped to the NavBackStackEntry with Hilt 's Assisted injection
-//    providing activityResultRegistry to be able to use ActivityResult API in the viewmodel.
-        val viewModel = viewModel<ReceiveViewModel>(
-            viewModelStoreOwner = navBackStackEntry,
-            factory = ReceiveViewModel.provideReceiveViewModelNewFactory(
-                LocalReceiveViewModelFactory.current!!,
-                registry = LocalActivityResultRegistryOwner.current!!.activityResultRegistry
-            )
+        val registry = LocalActivityResultRegistryOwner.current!!.activityResultRegistry
+        val receiveViewModel: ReceiveViewModel =
+            hiltViewModel(viewModelStoreOwner = navBackStackEntry,
+                creationCallback = { factory: ReceiveViewModel.Companion.ReceiveViewModelFactory ->
+                    factory.create(registry)
+                })
+        val receiveScreenState by receiveViewModel.state.collectAsStateWithLifecycle()
+//        val receiveScreenState = ReceiveScreenState()
+        ReceiveScreen(
+            screenState = receiveScreenState,
+            onEvent = receiveViewModel::onEvent
         )
-        val receiveScreenState by viewModel.state.collectAsStateWithLifecycle()
-        ReceiveScreen(screenState = receiveScreenState, onEvent = viewModel::onEvent)
     } else {
         MultiplePermissionsRequestBlock(permissionsRequestText = getTextToShowGivenPermissions(
             multiplePermissionsState.revokedPermissions,
             multiplePermissionsState.shouldShowRationale,
         ),
-                                        onRequestPermissionsClick = { multiplePermissionsState.launchMultiplePermissionRequest() })
+            onRequestPermissionsClick = { multiplePermissionsState.launchMultiplePermissionRequest() })
     }
 
 }
@@ -99,37 +84,28 @@ private fun ReceiveScreen(
                         ReceiveScreenEvent.SetAdvertising(true)
                     )
                 })
-
                 ReceiveUiState.Advertising -> AdvertisingScreen(onClickStopAdvertising = {
                     onEvent(ReceiveScreenEvent.SetAdvertising(false))
                 })
-
                 ReceiveUiState.Loading -> CircularProgressIndicator()
-                //todo on this screen could already have received the other UserInfo automatically
-                // to react to connection request
-                //todo on this screen could already have received the other UserInfo automatically
+                is ReceiveUiState.Connected -> ConnectedScreen(screenState.transactionDataBuffer.otherUserInfo,
+                    onClickDisconnect = { onEvent(ReceiveScreenEvent.Disconnect) })
 
-                //todo change to show wid and UserInfo actually (?)
-                is ReceiveUiState.Connected -> ConnectedScreen(
-                    screenState.bluetoothState.connectedDevice
-                )
 
-                is ReceiveUiState.OfferReceived -> OfferReceivedScreen(
-                    amount = screenState.transactionDataBuffer.amountRequest?.amount,
-                    fromUser = screenState.transactionDataBuffer.otherUserInfo,
-                    onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
-                    onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
+                is ReceiveUiState.InTransaction -> TransactionBlock(dataBuffer = screenState.transactionDataBuffer, status = screenState.uiState.status, )
+//                is ReceiveUiState.OfferReceived -> OfferReceivedScreen(amount = screenState.transactionDataBuffer.amountRequest?.amount,
+//                    fromUser = screenState.transactionDataBuffer.otherUserInfo,
+//                    onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
+//                    onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
 
-                ReceiveUiState.ReceivingAllBanknotes -> ReceivingAllBanknotesScreen()
-                ReceiveUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = -1)
+//                ReceiveUiState.ReceivingAllBanknotes -> ReceivingAllBanknotesScreen()
+//                ReceiveUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = -1)
 
                 is ReceiveUiState.OperationResult -> when (screenState.uiState.result) {
-                    is ReceiveUiState.OperationResult.ResultType.Failure -> FailureScreen(
-                        onClickRetry = {})
+                    is ReceiveUiState.OperationResult.ResultType.Failure -> FailureScreen(onClickRetry = {})
 
                     ReceiveUiState.OperationResult.ResultType.Success -> SuccessScreen(onClickFinish = {})
                 }
-
             }
         }
     }
@@ -156,42 +132,81 @@ private object ReceiveScreenSubScreens {
         }
     }
 
+    //todo do crossfade
+    //use my ComposeTestingStuff project as a reference
     @Composable
-    fun ConnectionRequestedScreen(
-        fromDevice: CustomBluetoothDevice,
-        onClickAccept: () -> Unit,
-        onClickReject: () -> Unit
+    fun TransactionBlock(dataBuffer: TransactionDataBuffer, status: ReceiverTransactionStatus, onEvent: (ReceiveScreenEvent) -> Unit) {
+        when(status){
+            ReceiverTransactionStatus.WAITING_FOR_OFFER -> ConnectedScreen(dataBuffer.otherUserInfo,
+                onClickDisconnect = { onEvent(ReceiveScreenEvent.Disconnect) })
+            ReceiverTransactionStatus.OFFER_RECEIVED -> OfferReceivedScreen(
+                amount = dataBuffer.amountRequest?.amount,
+                fromUser = dataBuffer.otherUserInfo,
+                onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
+                onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
+            ReceiverTransactionStatus.RECEIVING_BANKNOTES_LIST -> InProgressScreen(label = "Receiving banknotes list...")
+            ReceiverTransactionStatus.BANKNOTES_LIST_RECEIVED -> {}
+            ReceiverTransactionStatus.CREATING_SENDING_ACCEPTANCE_BLOCKS -> TODO()
+            ReceiverTransactionStatus.WAITING_FOR_SIGNED_BLOCK -> TODO()
+            ReceiverTransactionStatus.VERIFYING_RECEIVED_BLOCK -> TODO()
+            ReceiverTransactionStatus.ALL_BANKNOTES_VERIFIED -> TODO()
+            ReceiverTransactionStatus.SAVING_BANKNOTES_TO_WALLET -> TODO()
+            ReceiverTransactionStatus.BANKNOTES_SAVED -> TODO()
+            ReceiverTransactionStatus.FINISHED_SUCCESSFULLY -> TODO()
+            ReceiverTransactionStatus.WAITING_FOR_ANY_RESPONSE -> TODO()
+            ReceiverTransactionStatus.ERROR -> TODO()
+        }
+    }
+
+    @Composable
+    fun InProgressScreen(label: String) {
+        Column {
+            Text(text = label)
+            CircularProgressIndicator()
+        }
+    }
+
+    @Composable
+    fun SlowFadingInOutBlock(content: @Composable () -> Unit) {
+        var visible by remember { mutableStateOf(true) }
+        val v2 by rememberUpdatedState(newValue = true)
+        val v3 by remember {
+            derivedStateOf { true }
+        }
+        LaunchedEffect(key1 = ) {
+            
+        }
+        DisposableEffect(key1 = ) {
+            
+        }
+        AnimatedVisibility(
+            visible = visible,
+            enter = fadeIn(),
+            exit = fadeOut()
+        ) {
+           content()
+        }
+    }
+
+    @Composable
+    fun ConnectedScreen(
+        otherUserInfo: UserInfo?,
+        onClickDisconnect: () -> Unit
     ) {
         Column {
-            Text(text = "Connection requested from device:")
-            DeviceItem(name = fromDevice.name, address = fromDevice.address, onItemClick = {})
+            Text(text = "Connected to user:")
+            Spacer(modifier = Modifier.height(5.dp))
+            UserInfoBlock(userInfo = otherUserInfo)
+            Spacer(modifier = Modifier.height(5.dp))
+            Text(text = "Waiting for offer...") //todo add dots animation
+            Spacer(modifier = Modifier.height(5.dp))
             ODCGradientActionButton(
-                text = "Accept connection",
-                gradientColors = GradientColors.ButtonPositiveActionColors,
-                onClick = onClickAccept
-            )
-            ODCGradientActionButton(
-                text = "Reject connection",
-                gradientColors = GradientColors.ButtonNegativeActionColors,
-                onClick = onClickReject
+                modifier = Modifier.fillMaxSize(),
+                text = "Disconnect",
+                onClick = onClickDisconnect
             )
         }
     }
-
-    @Composable
-    fun ConnectedScreen(bluetoothDevice: CustomBluetoothDevice?) {
-        Column {
-            Text(text = "Connected to device:")
-            Spacer(modifier = Modifier.height(5.dp))
-            DeviceItem(
-                name = bluetoothDevice?.name ?: "No name",
-                address = bluetoothDevice?.address ?: "No address",
-                onItemClick = {})
-            Spacer(modifier = Modifier.height(5.dp))
-
-        }
-    }
-
     @Composable
     fun OfferReceivedScreen(
         amount: Int?,
@@ -289,6 +304,8 @@ private object ReceiveScreenSubScreens {
             }
         }
     }
+
+
 }
 
 @Preview

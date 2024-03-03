@@ -8,10 +8,7 @@ import npo.kib.odc_demo.feature_app.di.AtmUseCase
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import javax.inject.Inject
 
-class ATMViewModelNew @Inject constructor(@AtmUseCase private val p2pUseCase: P2PBaseUseCase) : ViewModel(){
-
-
-
+class ATMViewModelNew @Inject constructor() : ViewModel(){
     private val _uiState: MutableStateFlow<ATMUiState> =
         MutableStateFlow(ATMUiState.Initial)
     val uiState: StateFlow<ATMUiState>

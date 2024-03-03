@@ -20,29 +20,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import npo.kib.odc_demo.R
 import npo.kib.odc_demo.ui.ThemePreviews
+import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 @ThemePreviews
 @Composable
 fun ODCTopBar(modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-
-       ) {
+        modifier = modifier.padding(16.dp)
+    ) {
         Column(
             modifier = Modifier
-                .weight(1f, fill = true)
-                .align(Alignment.CenterVertically)) {
+                .weight(
+                    1f,
+                    fill = true
+                )
+                .align(Alignment.CenterVertically)
+        ) {
             Image(
                 painter = painterResource(id = R.drawable.logo_1),
                 contentDescription = "logo_1",
-                modifier = Modifier.align(CenterHorizontally))
+                modifier = Modifier.align(CenterHorizontally)
+            )
         }
         Column(
             modifier = Modifier
-                .weight(3f, fill = true)
-                .align(Alignment.Bottom)) {
+                .weight(
+                    3f,
+                    fill = true
+                )
+                .align(Alignment.Bottom)
+        ) {
             Row(modifier = Modifier.offset(y = (-5).dp)) {
                 Text(
                     modifier = Modifier.fillMaxWidth(),
@@ -50,22 +57,36 @@ fun ODCTopBar(modifier: Modifier = Modifier) {
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.bodyLarge,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold)
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
         Column(
             modifier = Modifier
-                .weight(1f, fill = true)
-                .align(Alignment.CenterVertically)) {}
+                .weight(
+                    1f,
+                    fill = true
+                )
+                .align(Alignment.CenterVertically)
+        ) {}
     }
 }
 
 @ThemePreviews
 @Composable
 private fun ODCTopBarWithBalanceBlock(modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.SpaceEvenly) {
-        ODCTopBar(modifier = Modifier.weight(1f))
+    ODCAppTheme {
+        Column(
+            modifier = modifier,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
+            ODCTopBar(modifier = Modifier.weight(1f))
 //        Spacer(modifier = Modifier.weight(0.5f))
-        BalanceBlock(modifier = Modifier.align(CenterHorizontally).weight(1f))
+            BalanceBlockConstraintLayout(
+                modifier = Modifier
+                    .align(CenterHorizontally)
+                    .weight(1f)
+            )
+        }
     }
 }

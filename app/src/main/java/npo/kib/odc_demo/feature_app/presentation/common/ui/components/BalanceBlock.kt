@@ -34,61 +34,67 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import npo.kib.odc_demo.R
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.ui.theme.CustomColors
 import npo.kib.odc_demo.ui.theme.RobotoFont
 
 @Preview(showBackground = true)
 @Composable
 fun BalanceBlock(
-    modifier: Modifier = Modifier,
-    balance : Int = 0,
-    roundedCornerSize: Dp = 15.dp,
-    userPhotoSmallComposable: @Composable () -> Unit = { UserPhotoSmall() },
-    textColor: Color = Color.White,
-    surfaceColor: Color = CustomColors.Confirm_Success
+        modifier: Modifier = Modifier,
+        balance: Int = 0,
+        roundedCornerSize: Dp = 15.dp,
+        userPhotoSmallComposable: @Composable () -> Unit = { UserPhotoSmall() },
+        textColor: Color = Color.White,
+        surfaceColor: Color = CustomColors.Confirm_Success
 ) {
     Surface(
-        modifier = modifier
-            .requiredHeight(67.dp)
-            .aspectRatio(4.6f)
-            .clip(RoundedCornerShape(roundedCornerSize)), color = surfaceColor
+            modifier = modifier
+                .requiredHeight(67.dp)
+                .aspectRatio(4.6f)
+                .clip(RoundedCornerShape(roundedCornerSize)),
+            color = surfaceColor
     ) {
         Row {
             Column(
-                Modifier
-                    .fillMaxHeight()
-                    .weight(3f)
-                    .padding(start = roundedCornerSize, top = 10.dp, bottom = 10.dp)
+                    Modifier
+                        .fillMaxHeight()
+                        .weight(3f)
+                        .padding(
+                                start = roundedCornerSize,
+                                top = 10.dp,
+                                bottom = 10.dp
+                        )
 //                    .padding(14.dp)
             ) {
                 Text(
-                    modifier = Modifier.weight(0.5f),
-                    text = "Your Balance",
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    fontSize = 13.sp,
-                    color = textColor
+                        modifier = Modifier.weight(0.5f),
+                        text = "Your Balance",
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        fontSize = 13.sp,
+                        color = textColor
                 )
                 Text(
-                    modifier = Modifier.weight(1f),
-                    text = "$balance RUB",
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    fontSize = 24.sp,
-                    color = textColor
+                        modifier = Modifier.weight(1f),
+                        text = "$balance RUB",
+                        textAlign = TextAlign.Center,
+                        maxLines = 1,
+                        fontSize = 24.sp,
+                        color = textColor
                 )
             }
             Spacer(
-                Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+                    Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
             )
             Column(
-                Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
-                    .padding(end = roundedCornerSize)
-                    .aspectRatio(1f)
+                    Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                        .padding(end = roundedCornerSize)
+                        .aspectRatio(1f)
             ) {
                 userPhotoSmallComposable()
             }
@@ -99,16 +105,19 @@ fun BalanceBlock(
 @Preview(showBackground = true)
 @Composable
 fun BalanceBlockConstraintLayout(
-    modifier: Modifier = Modifier,
-    roundedCornerSizePercentage: Int = 20,
-    textColor: Color = Color.White,
-    surfaceColor: Color = CustomColors.Confirm_Success
+        modifier: Modifier = Modifier,
+        userInfo: UserInfo? = null,
+        balance: String = "0 RUB",
+        roundedCornerSizePercentage: Int = 20,
+        textColor: Color = Color.White,
+        surfaceColor: Color = CustomColors.Confirm_Success
 ) {
     Surface(
-        modifier = Modifier
-            .requiredHeight(67.dp)
-            .aspectRatio(4.6f)
-            .clip(RoundedCornerShape(roundedCornerSizePercentage)), color = surfaceColor
+            modifier = modifier
+                .requiredHeight(67.dp)
+                .aspectRatio(4.6f)
+                .clip(RoundedCornerShape(roundedCornerSizePercentage)),
+            color = surfaceColor
     ) {
         ConstraintLayout {
             val (text1, text2, roundImage) = createRefs()
@@ -122,44 +131,44 @@ fun BalanceBlockConstraintLayout(
             val horImBotGL = createGuidelineFromBottom(0.2f)
 
             Text(
-                modifier = Modifier.constrainAs(text1) {
-                    bottom.linkTo(horizontalMainGuideline)
-                    start.linkTo(verticalStartGuideline)
-                },
-                text = "Your Balance",
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                fontSize = 13.sp,
-                color = textColor
+                    modifier = Modifier.constrainAs(text1) {
+                        bottom.linkTo(horizontalMainGuideline)
+                        start.linkTo(verticalStartGuideline)
+                    },
+                    text = "Your Balance",
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    fontSize = 13.sp,
+                    color = textColor
             )
             Text(
-                modifier = Modifier.constrainAs(text2) {
-                    top.linkTo(horizontalMainGuideline)
-                    start.linkTo(verticalStartGuideline)
-                },
-                text = "10 000 RUB",
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                fontSize = 24.sp,
-                color = textColor
+                    modifier = Modifier.constrainAs(text2) {
+                        top.linkTo(horizontalMainGuideline)
+                        start.linkTo(verticalStartGuideline)
+                    },
+                    text = balance,
+                    textAlign = TextAlign.Center,
+                    maxLines = 1,
+                    fontSize = 24.sp,
+                    color = textColor
             )
             Box(
-                modifier
-                    .size(50.dp)
-                    .aspectRatio(1f)
-                    .constrainAs(roundImage) {
-                        start.linkTo(verticalSpacerGuideline)
-                        centerAround(horizontalMiddleGuideline)
+                    Modifier
+                        .size(50.dp)
+                        .aspectRatio(1f)
+                        .constrainAs(roundImage) {
+                            start.linkTo(verticalSpacerGuideline)
+                            centerAround(horizontalMiddleGuideline)
 //                        linkTo(horImTopGL, horImBotGL)
-                    }) {
+                        }) {
 //                UserPhotoSmall(modifier = Modifier.fillMaxSize())
                 ResponsiveImage(
-                    painter = painterResource(R.drawable.profile_pic_sample_square),
-                    contentDescription = "Responsive Image",
-                    relativeSize = 0.8f,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape)
+                        painter = painterResource(R.drawable.profile_pic_sample_square),
+                        contentDescription = "Responsive Image",
+                        relativeSize = 0.8f,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape)
                 )
             }
         }
@@ -171,13 +180,14 @@ fun BalanceBlockConstraintLayout(
 @Composable
 fun ConstraintLayoutContent() {
     Surface(
-        modifier = Modifier
-            .requiredHeight(67.dp)
-            .aspectRatio(4.6f)
-            .clip(RoundedCornerShape(percent = 15)), color = Color.Green
+            modifier = Modifier
+                .requiredHeight(67.dp)
+                .aspectRatio(4.6f)
+                .clip(RoundedCornerShape(percent = 15)),
+            color = Color.Green
     ) {
         ConstraintLayout(
-            modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize()
         ) {
             val (image) = createRefs()
             val guidelineTop = createGuidelineFromTop(0.1f)
@@ -199,11 +209,13 @@ fun ConstraintLayoutContent() {
 
 //            Box(modifier = Modifier.size(50.dp)) {
             ResponsiveImage(
-                painter = painterResource(R.drawable.profile_pic_sample_square),
-                contentDescription = "Responsive Image",
-                modifier = Modifier.fillMaxSize()
+                    painter = painterResource(R.drawable.profile_pic_sample_square),
+                    contentDescription = "Responsive Image",
+                    modifier = Modifier.fillMaxSize()
             )
 //            }
         }
     }
 }
+
+

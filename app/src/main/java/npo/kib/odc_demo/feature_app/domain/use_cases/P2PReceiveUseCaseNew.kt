@@ -2,17 +2,12 @@ package npo.kib.odc_demo.feature_app.domain.use_cases
 
 import androidx.activity.result.ActivityResultRegistry
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.serializeToByteArray
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
 import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
@@ -22,23 +17,33 @@ class P2PReceiveUseCaseNew(
     private val bluetoothController: BluetoothController,
     private val scope: CoroutineScope
 ) {
+    private var connectionJob: Job? = null
+
     private val packetsToSend = transactionController.outputDataPacketFlow
     private val transactionControllerInputChannel = transactionController.receivedPacketsChannel
 
     val transactionDataBuffer = transactionController.transactionDataBuffer
 
-    val currentTransactionStep = transactionController.currentStep
+    val transactionStatus = transactionController.transactionStatus
 
     val bluetoothState = bluetoothController.bluetoothStateColdFlow.stateIn(
-        scope, SharingStarted.WhileSubscribed(), BluetoothState()
+        scope,
+        SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
+        BluetoothState()
     )
 
-    val errors = bluetoothController.errors
+    val blErrors = bluetoothController.errors
+    val transactionErrors = transactionController.errors
 
     fun startAdvertising(
-        registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit
+        registry: ActivityResultRegistry,
+        duration: Int,
+        callback: (Int?) -> Unit
     ) {
-        bluetoothController.startAdvertising(registry, duration) {
+        bluetoothController.startAdvertising(
+            registry,
+            duration
+        ) {
             callback(it)
             it?.let {
                 startBluetoothServerAndRoutePacketsToTransactionController()
@@ -50,52 +55,45 @@ class P2PReceiveUseCaseNew(
         bluetoothController.stopAdvertising(registry)
 
     fun acceptOffer() {
-        scope.launch {
-            transactionController.sendAmountRequestApproval()
-        }
+        scope.launch { transactionController.sendAmountRequestApproval() }
     }
 
-    suspend fun rejectOffer() {
-        scope.launch {
-            transactionController.sendAmountRequestRejection()
-        }
+    fun rejectOffer() {
+        scope.launch { transactionController.sendAmountRequestRejection() }
     }
 
     fun disconnect() {
         bluetoothController.closeConnection()
-        //invoked automatically in onCompletion{} for bl packets flow
-//        transactionController.resetController()
-    }
-
-    fun reset() {
-        scope.cancelChildren()
-        transactionController.resetController()
-        bluetoothController.reset()
+        cancelJob()
+//      transactionController.resetController() is invoked automatically in onCompletion{} for bl packets flow
     }
 
     fun updateLocalUserInfo() = transactionController.updateLocalUserInfo()
 
-
+    //Will restart everytime advertising is started
     private fun startBluetoothServerAndRoutePacketsToTransactionController() {
-        bluetoothController.startBluetoothServerAndGetFlow().onEach { connectionResult ->
-            when (connectionResult) {
-                is BluetoothConnectionResult.ConnectionEstablished -> {
-                    transactionController.initController()
-                    startSendingPacketsFromTransactionController()
-                    transactionController.startProcessingIncomingPackets()
+        cancelJob()
+        connectionJob =
+            bluetoothController.startBluetoothServerAndGetFlow().onEach { connectionResult ->
+                when (connectionResult) {
+                    is BluetoothConnectionResult.ConnectionEstablished -> {
+                        transactionController.initController()
+                        startSendingPacketsFromTransactionController()
+                        transactionController.startProcessingIncomingPackets()
+                    }
+                    is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
+                        connectionResult.bytes.deserializeToDataPacketVariant()
+                    )
                 }
-                is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
-                    connectionResult.bytes.deserializeToDataPacketVariant()
-                )
             }
-        }.onCompletion { withContext(NonCancellable) { transactionController.resetController() } }
-            .launchIn(scope)
+                .onCompletion { withContext(NonCancellable) { transactionController.resetController() } }
+                .launchIn(scope)
     }
 
     private fun startSendingPacketsFromTransactionController(): Boolean {
-        return if (bluetoothState.value.isConnected) {
+        return if (bluetoothState.value.connectionStatus == BluetoothConnectionStatus.CONNECTED) {
             packetsToSend.onEach { packet ->
-                if (bluetoothState.value.isConnected) bluetoothController.trySendBytes(
+                if (bluetoothState.value.connectionStatus == BluetoothConnectionStatus.CONNECTED) bluetoothController.trySendBytes(
                     packet.serializeToByteArray()
                 )
 //                else throw Exception(
@@ -104,5 +102,17 @@ class P2PReceiveUseCaseNew(
             }.flowOn(Dispatchers.IO).launchIn(scope)
             true
         } else false
+    }
+
+    fun reset() {
+        scope.cancelChildren()
+        cancelJob()
+        transactionController.resetController()
+        bluetoothController.reset()
+    }
+
+    private fun cancelJob() {
+        connectionJob?.cancel()
+        connectionJob = null
     }
 }

@@ -1,25 +1,32 @@
 package npo.kib.odc_demo
 
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.test.*
+import kotlinx.coroutines.withContext
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.util.findBanknotesWithSum
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
 
 class SubsetSumTest {
+
+
+    val testDispatcher = StandardTestDispatcher()
+    val testScope = TestScope(testDispatcher + Job())
 
     @Test
     @DisplayName("Test if the current Subset Sum Problem algorithm works reliably")
     fun testAllFindBanknotesWithSum() {
-        testPreselectedBanknotes(81, shouldSucceed = true)
-        testPreselectedBanknotes(2000, shouldSucceed = false)
+        println(testPreselectedBanknotes(81, shouldSucceed = true))
+        println(testPreselectedBanknotes(2000, shouldSucceed = false))
 
         testWithRandomlyGeneratedBanknotesListsAndTargetSums(runs = 100, maxTargetSum = 10000)
     }
 
-    private fun testPreselectedBanknotes(sum: Int, shouldSucceed: Boolean) {
+    private fun testPreselectedBanknotes(sum: Int, shouldSucceed: Boolean) = testScope.runTest {
         val amounts = listOf(
             Amount("0", 14),
             Amount("1", 7),
@@ -39,18 +46,20 @@ class SubsetSumTest {
     private fun testWithRandomlyGeneratedBanknotesListsAndTargetSums(
         runs: Int, maxTargetSum: Int
     ) {
-        var failed = 0
-        for (i in 1..runs) {
-            val randSum = (1..maxTargetSum).random()
-            val randList = getRandomArrayFromSum(randSum)
-            val resultSubset = findBanknotesWithSum(randList, randSum)!!
-            val randListAmounts = randList.map { it.amount }
-            val resultSubsetAmounts = resultSubset.map { it.amount }
-            val isRunSuccessful =
-                randListAmounts.toList().containsIncludingDuplicates(resultSubsetAmounts.toList())
-            if (!isRunSuccessful) failed++
+        testScope.runTest {
+            var failed = 0
+            for (i in 1..runs) {
+                val randSum = (1..maxTargetSum).random()
+                val randList = getRandomArrayFromSum(randSum)
+                val resultSubset = findBanknotesWithSum(randList, randSum)!!
+                val randListAmounts = randList.map { it.amount }
+                val resultSubsetAmounts = resultSubset.map { it.amount }
+                val isRunSuccessful = randListAmounts.toList()
+                    .containsIncludingDuplicates(resultSubsetAmounts.toList())
+                if (!isRunSuccessful) failed++
+            }
+            assertEquals(failed, 0)
         }
-        assertEquals(failed, 0)
     }
 
     private fun getRandomArrayFromSum(sum: Int): List<Amount> {
