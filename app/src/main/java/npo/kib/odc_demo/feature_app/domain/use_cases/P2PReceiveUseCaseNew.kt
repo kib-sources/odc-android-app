@@ -79,6 +79,10 @@ class P2PReceiveUseCaseNew(
                     is BluetoothConnectionResult.ConnectionEstablished -> {
                         transactionController.initController()
                         startSendingPacketsFromTransactionController()
+                        //todo handle the situation when an exception happens and the flow in this method
+                        // is cancelled. Maybe send an ERROR packet or 10 TransactionResult failure packets...
+                        // for now we should be staying connected with bluetooth but on the ERROR screen
+                        // and be able to disconnect by pressing the "disconnect" UI button.
                         transactionController.startProcessingIncomingPackets()
                     }
                     is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(

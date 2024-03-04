@@ -1,39 +1,31 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.TransactionResult.ResultType
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole
 import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
 
 abstract class TransactionController(
     protected val scope: CoroutineScope,
     protected val walletRepository: WalletRepository,
-    val role: TransactionRole
+    protected val role: TransactionRole
 ) {
-
-    protected abstract val currentStep: StateFlow<TransactionSteps>
-
     protected val _transactionDataBuffer: MutableStateFlow<TransactionDataBuffer> =
-        MutableStateFlow(
-            TransactionDataBuffer()
-        )
+        MutableStateFlow(TransactionDataBuffer())
+    val transactionDataBuffer = _transactionDataBuffer.asStateFlow()
 
-    val transactionDataBuffer: StateFlow<TransactionDataBuffer> =
-        _transactionDataBuffer.asStateFlow()
-    //todo utilize errors flow later. Maybe only create errors flow outside controllers
-    // and catch TransactionException and WrongPacketTypeReceivedException
+    protected abstract fun onTransactionError()
+
+    //todo maybe only create errors flow outside controllers
+    // and catch TransactionException
     protected val _errors = MutableSharedFlow<String>(extraBufferCapacity = 10)
     val errors: SharedFlow<String> = _errors.asSharedFlow()
-
-    //todo change to nullable ?
     protected lateinit var outputDataPacketChannel: Channel<DataPacketVariant>
         private set
     val outputDataPacketFlow: Flow<DataPacketVariant>
@@ -47,9 +39,7 @@ abstract class TransactionController(
     protected var currentBanknoteOrdinal: Int
         get() = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
         set(value) = _transactionDataBuffer.update {
-            it.copy(
-                currentlyProcessedBanknoteOrdinal = value
-            )
+            it.copy(currentlyProcessedBanknoteOrdinal = value)
         }
     protected val currentProcessedBanknote: BanknoteWithBlockchain?
         get() = transactionDataBuffer.value.banknotesList?.list?.get(currentBanknoteOrdinal)
@@ -85,6 +75,33 @@ abstract class TransactionController(
         } else false
     }
 
+    /**
+     *  The entrypoint to the transactionController processing.
+     *  Upon completion the [resetController] is invoked.
+     * */
+    fun startProcessingIncomingPackets() {
+        receivedPacketsFlow.onEach { packet ->
+            processPacketOnCurrentStep(packet)
+        }.catch { e ->
+            withContext(NonCancellable) {
+                if (e is TransactionException) {
+                    _transactionDataBuffer.update { it.copy(lastException = "${e::class.simpleName}: ${e.message}") }
+                    onTransactionError()
+                    //todo maybe create a new ERROR packet variant and send it instead?
+                    repeat(2) { sendNegativeResult("A TRANSACTION ERROR HAS OCCURRED ON THE ${role.name} SIDE") }
+                    throw CancellationException("Cancelled due to a transaction exception caught")
+                }
+            }
+        }.onCompletion {
+            withContext(NonCancellable) {
+                delay(5000)
+                resetController()
+            }
+        }.launchIn(scope)
+    }
+
+    protected abstract suspend fun processPacketOnCurrentStep(packet: DataPacketVariant)
+
     protected fun updateOtherUserInfo(userInfo: UserInfo) {
         if (started) _transactionDataBuffer.update {
             it.copy(otherUserInfo = userInfo)
@@ -107,7 +124,7 @@ abstract class TransactionController(
         if (started) outputDataPacketChannel.send(TransactionResult(ResultType.Failure(message)))
     }
 
-    protected fun updateReceivedTransactionResult(result: TransactionResult){
+    protected fun updateReceivedTransactionResult(result: TransactionResult) {
         if (started) _transactionDataBuffer.update { it.copy(transactionResult = result) }
 
     }
@@ -130,20 +147,25 @@ abstract class TransactionController(
 
 
     protected fun DataPacketVariant.requireToBeOfTypes(vararg expectedTypes: DataPacketType) {
-        if (!expectedTypes.contains(packetType)) throw WrongPacketTypeReceived(
-            "Expected packet in ${expectedTypes.contentToString()} but received $packetType"
-        )
+        if (!expectedTypes.contains(packetType)) {
+            if (this is TransactionResult && this.value is ResultType.Failure) throw transactionExceptionWithRole(
+                """Received an unexpected failure packet.
+                | It may signal that an error has happened on the other side.
+                | Received failure message:
+                | ${this.value.message}""".trimMargin()
+            )
+            else throw transactionExceptionWithRole(
+                if (expectedTypes.isEmpty()) "Expected no packets right now but received $packetType"
+                else "Expected packet in ${expectedTypes.contentToString()} but received $packetType"
+            )
+        }
     }
 
-    class TransactionException(message: String?) : Exception(message)
-    //todo vvv maybe should extend TransactionException vvv
-    class WrongPacketTypeReceived(
-        message: String? = null,
-        expectedPacketType: DataPacketType? = null,
-        receivedPacketType: DataPacketType? = null
-    ) : Exception(
-        message ?: """Unexpected packet type received. 
-        |Expected packet type: $expectedPacketType 
-        |Received packet type: $receivedPacketType""".trimMargin()
-    )
+    //todo for some reason with a protected constructor would not be visible in subclasses of TransactionController
+    protected class TransactionException(message: String? = null) : Exception(message)
+    //todo maybe makes sense to create an Error DataPacketVariant to distinguish
+    // exceptions from this side or from the other side. For the received exceptions
+    // it probably makes sense not to send anything back.
+    protected fun transactionExceptionWithRole(message: String? = null) =
+        TransactionException("${role.name}: ${message.orEmpty()}")
 }

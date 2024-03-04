@@ -6,9 +6,13 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Bank
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.*
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.TransactionRole.SENDER
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.INITIAL
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_ACCEPTANCE_BLOCKS
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_OFFER_RESPONSE
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.util.findBanknotesWithSum
 
 
@@ -20,18 +24,26 @@ class SenderTransactionController(
 ) : TransactionController(
     scope = scope,
     walletRepository = walletRepository,
-    role = SENDER
+    role = TransactionRole.SENDER
 ) {
     private val _currentStep: MutableStateFlow<ForSender> = MutableStateFlow(INITIAL)
-    override val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
+    private val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
+
+    private fun updateStep(step: ForSender) {
+        _currentStep.value = step
+    }
 
     private val _transactionStatus: MutableStateFlow<SenderTransactionStatus> =
         MutableStateFlow(SenderTransactionStatus.INITIAL)
     val transactionStatus = _transactionStatus.asStateFlow()
 
-    //todo add usages in this class everywhere where needed
     private fun updateStatus(newStatus: SenderTransactionStatus) {
         _transactionStatus.value = newStatus
+    }
+
+    override fun onTransactionError() {
+        updateStatus(ERROR)
+        updateStep(FINISHED)
     }
 
     init {
@@ -40,17 +52,14 @@ class SenderTransactionController(
 
     public override fun initController(): Boolean {
         val started = super.initController()
-        if (started) updateStep(INITIAL)
+        if (started) {
+            updateStep(INITIAL)
+            updateStatus(SenderTransactionStatus.INITIAL)
+        }
         return started
     }
 
-    fun startProcessingIncomingPackets() {
-        receivedPacketsFlow.onEach { packet ->
-            processPacketOnCurrentStep(packet)
-        }.onCompletion { withContext(NonCancellable) { resetController() } }.launchIn(scope)
-    }
-
-    private suspend fun processPacketOnCurrentStep(packet: DataPacketVariant) {
+    override suspend fun processPacketOnCurrentStep(packet: DataPacketVariant) {
         // user info can be processed at any moment now
         if (packet.packetType == USER_INFO) {
             updateOtherUserInfo(packet as UserInfo)
@@ -65,14 +74,14 @@ class SenderTransactionController(
                 when ((packet as TransactionResult).value) {
                     TransactionResult.ResultType.Success -> {
                         //when accepted, send BanknotesList
+                        updateStatus(OFFER_ACCEPTED)
                         sendBanknotesList()
                     }
                     is TransactionResult.ResultType.Failure -> {
                         //when rejected go back to initial and be able to send offer again or
                         // try to construct another amount
-                        updateStep(
-                            INITIAL
-                        ) //todo can also emit result to errors or just by default just show that the offer was rejected without cause
+                        updateStep(INITIAL)
+                        updateStatus(OFFER_REJECTED)
                     }
                 }
             }
@@ -83,10 +92,11 @@ class SenderTransactionController(
                 when (result.value) {
                     TransactionResult.ResultType.Success -> {
                         updateStep(WAITING_FOR_ACCEPTANCE_BLOCKS)
+                        updateStatus(SenderTransactionStatus.WAITING_FOR_ACCEPTANCE_BLOCKS)
                     }
                     is TransactionResult.ResultType.Failure -> {
-                        //If an invalid BanknotesList was sent (empty, etc. Practically an exception). Can emit result message to errors
-                        updateStep(INITIAL)
+                        //If an invalid BanknotesList was received
+                        throw transactionExceptionWithRole("The receiver got an invalid BanknotesList")
                     }
                 }
             }
@@ -101,14 +111,16 @@ class SenderTransactionController(
                     if (result is TransactionResult.ResultType.Success) {
                         deleteLocalBanknotes()
                         withContext(NonCancellable) {
+                            updateStatus(BANKNOTES_DELETED)
                             sendPositiveResult()
+                            updateStep(FINISHED)
+                            updateStatus(FINISHED_SUCCESSFULLY)
                         }
-                        updateStep(FINISHED)
-                    } else throw TransactionException("on WAITING_FOR_RESULT step, received result but no conditions were satisfied")
+                    } else throw transactionExceptionWithRole("on WAITING_FOR_RESULT step, received result but no conditions were satisfied")
                 }
             }
             FINISHED -> {
-
+//                nothing is expected after the transaction has finished
             }
         }
     }
@@ -121,6 +133,7 @@ class SenderTransactionController(
         return withContext(defaultDispatcher) {
             if (currentStep.value == INITIAL) {
                 _transactionDataBuffer.update { it.copy(isAmountAvailable = null) }
+                updateStatus(CONSTRUCTING_AMOUNT)
                 //have to also partially clear protected blocks of banknotes before sending for some reason
                 // (most likely to reduce size, but also maybe for security)
                 val resultBanknotes: List<BanknoteWithBlockchain>? =
@@ -137,6 +150,7 @@ class SenderTransactionController(
                     }
                 return@withContext if (resultBanknotes == null) {
                     _transactionDataBuffer.update { it.copy(isAmountAvailable = false) }
+                    updateStatus(SHOWING_AMOUNT_AVAILABILITY)
                     false
                 } else {
                     _transactionDataBuffer.update {
@@ -149,40 +163,37 @@ class SenderTransactionController(
                             )
                         )
                     }
+                    updateStatus(SHOWING_AMOUNT_AVAILABILITY)
                     true
                 }
-            } else throw TransactionException("Tried constructing amount while not on INITIAL step")
+            } else throw transactionExceptionWithRole("Tried constructing amount while not on INITIAL step")
         }
     }
 
-    suspend fun trySendOffer() {
-        when {
-            currentStep.value != INITIAL -> throw TransactionException(
-                "Tried sending offer while not on INITIAL step"
-            )  //todo emit to errors (?)
-            transactionDataBuffer.value.isAmountAvailable == true -> {
-                updateStep(WAITING_FOR_OFFER_RESPONSE)
-                outputDataPacketChannel.send(transactionDataBuffer.value.amountRequest!!)
-            }
-            else -> throw TransactionException(
-                "Cannot send the offer, the amount is not available in transactionDataBuffer"
-            )
+    suspend fun trySendOffer() = when {
+        currentStep.value != INITIAL -> throw transactionExceptionWithRole("Tried sending offer while not on INITIAL step")
+        transactionDataBuffer.value.isAmountAvailable == true -> {
+            updateStep(WAITING_FOR_OFFER_RESPONSE)
+            updateStatus(SenderTransactionStatus.WAITING_FOR_OFFER_RESPONSE)
+            outputDataPacketChannel.send(transactionDataBuffer.value.amountRequest!!)
         }
+        else -> throw transactionExceptionWithRole("Cannot send the offer, the amount is not available in transactionDataBuffer")
     }
+
 
     private suspend fun sendBanknotesList() {
-        val list = transactionDataBuffer.value.banknotesList!!.also {
-            if (it.list.isEmpty()) throw TransactionException(
-                "Tried sending banknotes list but it is empty in transactionDataBuffer"
-            )
-            //todo emit to errors (?)
-        }
-        outputDataPacketChannel.send(list)
+        updateStatus(SENDING_BANKNOTES_LIST)
+        val banknotesList = transactionDataBuffer.value.banknotesList
+            ?: throw transactionExceptionWithRole("Tried sending BanknotesList but it was null in the buffer.")
+        if (banknotesList.list.isEmpty()) throw transactionExceptionWithRole("Tried sending banknotes list but it was empty in the buffer")
+        outputDataPacketChannel.send(banknotesList)
+        updateStatus(WAITING_FOR_BANKNOTES_RECEIVED_RESPONSE)
         updateStep(WAITING_FOR_BANKNOTES_LIST_RECEIVED_RESPONSE)
     }
 
     private suspend fun onAcceptanceBlocksReceived(acceptanceBlocks: AcceptanceBlocks) {
         updateLastAcceptanceBLocks(acceptanceBlocks)
+        updateStatus(SIGNING_SENDING_NEW_BLOCK)
         withContext(defaultDispatcher) {
             val currentBanknoteLastBlock = currentProcessedBanknote!!.blocks.last()
             val resultBlock = walletRepository.walletSignature(
@@ -194,26 +205,23 @@ class SenderTransactionController(
             currentBanknoteOrdinal++
             if (currentBanknoteOrdinal >= banknotesList!!.size) {
                 _transactionDataBuffer.update { it.copy(allBanknotesProcessed = true) }
+                updateStatus(ALL_BANKNOTES_PROCESSED)
                 updateStep(WAITING_FOR_RESULT)
             }
         }
-//        outputDataPacketChannel.send()
     }
 
     private suspend fun deleteLocalBanknotes() {
         withContext(NonCancellable) {
+            updateStatus(DELETING_BANKNOTES_FROM_WALLET)
             val bnidList =
                 transactionDataBuffer.value.banknotesList?.list?.map { it.banknoteWithProtectedBlock.banknote.bnid }
-            if (bnidList == null) throw TransactionException(
+            if (bnidList == null) throw transactionExceptionWithRole(
                 "BanknotesList in buffer is null"
-            ) else if (bnidList.isEmpty()) throw TransactionException(
+            ) else if (bnidList.isEmpty()) throw transactionExceptionWithRole(
                 "BanknotesList in buffer is empty"
             ) else walletRepository.deleteBanknotesWithBlockchainByBnids(bnidList)
         }
-    }
-
-    private fun updateStep(step: ForSender) {
-        _currentStep.value = step
     }
 
     /**
@@ -221,7 +229,7 @@ class SenderTransactionController(
      *  @see <a href="https://en.wikipedia.org/wiki/Subset_sum_problem">Subset Sum Problem - Wikipedia</a>
      * */
     private suspend fun getBanknotesFromAmount(amount: Int): List<BanknoteWithBlockchain>? {
-        val allAmounts = withContext(ioDispatcher) { walletRepository.getBanknotesIdsAndAmounts() }
+        val allAmounts = walletRepository.getBanknotesIdsAndAmounts()
         return withContext(defaultDispatcher) {
             val resultAmounts = findBanknotesWithSum(
                 banknotesIdsAmounts = allAmounts,

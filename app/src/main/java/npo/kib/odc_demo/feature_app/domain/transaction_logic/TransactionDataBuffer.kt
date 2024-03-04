@@ -1,13 +1,7 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.BanknotesList
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.TransactionResult
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
 
 /**
  * Includes all types of [DataPacketVariant] as well as additional information
@@ -24,6 +18,7 @@ data class TransactionDataBuffer(
     val lastSignedBlock: Block? = null, //might be useful later on
     val allBanknotesProcessed: Boolean = false,
     val finalBanknotesToDB: List<BanknoteWithBlockchain> = emptyList(),
-    val transactionResult: TransactionResult? = null
+    val transactionResult: TransactionResult? = null,
+    val lastException: String? = null
 )
 //todo can add lastError property to catch the latest error and show it in UI on ERROR status

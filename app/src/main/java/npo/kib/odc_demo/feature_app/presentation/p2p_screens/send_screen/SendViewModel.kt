@@ -9,9 +9,9 @@ import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionStatus
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.*
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
@@ -120,10 +120,11 @@ class SendViewModel @Inject constructor(
         when (val state = state.value.uiState) {
             Connected, is OperationResult -> useCase.disconnect()
             is InTransaction -> if (listOf(
+                    INITIAL,
                     CONSTRUCTING_AMOUNT,
-                    AMOUNT_AVAILABLE,
-                    AMOUNT_NOT_AVAILABLE,
+                    SHOWING_AMOUNT_AVAILABILITY,
                     WAITING_FOR_OFFER_RESPONSE,
+                    OFFER_REJECTED,
                     FINISHED_SUCCESSFULLY,
                     ERROR
                 ).contains(state.status)
@@ -136,6 +137,8 @@ class SendViewModel @Inject constructor(
         amountConstructionJob?.cancel()
         amountConstructionJob = null
     }
+
+    fun updateLocalUserInfo() = useCase.updateLocalUserInfo()
 
     override fun onCleared() {
         useCase.reset()
