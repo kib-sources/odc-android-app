@@ -2,6 +2,8 @@ package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
 import androidx.activity.compose.LocalActivityResultRegistryOwner
 import androidx.compose.animation.*
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,28 +17,33 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.collectLatest
 import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
 import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissions
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
+import npo.kib.odc_demo.feature_app.presentation.common.ui.components.CustomSnackbar
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.MultiplePermissionsRequestBlock
 import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientActionButton
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UserInfoBlock
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenSubScreens.ResultScreen
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.*
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.*
 import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ReceiveRoute(
+    navigateToP2PRoot: () -> Unit,
     navBackStackEntry: NavBackStackEntry
 ) {
     val multiplePermissionsState =
         rememberMultiplePermissionsState(permissions = LocalAppBluetoothPermissions.current)
     if (multiplePermissionsState.allPermissionsGranted) {
-//    If all the required bluetooth permissions are granted, the viewmodel is created and ReceiveScreen() is launched
-
+//      If all the required bluetooth permissions are granted, the viewmodel is created and ReceiveScreen() is launched
         val registry = LocalActivityResultRegistryOwner.current!!.activityResultRegistry
         val receiveViewModel: ReceiveViewModel =
             hiltViewModel(viewModelStoreOwner = navBackStackEntry,
@@ -44,9 +51,10 @@ fun ReceiveRoute(
                     factory.create(registry)
                 })
         val receiveScreenState by receiveViewModel.state.collectAsStateWithLifecycle()
-//        val receiveScreenState = ReceiveScreenState()
         ReceiveScreen(
+            navigateToP2PRoot = navigateToP2PRoot,
             screenState = receiveScreenState,
+            errorsFlow = receiveViewModel.errors,
             onEvent = receiveViewModel::onEvent
         )
     } else {
@@ -62,52 +70,78 @@ fun ReceiveRoute(
 
 @Composable
 private fun ReceiveScreen(
+    navigateToP2PRoot: () -> Unit,
     screenState: ReceiveScreenState,
+    errorsFlow : SharedFlow<String>,
     onEvent: (ReceiveScreenEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        val isScreenLabelVisible by remember { mutableStateOf(true) }
+        val isScreenLabelVisible = remember { MutableTransitionState(false) }.apply { targetState = true }
         AnimatedVisibility(
-            visible = isScreenLabelVisible,
-            enter = fadeIn() + slideInVertically(),
-            exit = fadeOut() + slideOutVertically()
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            visibleState = isScreenLabelVisible,
+            enter = slideInVertically(),
+            exit = slideOutVertically()
         ) {
             Text(
-                text = "Receive banknotes",
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                text = "You can receive banknotes on this screen",
+                modifier = Modifier
+                    .align(Alignment.CenterHorizontally)
+                    .requiredHeight(50.dp)
             )
         }
         with(ReceiveScreenSubScreens) {
-            when (screenState.uiState) {
-                ReceiveUiState.Initial -> InitialScreen(onClickStartAdvertising = {
-                    onEvent(
-                        ReceiveScreenEvent.SetAdvertising(true)
+            AnimatedContent(
+                modifier = Modifier,
+                targetState = screenState,
+                contentKey = { it.uiState },
+                label = "ReceiveScreenAnimatedContent",
+                transitionSpec = {
+                    fadeIn(tween(1000, 0)) togetherWith
+                            fadeOut(tween(1000, 1000))
+                },
+                contentAlignment = Alignment.Center,
+            ) { state ->
+                when (state.uiState) {
+                    Initial -> InitialScreen(onClickStartAdvertising = { onEvent(ReceiveScreenEvent.SetAdvertising(true)) })
+                    Advertising -> AdvertisingScreen(onClickStopAdvertising = { onEvent(ReceiveScreenEvent.SetAdvertising(false)) })
+                    Loading -> InProgressScreen("Connecting")
+                    is InTransaction -> TransactionBlock(
+                        dataBuffer = screenState.transactionDataBuffer,
+                        transactionStatus = state.uiState.status,
+                        onEvent = onEvent
                     )
-                })
-                ReceiveUiState.Advertising -> AdvertisingScreen(onClickStopAdvertising = {
-                    onEvent(ReceiveScreenEvent.SetAdvertising(false))
-                })
-                ReceiveUiState.Loading -> CircularProgressIndicator()
-                is ReceiveUiState.Connected -> ConnectedScreen(screenState.transactionDataBuffer.otherUserInfo,
-                    onClickDisconnect = { onEvent(ReceiveScreenEvent.Disconnect) })
-
-
-                is ReceiveUiState.InTransaction -> TransactionBlock(dataBuffer = screenState.transactionDataBuffer, status = screenState.uiState.status, )
-//                is ReceiveUiState.OfferReceived -> OfferReceivedScreen(amount = screenState.transactionDataBuffer.amountRequest?.amount,
-//                    fromUser = screenState.transactionDataBuffer.otherUserInfo,
-//                    onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
-//                    onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
-
-//                ReceiveUiState.ReceivingAllBanknotes -> ReceivingAllBanknotesScreen()
-//                ReceiveUiState.ProcessingBanknote -> ProcessingBanknoteScreen(banknoteId = -1)
-
-                is ReceiveUiState.OperationResult -> when (screenState.uiState.result) {
-                    is ReceiveUiState.OperationResult.ResultType.Failure -> FailureScreen(onClickRetry = {})
-
-                    ReceiveUiState.OperationResult.ResultType.Success -> SuccessScreen(onClickFinish = {})
+                    is OperationResult -> when (state.uiState.result) {
+                        is Failure -> FailureScreen(lastException = screenState.transactionDataBuffer.lastException,
+                            onClickDisconnect = { onEvent(ReceiveScreenEvent.Disconnect) })
+                        Success -> SuccessScreen(onClickFinish = navigateToP2PRoot)
+                    }
                 }
             }
         }
+        val snackbarHostState = remember { SnackbarHostState() }
+        LaunchedEffect(key1 = true) {
+            errorsFlow.collect { error ->
+                snackbarHostState.showSnackbar(message = "Error:\n$error")
+            }
+        }
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.fillMaxWidth(0.8f).requiredHeight(80.dp)
+        ){ snackbarData ->
+            CustomSnackbar(
+                snackbarData,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(40.dp)
+                    .padding(horizontal = 30.dp, vertical = 0.dp),
+                textColor = Color.White.copy(alpha = 0.8f),
+                surfaceColor = Color.DarkGray.copy(alpha = 0.5f),
+                borderColor = Color.Transparent
+            )
+        }
+
+
     }
 }
 
@@ -132,31 +166,61 @@ private object ReceiveScreenSubScreens {
         }
     }
 
-    //todo do crossfade
-    //use my ComposeTestingStuff project as a reference
+    context(AnimatedContentScope)
     @Composable
-    fun TransactionBlock(dataBuffer: TransactionDataBuffer, status: ReceiverTransactionStatus, onEvent: (ReceiveScreenEvent) -> Unit) {
-        when(status){
-            ReceiverTransactionStatus.WAITING_FOR_OFFER -> ConnectedScreen(dataBuffer.otherUserInfo,
-                onClickDisconnect = { onEvent(ReceiveScreenEvent.Disconnect) })
-            ReceiverTransactionStatus.OFFER_RECEIVED -> OfferReceivedScreen(
-                amount = dataBuffer.amountRequest?.amount,
-                fromUser = dataBuffer.otherUserInfo,
-                onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
-                onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
-            ReceiverTransactionStatus.RECEIVING_BANKNOTES_LIST -> InProgressScreen(label = "Receiving banknotes list...")
-            ReceiverTransactionStatus.BANKNOTES_LIST_RECEIVED -> {}
-            ReceiverTransactionStatus.CREATING_SENDING_ACCEPTANCE_BLOCKS -> TODO()
-            ReceiverTransactionStatus.WAITING_FOR_SIGNED_BLOCK -> TODO()
-            ReceiverTransactionStatus.VERIFYING_RECEIVED_BLOCK -> TODO()
-            ReceiverTransactionStatus.ALL_BANKNOTES_VERIFIED -> TODO()
-            ReceiverTransactionStatus.SAVING_BANKNOTES_TO_WALLET -> TODO()
-            ReceiverTransactionStatus.BANKNOTES_SAVED -> TODO()
-            ReceiverTransactionStatus.FINISHED_SUCCESSFULLY -> TODO()
-            ReceiverTransactionStatus.WAITING_FOR_ANY_RESPONSE -> TODO()
-            ReceiverTransactionStatus.ERROR -> TODO()
+    fun TransactionBlock(
+        modifier: Modifier = Modifier,
+        dataBuffer: TransactionDataBuffer,
+        transactionStatus: ReceiverTransactionStatus,
+        onEvent: (ReceiveScreenEvent) -> Unit
+    ) {
+        Column(modifier = modifier) {
+            when (transactionStatus) {
+                WAITING_FOR_OFFER -> ConnectedScreen(dataBuffer.otherUserInfo)
+                OFFER_RECEIVED -> OfferReceivedScreen(amount = dataBuffer.amountRequest?.amount,
+                    fromUser = dataBuffer.otherUserInfo,
+                    onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
+                    onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
+
+                // all the transaction info statuses are displayed here
+                RECEIVING_BANKNOTES_LIST -> StatusInfoBlock(statusLabel = "Receiving banknotes...")
+                BANKNOTES_LIST_RECEIVED -> StatusInfoBlock(
+                    statusLabel = "Banknotes received",
+                    infoText = "Quantity: ${dataBuffer.banknotesList?.list?.size}"
+                )
+                CREATING_SENDING_ACCEPTANCE_BLOCKS -> StatusInfoBlock(
+                    statusLabel = "Creating acceptance blocks",
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                )
+                WAITING_FOR_SIGNED_BLOCK -> StatusInfoBlock(
+                    statusLabel = "Waiting for signed block",
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                )
+                VERIFYING_RECEIVED_BLOCK -> StatusInfoBlock(
+                    statusLabel = "Verifying received block",
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                )
+                ALL_BANKNOTES_VERIFIED -> StatusInfoBlock(
+                    statusLabel = "All banknotes verified!",
+                    infoText = "Sending success confirmation..."
+                )
+                SAVING_BANKNOTES_TO_WALLET -> StatusInfoBlock(statusLabel = "Saving banknotes to the wallet...")
+                BANKNOTES_SAVED -> StatusInfoBlock(statusLabel = "Banknotes are saved!")
+                FINISHED_SUCCESSFULLY -> { /* TransactionBlock is not visible here,
+                    ui state is automatically set to OperationResult Success in the viewmodel.*/
+                }
+                ERROR -> {/* TransactionBlock is not visible here,
+                    ui state is automatically set to OperationResult Failure in the viewmodel.*/
+                }
+            }
+            //todo can hide or make inactive on unsafe statuses.
+            // Right now works only on safe statuses else triggers a warning snackbar
+            ODCGradientActionButton(text = "Disconnect",
+                gradientColors = GradientColors.ButtonNegativeActionColors,
+                onClick = { onEvent(ReceiveScreenEvent.Disconnect) })
         }
     }
+
 
     @Composable
     fun InProgressScreen(label: String) {
@@ -166,47 +230,18 @@ private object ReceiveScreenSubScreens {
         }
     }
 
+    context(AnimatedVisibilityScope)
     @Composable
-    fun SlowFadingInOutBlock(content: @Composable () -> Unit) {
-        var visible by remember { mutableStateOf(true) }
-        val v2 by rememberUpdatedState(newValue = true)
-        val v3 by remember {
-            derivedStateOf { true }
-        }
-        LaunchedEffect(key1 = ) {
-            
-        }
-        DisposableEffect(key1 = ) {
-            
-        }
-        AnimatedVisibility(
-            visible = visible,
-            enter = fadeIn(),
-            exit = fadeOut()
-        ) {
-           content()
+    fun ConnectedScreen(
+        otherUserInfo: UserInfo?
+    ) {
+        Column {
+            UserInfoBlock(userInfo = otherUserInfo)
+            Text(text = "Waiting for offer...") //todo add dots animation
+
         }
     }
 
-    @Composable
-    fun ConnectedScreen(
-        otherUserInfo: UserInfo?,
-        onClickDisconnect: () -> Unit
-    ) {
-        Column {
-            Text(text = "Connected to user:")
-            Spacer(modifier = Modifier.height(5.dp))
-            UserInfoBlock(userInfo = otherUserInfo)
-            Spacer(modifier = Modifier.height(5.dp))
-            Text(text = "Waiting for offer...") //todo add dots animation
-            Spacer(modifier = Modifier.height(5.dp))
-            ODCGradientActionButton(
-                modifier = Modifier.fillMaxSize(),
-                text = "Disconnect",
-                onClick = onClickDisconnect
-            )
-        }
-    }
     @Composable
     fun OfferReceivedScreen(
         amount: Int?,
@@ -217,16 +252,10 @@ private object ReceiveScreenSubScreens {
         Surface {
             Column {
                 Text(text = "Offer received from: ")
-                Spacer(modifier = Modifier.height(5.dp))
                 Text(text = fromUser?.userName ?: "null")
-                Spacer(modifier = Modifier.height(5.dp))
                 Text(text = "Wallet ID:")
-                Spacer(modifier = Modifier.height(5.dp))
                 Text(text = fromUser?.walletId ?: "null")
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(text = "Amount:")
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(text = "$amount RUB")
+                Text(text = "Amount: $amount RUB")
                 Column {
                     ODCGradientActionButton(
                         text = "Accept offer",
@@ -243,65 +272,43 @@ private object ReceiveScreenSubScreens {
         }
     }
 
+    context(AnimatedContentScope)
     @Composable
-    fun ReceivingAllBanknotesScreen() {
-        Text(text = "Receiving banknotes...")
-    }
-
-
-    //todo later pass some other valuable banknote info
-    @Composable
-    fun ProcessingBanknoteScreen(banknoteId: Int) {
+    fun StatusInfoBlock(
+        statusLabel: String,
+        infoText : String? = null
+    ) {
         Column {
-            Text(text = "All banknotes sent successfully, verifying...")
-            //todo screen for receiving for each individual banknote verification status
-            // (sent acceptance blocks (init), waiting for signature, verified signature,
-            // then the same for the next banknote...
-            Text(text = "Processing banknote number: $banknoteId")
-            Text(text = "Status: signing...")
+            Text(text = statusLabel, modifier = Modifier.animateFadeVerticalSlideInOut())
+            infoText?.let { Text(text = it, modifier = Modifier.animateFadeVerticalSlideInOut(enterDelay = 100))}
         }
     }
 
-    @Composable
-    fun ResultScreen(result: ReceiveUiState.OperationResult.ResultType) {
-        when (result) {
-            ReceiveUiState.OperationResult.ResultType.Success -> Column {
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = "Receiving success!",
-                    color = Color.Green
-                )
-            }
-
-            is ReceiveUiState.OperationResult.ResultType.Failure -> Column {
-                Text(
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                    text = "Failure: \n${result.failureMessage}",
-                    color = Color.Red
-                )
-            }
-        }
-    }
 
     @Composable
     fun SuccessScreen(onClickFinish: () -> Unit) {
         Column {
-            Text(text = "Transaction successful")
+            Text(text = "Transaction finished successfully")
             ODCGradientActionButton(
                 text = "Finish",
-                gradientColors = GradientColors.ColorSet2,
                 onClick = onClickFinish
             )
         }
     }
 
     @Composable
-    fun FailureScreen(onClickRetry: () -> Unit) {
+    fun FailureScreen(
+        lastException: String?,
+        onClickDisconnect: () -> Unit
+    ) {
         Column {
-            Text(text = "Something went wrong, try again?")
-            Button(onClick = onClickRetry) {
-                Text(text = "Retry")
-            }
+            Text(text = "An error has occurred:")
+            Text(text = lastException ?: "Unknown error")
+            ODCGradientActionButton(
+                text = "Disconnect",
+                gradientColors = GradientColors.ButtonNegativeActionColors,
+                onClick = onClickDisconnect
+            )
         }
     }
 
@@ -312,9 +319,6 @@ private object ReceiveScreenSubScreens {
 @Composable
 private fun ResultScreenPreviews() {
     ODCAppTheme {
-        Column {
-            ResultScreen(result = ReceiveUiState.OperationResult.ResultType.Success)
-            ResultScreen(result = ReceiveUiState.OperationResult.ResultType.Failure("Some error"))
-        }
+        Column {}
     }
 }

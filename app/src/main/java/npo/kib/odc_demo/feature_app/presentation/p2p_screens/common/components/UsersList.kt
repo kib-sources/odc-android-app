@@ -30,6 +30,7 @@ import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
+//todo add AnimatedVisibility and animateItemPlacement for user items
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UsersList(

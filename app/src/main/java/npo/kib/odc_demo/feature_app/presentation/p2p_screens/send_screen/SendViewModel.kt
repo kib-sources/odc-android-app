@@ -15,8 +15,7 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.S
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.ResultType.Failure
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.ResultType.Success
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.*
 import javax.inject.Inject
 
 @HiltViewModel
@@ -115,10 +114,10 @@ class SendViewModel @Inject constructor(
     private fun trySendOffer() {
         useCase.trySendOffer()
     }
-
+    //todo can create a list of states where it is safe to disconnect or pop the backstack with this viewmodel
     private fun disconnect() {
         when (val state = state.value.uiState) {
-            Connected, is OperationResult -> useCase.disconnect()
+            is OperationResult -> useCase.disconnect()
             is InTransaction -> if (listOf(
                     INITIAL,
                     CONSTRUCTING_AMOUNT,

@@ -19,8 +19,8 @@ sealed interface TransactionSteps {
         INITIAL,
         WAITING_FOR_OFFER_RESPONSE,
         WAITING_FOR_BANKNOTES_LIST_RECEIVED_RESPONSE,
-        WAITING_FOR_ACCEPTANCE_BLOCKS, //OR WAITING_FOR_UNSIGNED_BLOCK
-        WAITING_FOR_RESULT, //step 5
+        WAITING_FOR_ACCEPTANCE_BLOCKS,
+        WAITING_FOR_RESULT,
         FINISHED;
 
         override val role = TransactionRole.SENDER

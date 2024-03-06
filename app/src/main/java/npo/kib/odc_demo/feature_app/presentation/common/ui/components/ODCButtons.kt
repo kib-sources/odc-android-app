@@ -25,17 +25,21 @@ fun ODCPlainActionButton(
     shape: Shape = RoundedCornerShape(50),
     onClick: () -> Unit
 ) {
-    Button(modifier = modifier
-        .background(
-            color = color, shape = shape
-        )
-        .border(
-            width = Dp.Hairline, shape = shape,
-            color = MaterialTheme.colorScheme.onPrimaryContainer
-        )
-        .height(ButtonDefaults.MinHeight)
-        .aspectRatio(4f),
-        onClick = onClick, colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+    Button(
+        modifier = modifier
+            .background(
+                color = color,
+                shape = shape
+            )
+            .border(
+                width = Dp.Hairline,
+                shape = shape,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            .height(ButtonDefaults.MinHeight)
+            .aspectRatio(4f),
+        onClick = onClick,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {
         Text(text = text)
     }
@@ -65,16 +69,20 @@ fun ODCGradientActionButton(
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        gradientColors.color1, gradientColors.color2
+                        gradientColors.color1,
+                        gradientColors.color2
                     )
-                ), shape = shape
+                ),
+                shape = shape
             )
             .border(
-                width = Dp.Hairline, shape = shape,
+                width = Dp.Hairline,
+                shape = shape,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
             .height(ButtonDefaults.MinHeight)
-            .aspectRatio(4f), onClick = onClick,
+            .aspectRatio(4f),
+        onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {
         Text(text)
@@ -88,10 +96,12 @@ private fun ODCGradientActionButtonPreview() {
     ODCAppTheme {
         Column {
             ODCGradientActionButton(
-                text = "Accept", gradientColors = GradientColors.ButtonPositiveActionColors
+                text = "Accept",
+                gradientColors = GradientColors.ButtonPositiveActionColors
             ) {}
             ODCGradientActionButton(
-                text = "Reject", gradientColors = GradientColors.ButtonNegativeActionColors
+                text = "Reject",
+                gradientColors = GradientColors.ButtonNegativeActionColors
             ) {}
         }
     }

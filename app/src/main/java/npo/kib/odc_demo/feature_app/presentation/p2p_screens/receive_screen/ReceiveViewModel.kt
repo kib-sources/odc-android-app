@@ -83,7 +83,7 @@ class ReceiveViewModel @AssistedInject constructor(
         vmErrors
     ).shareIn(
         viewModelScope,
-        SharingStarted.Lazily
+        SharingStarted.WhileSubscribed()
     )
 
     fun onEvent(event: ReceiveScreenEvent) {
@@ -125,16 +125,17 @@ class ReceiveViewModel @AssistedInject constructor(
     private fun rejectOffer() {
         useCase.rejectOffer()
     }
-
+    //todo can add a list constant containing all the statuses that it is safe to disconnect from
+    // popping the backstack with this viewmodel should also only be possible on those safe states
     private fun disconnect() {
         when (val state = state.value.uiState) {
-            Connected, is OperationResult -> useCase.disconnect()
-            is InTransaction -> if (listOf(
+            is OperationResult -> useCase.disconnect()
+            is InTransaction -> if (state.status in listOf(
                     WAITING_FOR_OFFER,
                     OFFER_RECEIVED,
                     FINISHED_SUCCESSFULLY,
                     ERROR
-                ).contains(state.status)) useCase.disconnect()
+                )) useCase.disconnect()
             else -> viewModelScope.launch { vmErrors.emit("Cannot disconnect during critical operations!") }
         }
     }

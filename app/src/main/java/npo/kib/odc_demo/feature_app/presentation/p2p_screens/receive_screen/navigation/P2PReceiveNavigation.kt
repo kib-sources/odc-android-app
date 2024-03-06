@@ -11,12 +11,18 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.Rece
 const val p2pReceiveRoute = "p2p_receive_route"
 
 fun NavController.navigateToReceiveScreen(navOptions: NavOptions? = null) {
-    this.navigate(p2pReceiveRoute, navOptions)
+    this.navigate(
+        p2pReceiveRoute,
+        navOptions
+    )
 }
 
-fun NavGraphBuilder.receiveScreen(/*todo pass onNavigateBack, use a "back" arrow on every p2p screen?*/) {
+fun NavGraphBuilder.receiveScreen(navigateToP2PRoot: () -> Unit) {
     composable(route = p2pReceiveRoute) {
         val backStackEntry: NavBackStackEntry = remember { it }
-        ReceiveRoute(navBackStackEntry = backStackEntry)
+        ReceiveRoute(
+            navigateToP2PRoot = navigateToP2PRoot,
+            navBackStackEntry = backStackEntry
+        )
     }
 }
