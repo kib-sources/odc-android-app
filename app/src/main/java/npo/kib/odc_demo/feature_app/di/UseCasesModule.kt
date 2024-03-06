@@ -6,12 +6,13 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.CoroutineScope
-import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
-import npo.kib.odc_demo.feature_app.domain.use_cases.*
+import npo.kib.odc_demo.feature_app.domain.use_cases.GetInfoFromWalletUseCase
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
 import javax.inject.Singleton
 
 
@@ -31,26 +32,18 @@ import javax.inject.Singleton
 //Good practice dictates that modules should only be declared once in a component
 // (outside of specific advanced Dagger use cases).
 
-//Don't need "includes=" here because the AppModule is already added to the
+//Don't need "includes = [AppModule::class]" here because the AppModule is already added to the
 //same SingletonComponent and, thus, to Hilt's object graph
-@Module(/*includes = [AppModule::class]*/)
+@Module
 @InstallIn(ViewModelComponent::class)
 object UseCasesModule {
-
-    /*@Provides
-    @ViewModelScoped
-    @AtmUseCase
-    fun provideAtmUseCase(
-        walletRepository: WalletRepository, @NfcP2PConnection p2p: P2PConnection
-    ): P2PBaseUseCase = P2PReceiveUseCase(walletRepository = walletRepository, p2pConnection = p2p)*/
-
     @Provides
     @ViewModelScoped
     fun provideReceiveUseCase(
         transactionController: ReceiverTransactionController,
         bluetoothController: BluetoothController,
         @P2PUseCaseScope scope: CoroutineScope
-    ) = P2PReceiveUseCaseNew(transactionController, bluetoothController, scope)
+    ) = P2PReceiveUseCase(transactionController, bluetoothController, scope)
 
     @Provides
     @ViewModelScoped
@@ -58,8 +51,7 @@ object UseCasesModule {
         transactionController: SenderTransactionController,
         bluetoothController: BluetoothController,
         @P2PUseCaseScope scope: CoroutineScope
-    ) = P2PSendUseCaseNew(transactionController, bluetoothController, scope)
-
+    ) = P2PSendUseCase(transactionController, bluetoothController, scope)
 
     @Provides
     @Singleton

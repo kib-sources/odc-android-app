@@ -21,4 +21,3 @@ data class TransactionDataBuffer(
     val transactionResult: TransactionResult? = null,
     val lastException: String? = null
 )
-//todo can add lastError property to catch the latest error and show it in UI on ERROR status

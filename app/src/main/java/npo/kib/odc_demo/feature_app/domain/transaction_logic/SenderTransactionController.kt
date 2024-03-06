@@ -13,7 +13,7 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.Fo
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.INITIAL
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_ACCEPTANCE_BLOCKS
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_OFFER_RESPONSE
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.util.findBanknotesWithSum
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.algorithms.findBanknotesWithSum
 
 
 class SenderTransactionController(

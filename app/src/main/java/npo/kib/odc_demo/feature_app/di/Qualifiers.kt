@@ -2,12 +2,6 @@ package npo.kib.odc_demo.feature_app.di
 
 import javax.inject.Qualifier
 
-//@Qualifier
-//annotation class BluetoothP2PConnection
-
-@Qualifier
-annotation class NfcP2PConnection
-
 @Qualifier
 annotation class ReceiveUseCase
 
@@ -16,3 +10,9 @@ annotation class SendUseCase
 
 @Qualifier
 annotation class AtmUseCase
+
+@Qualifier
+annotation class P2PUseCaseScope
+
+@Qualifier
+annotation class P2PTransactionScope

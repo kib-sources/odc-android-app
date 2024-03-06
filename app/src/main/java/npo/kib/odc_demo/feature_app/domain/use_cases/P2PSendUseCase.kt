@@ -1,134 +1,117 @@
 package npo.kib.odc_demo.feature_app.domain.use_cases
 
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.take
-import kotlinx.coroutines.flow.update
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
-import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toByteArray
-import npo.kib.odc_demo.feature_app.domain.model.serialization.PayloadContainerSerializer.toPayloadContainer
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
-import npo.kib.odc_demo.feature_app.domain.p2p.P2PConnection
-import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
+import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
+import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
+import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.toSerializedDataPacket
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
+import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
 
 class P2PSendUseCase(
-    override val walletRepository: WalletRepository,
-    override val p2pConnection: P2PConnection,
-) : P2PBaseUseCase() {
+    private val transactionController: SenderTransactionController,
+    private val bluetoothController: BluetoothController,
+    private val scope: CoroutineScope
+) {
+    private var connectionJob: Job? = null
+
+    private val packetsToSend = transactionController.outputDataPacketFlow
+    private val transactionControllerInputChannel = transactionController.receivedPacketsChannel
+
+    val transactionDataBuffer = transactionController.transactionDataBuffer
+
+    val transactionStatus = transactionController.transactionStatus
+
+    val bluetoothState = bluetoothController.bluetoothStateColdFlow.stateIn(
+        scope,
+        SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
+        BluetoothState()
+    )
+
+    val blErrors = bluetoothController.errors
+    val transactionErrors = transactionController.errors
+
+    fun startDiscovery() {
+        bluetoothController.startDiscovery()
+    }
+
+    fun stopDiscovery() {
+        bluetoothController.stopDiscovery()
+    }
+
+
+    fun connectToDevice(device: CustomBluetoothDevice) {
+        cancelJob()
+        connectionJob = bluetoothController.connectToDevice(device).onEach { connectionResult ->
+            when (connectionResult) {
+                BluetoothConnectionResult.ConnectionEstablished -> {
+                    transactionController.initController()
+                    startSendingPacketsFromTransactionController()
+                    //todo handle the situation when an exception happens and the flow in this method
+                    // is cancelled. Maybe send an ERROR packet or 10 TransactionResult failure packets...
+                    // for now we should be staying connected with bluetooth but on the ERROR screen
+                    // and be able to disconnect by pressing the "disconnect" UI button.
+                    transactionController.startProcessingIncomingPackets()
+                }
+                is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
+                    connectionResult.bytes.deserializeToDataPacketVariant()
+                )
+            }
+        }.onCompletion {
+            withContext(
+                NonCancellable
+            ) { transactionController.resetController() }
+        }.launchIn(scope)
+    }
+
+    private fun startSendingPacketsFromTransactionController(): Boolean {
+        return if (bluetoothState.value.connectionStatus == BluetoothConnectionStatus.CONNECTED) {
+            packetsToSend.onEach { packet ->
+                if (bluetoothState.value.connectionStatus == BluetoothConnectionStatus.CONNECTED) bluetoothController.trySendBytes(
+                    packet.toSerializedDataPacket()
+                )
+//                else throw Exception(
+//                    "Tried sending packets from transaction controller but no remote device is connected"
+//                )
+            }.launchIn(scope)
+            true
+        } else false
+    }
+
+    fun updateLocalUserInfo() = transactionController.updateLocalUserInfo()
+
+    /** Is main-safe. */
+    suspend fun tryConstructAmount(amount: Int) {
+       transactionController.tryConstructAmount(amount)
+    }
 
     /**
-     * Sending banknotes to another device
-     * @param amount Amount to send
-     */
-    suspend fun sendBanknotes(amount: Int) {
-        // Шаг 1
-
-        val blockchainArray = getBanknotesByAmount(amount)
-
-        for (blockchainFromDB in blockchainArray) {
-            sendingList.add(blockchainFromDB)
-        }
-
-        // Отправка суммы и первой банкноты
-        p2pConnection.sendBytes(PayloadContainer(amount = amount).toByteArray())
-        sendBanknoteWithBlockchain(sendingList.poll())
-
-        for (i in 0 until blockchainArray.size) {
-            // Ждем выполнения шагов 2-4
-            val bytes = p2pConnection.receivedBytes.take(1).first()
-            val container = bytes.toPayloadContainer()
-            if (container.acceptanceBlocks == null) {
-                return
-            }
-
-            //Шаг 5
-            onAcceptanceBlocksReceived(container.acceptanceBlocks)
-        }
-    }
-
-    override suspend fun onBytesReceive(container: PayloadContainer) = Unit
-//    override suspend fun onBytesReceive(container: PayloadContainer) {
-//        // Случай, когда другой юзер запросил у нас купюры
-//        if (container.amountRequest != null) {
-//            onAmountRequest(container.amountRequest)
-//            return
-//        }
-//    }
-
-    /** SSP, NP-hard
-     * https://en.wikipedia.org/wiki/Subset_sum_problem
+     *  Can call only after a successful tryConstructAmount()
      * */
-    private suspend fun getBanknotesByAmount(requiredAmount: Int): ArrayList<BanknoteWithBlockchain> {
-        //TODO обработать ситуацию, когда не хватает банкнот для выдачи точной суммы
-        var amount = requiredAmount
-        val banknoteAmounts = walletRepository.getBanknotesIdsAndAmounts().toCollection(ArrayList())
-        banknoteAmounts.sortByDescending {
-            it.amount
-        }
-
-        val blockchainsList = ArrayList<BanknoteWithBlockchain>()
-        for (banknoteAmount in banknoteAmounts) {
-            if (amount < banknoteAmount.amount) {
-                continue
-            }
-
-            blockchainsList.add(
-                BanknoteWithBlockchain(
-                    walletRepository.getBanknoteByBnid(banknoteAmount.bnid),
-                    walletRepository.getBlocksByBnid(banknoteAmount.bnid),
-                )
-            )
-
-            amount -= banknoteAmount.amount
-            if (amount <= 0) break
-        }
-
-        return blockchainsList
+    fun trySendOffer() {
+        scope.launch { transactionController.trySendOffer() }
     }
 
-    private suspend fun sendBanknoteWithBlockchain(banknoteWithBlockchain: BanknoteWithBlockchain?) {
-        banknoteWithBlockchain ?: return
-        //Создание нового ProtectedBlock
-        val newProtectedBlock =
-            walletRepository.walletInitProtectedBlock(banknoteWithBlockchain.banknoteWithProtectedBlock.protectedBlock)
-        val resultBanknoteWithBlockchain = banknoteWithBlockchain.copy(
-            banknoteWithProtectedBlock = banknoteWithBlockchain.banknoteWithProtectedBlock.copy(protectedBlock = newProtectedBlock)
-        )
-        val payloadContainer = PayloadContainer(banknoteWithBlockchain = resultBanknoteWithBlockchain)
-        p2pConnection.sendBytes(payloadContainer.toByteArray())
-        //Запоминаем отправленный parentBlock для последующей верификации
-        sentBlock = resultBanknoteWithBlockchain.blocks.last()
+    fun disconnect() {
+        bluetoothController.closeConnection()
+        cancelJob()
+//      transactionController.resetController() is invoked automatically in onCompletion{} for bl packets flow
     }
 
-
-    //Шаг 1
-    private suspend fun onAmountRequest(amountRequest: AmountRequest) {
-        val requiredAmount = amountRequest.amount
-        val currentAmount = walletRepository.getStoredInWalletSum() ?: 0
-        if (requiredAmount <= currentAmount) {
-            _amountRequestFlow.update { amountRequest }
-        }
-        else {
-            sendRejection()
-        }
+    fun reset() {
+        scope.cancelChildren()
+        cancelJob()
+        transactionController.resetController()
+        bluetoothController.reset()
     }
 
-    //Шаг 5
-    private suspend fun onAcceptanceBlocksReceived(acceptanceBlocks: AcceptanceBlocks) {
-//        val childBlockFull = wallet.signature(
-//            sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock
-//        )
-        val childBlockFull = walletRepository.walletSignature(sentBlock, acceptanceBlocks.childBlock, acceptanceBlocks.protectedBlock)
-        walletRepository.deleteBanknoteByBnid(acceptanceBlocks.childBlock.bnid)
-        sendChildBlockFull(childBlockFull)
-        sendBanknoteWithBlockchain(sendingList.poll())
+    private fun cancelJob() {
+        connectionJob?.cancel()
+        connectionJob = null
     }
 
-    private suspend fun sendChildBlockFull(childBlock: Block) {
-        val payloadContainer = PayloadContainer(signedBlock = childBlock)
-        val blockchainJson = payloadContainer.toByteArray()
-        p2pConnection.sendBytes(blockchainJson)
-    }
 }

@@ -15,7 +15,7 @@ import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCaseNew
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Failure
@@ -24,7 +24,7 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.Rece
 
 @HiltViewModel(assistedFactory = ReceiveViewModelFactory::class)
 class ReceiveViewModel @AssistedInject constructor(
-    private val useCase: P2PReceiveUseCaseNew,
+    private val useCase: P2PReceiveUseCase,
     @Assisted private val registry: ActivityResultRegistry
 ) : ViewModel() {
 

@@ -22,18 +22,4 @@ object CoroutinesModule {
     @P2PTransactionScope
     @ViewModelScoped
     fun provideP2PTransactionScope() = CoroutineScope(Job() + Dispatchers.Default)
-
-//    @Provides
-//    @P2PConnectionScope
-//    @ViewModelScoped
-//    fun provideP2PConnectionScope() = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 }
-
-@Qualifier
-annotation class P2PUseCaseScope
-
-@Qualifier
-annotation class P2PTransactionScope
-
-//@Qualifier
-//annotation class P2PConnectionScope

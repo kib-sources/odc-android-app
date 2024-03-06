@@ -1,13 +1,10 @@
 package npo.kib.odc_demo
 
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.test.*
-import kotlinx.coroutines.withContext
 import npo.kib.odc_demo.feature_app.data.db.Amount
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.util.findBanknotesWithSum
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.algorithms.findBanknotesWithSum
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 

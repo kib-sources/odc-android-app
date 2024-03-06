@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.domain.transaction_logic.util
+package npo.kib.odc_demo.feature_app.domain.transaction_logic.algorithms
 
 import kotlinx.coroutines.ensureActive
 import npo.kib.odc_demo.feature_app.data.db.Amount

@@ -4,8 +4,6 @@ import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import npo.kib.odc_demo.feature_app.di.AtmUseCase
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PBaseUseCase
 import javax.inject.Inject
 
 class ATMViewModelNew @Inject constructor() : ViewModel(){

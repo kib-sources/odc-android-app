@@ -11,15 +11,9 @@ import kotlinx.serialization.json.Json
 import npo.kib.odc_demo.feature_app.domain.core.getString
 import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
+import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.serializeToByteArray
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AmountRequest
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.BanknotesList
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.TransactionResult
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.legacy.PayloadContainer
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
 import java.security.PublicKey
 import java.util.UUID
 
@@ -28,10 +22,8 @@ object BytesToTypeConverter {
         ignoreUnknownKeys = true
     }
 
-
-    //todo changed to internal. When separating to a module,
-    // will be accessible from the test source set but not from general code
     /**
+     *  ___!Should not be used in general code!___
      * Specify generic type as type of [DataPacketVariant] to deserialize [ByteArray] to given type
      * */
     internal inline fun <reified T : DataPacketVariant> ByteArray.deserializeToDataPacketType(): T {
@@ -42,6 +34,9 @@ object BytesToTypeConverter {
         return json.decodeFromString(cbor.ToJSONString())
     }
 
+    /**
+     *  ___!Should not be used in general code!___
+     * */
     internal fun ByteArray.deserializeToDataPacket(): DataPacket {
         val cbor = CBORObject.DecodeFromBytes(this)
         return json.decodeFromString(cbor.ToJSONString())
@@ -78,41 +73,41 @@ object TypeToBytesConverter {
     }
 
     /**
+     *  ___!Should not be used in general code!___
      * Objects of [DataPacketVariant] can be serialized to [ByteArray] and sent in [DataPacket]
      * */
-    fun DataPacketVariant.serializeToByteArray(): ByteArray {
+    internal fun DataPacketVariant.serializeToByteArray(): ByteArray {
         val jsonString = json.encodeToString(this)
         return CBORObject.FromJSONString(jsonString).EncodeToBytes()
     }
 
-    fun DataPacket.serializeToByteArray(): ByteArray {
-        val jsonString = json.encodeToString(this)
-        return CBORObject.FromJSONString(jsonString).EncodeToBytes()
-    }
-}
-
-object PayloadContainerSerializer {
-
-    private val json = Json {
-        ignoreUnknownKeys = true
-    }
-
-    //Kotlin Cbor serializer не преобразовывал вложенные классы в PayloadContainer,
-    // поэтому используется сторонняя библиотека
-    fun ByteArray.toPayloadContainer(): PayloadContainer {
-        val cbor = CBORObject.DecodeFromBytes(this)
-        return json.decodeFromString(cbor.ToJSONString())
-    }
-
-    fun PayloadContainer.toByteArray(): ByteArray {
+    /**
+     *  ___!Should not be used in general code!___
+     * */
+    internal fun DataPacket.serializeToByteArray(): ByteArray {
         val jsonString = json.encodeToString(this)
         return CBORObject.FromJSONString(jsonString).EncodeToBytes()
     }
 
+    /**
+     *  Creates a new [DataPacket] from this [DataPacketVariant] and serializes it.
+     *  @return new [DataPacket] serialized as [ByteArray]
+     * */
+    fun DataPacketVariant.toSerializedDataPacket(): ByteArray {
+        val resultDataPacket = DataPacket(
+            packetType,
+            serializeToByteArray()
+        )
+        val jsonString = json.encodeToString(resultDataPacket)
+        return CBORObject.FromJSONString(jsonString).EncodeToBytes()
+    }
 }
 
 object UUIDSerializer : KSerializer<UUID?> {
-    override val descriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
+    override val descriptor = PrimitiveSerialDescriptor(
+        "UUID",
+        PrimitiveKind.STRING
+    )
 
     override fun deserialize(decoder: Decoder): UUID? {
         val str = decoder.decodeString()
@@ -120,23 +115,35 @@ object UUIDSerializer : KSerializer<UUID?> {
         else UUID.fromString(str)
     }
 
-    override fun serialize(encoder: Encoder, value: UUID?) {
+    override fun serialize(
+        encoder: Encoder,
+        value: UUID?
+    ) {
         encoder.encodeString(value.toString())
     }
 }
 
 object UUIDSerializerNotNull : KSerializer<UUID> {
-    override val descriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
+    override val descriptor = PrimitiveSerialDescriptor(
+        "UUID",
+        PrimitiveKind.STRING
+    )
 
     override fun deserialize(decoder: Decoder): UUID = UUID.fromString(decoder.decodeString())
 
-    override fun serialize(encoder: Encoder, value: UUID) {
+    override fun serialize(
+        encoder: Encoder,
+        value: UUID
+    ) {
         encoder.encodeString(value.toString())
     }
 }
 
 object PublicKeySerializer : KSerializer<PublicKey?> {
-    override val descriptor = PrimitiveSerialDescriptor("PublicKey", PrimitiveKind.STRING)
+    override val descriptor = PrimitiveSerialDescriptor(
+        "PublicKey",
+        PrimitiveKind.STRING
+    )
 
     override fun deserialize(decoder: Decoder): PublicKey? {
         val str = decoder.decodeString()
@@ -144,7 +151,10 @@ object PublicKeySerializer : KSerializer<PublicKey?> {
         else str.loadPublicKey()
     }
 
-    override fun serialize(encoder: Encoder, value: PublicKey?) {
+    override fun serialize(
+        encoder: Encoder,
+        value: PublicKey?
+    ) {
         if (value != null) {
             encoder.encodeString(value.getString())
         }
@@ -152,11 +162,17 @@ object PublicKeySerializer : KSerializer<PublicKey?> {
 }
 
 object PublicKeySerializerNotNull : KSerializer<PublicKey> {
-    override val descriptor = PrimitiveSerialDescriptor("PublicKey", PrimitiveKind.STRING)
+    override val descriptor = PrimitiveSerialDescriptor(
+        "PublicKey",
+        PrimitiveKind.STRING
+    )
 
     override fun deserialize(decoder: Decoder): PublicKey = decoder.decodeString().loadPublicKey()
 
-    override fun serialize(encoder: Encoder, value: PublicKey) {
+    override fun serialize(
+        encoder: Encoder,
+        value: PublicKey
+    ) {
         encoder.encodeString(value.getString())
     }
 }

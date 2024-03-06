@@ -1,6 +1,5 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
-//todo maybe add ERROR steps here and lastError property to transactionDataBuffer (?)
 sealed interface TransactionSteps {
     val role: TransactionRole
 

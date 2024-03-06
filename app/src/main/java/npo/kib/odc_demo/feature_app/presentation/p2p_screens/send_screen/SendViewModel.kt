@@ -12,7 +12,7 @@ import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCaseNew
+import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.*
@@ -20,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SendViewModel @Inject constructor(
-    private val useCase: P2PSendUseCaseNew
+    private val useCase: P2PSendUseCase
 ) : ViewModel() {
     private var amountConstructionJob: Job? = null
 
