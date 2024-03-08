@@ -15,17 +15,17 @@ import java.security.spec.RSAPublicKeySpec
 import java.util.*
 
 object Crypto {
-    private const val simKeysAlias = "SOK and SPK"
-    private const val keyStoreType = "AndroidKeyStore"
+    private const val SIM_KEYS_ALIAS = "SOK and SPK"
+    private const val KEY_STORE_TYPE = "AndroidKeyStore"
 
-    fun initSKP() = initPair(simKeysAlias)
+    fun initSKP() = initPair(SIM_KEYS_ALIAS)
 
     fun initOTKP(uuid: UUID) = initPair(uuid.toString()).first
 
     private fun initPair(alias: String): Pair<PublicKey, PrivateKey> {
         val keySize = 512
         val kpg = KeyPairGenerator.getInstance(
-            KeyProperties.KEY_ALGORITHM_RSA, keyStoreType
+            KeyProperties.KEY_ALGORITHM_RSA, KEY_STORE_TYPE
         )
         kpg.initialize(
             KeyGenParameterSpec.Builder(
@@ -42,23 +42,23 @@ object Crypto {
     }
 
     fun getSimKeys(): Pair<PublicKey, PrivateKey> {
-        val keyStore = KeyStore.getInstance(keyStoreType)
+        val keyStore = KeyStore.getInstance(KEY_STORE_TYPE)
         keyStore.load(null)
-        val entry = keyStore.getEntry(simKeysAlias, null)
+        val entry = keyStore.getEntry(SIM_KEYS_ALIAS, null)
         val privateKey = (entry as KeyStore.PrivateKeyEntry).privateKey
-        val publicKey = keyStore.getCertificate(simKeysAlias).publicKey
+        val publicKey = keyStore.getCertificate(SIM_KEYS_ALIAS).publicKey
         return publicKey to privateKey
     }
 
     fun getOtpk(uuid: UUID): PrivateKey {
-        val keyStore = KeyStore.getInstance(keyStoreType)
+        val keyStore = KeyStore.getInstance(KEY_STORE_TYPE)
         keyStore.load(null)
         val entry = keyStore.getEntry(uuid.toString(), null)
         return (entry as KeyStore.PrivateKeyEntry).privateKey
     }
 
     fun deleteOneTimeKeys(uuid: UUID) {
-        val keyStore = KeyStore.getInstance(keyStoreType)
+        val keyStore = KeyStore.getInstance(KEY_STORE_TYPE)
         keyStore.load(null)
         keyStore.deleteEntry(uuid.toString())
     }

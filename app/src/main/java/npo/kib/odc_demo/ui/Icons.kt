@@ -15,7 +15,7 @@ object ODCIcons {
 
     val bluetoothIcon = R.drawable.baseline_bluetooth_24
     val bluetoothSearchingIcon = R.drawable.baseline_bluetooth_searching_24
-
+    val refreshIcon = R.drawable.baseline_refresh_24
 }
 
 

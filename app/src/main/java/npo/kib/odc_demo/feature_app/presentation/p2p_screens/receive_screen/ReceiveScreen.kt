@@ -18,16 +18,15 @@ import androidx.navigation.NavBackStackEntry
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.collectLatest
 import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
 import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissions
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.CustomSnackbar
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.MultiplePermissionsRequestBlock
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientActionButton
+import npo.kib.odc_demo.feature_app.presentation.common.components.CustomSnackbar
+import npo.kib.odc_demo.feature_app.presentation.common.components.MultiplePermissionsRequestBlock
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientActionButton
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.*
@@ -72,11 +71,12 @@ fun ReceiveRoute(
 private fun ReceiveScreen(
     navigateToP2PRoot: () -> Unit,
     screenState: ReceiveScreenState,
-    errorsFlow : SharedFlow<String>,
+    errorsFlow: SharedFlow<String>,
     onEvent: (ReceiveScreenEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        val isScreenLabelVisible = remember { MutableTransitionState(false) }.apply { targetState = true }
+        val isScreenLabelVisible =
+            remember { MutableTransitionState(false) }.apply { targetState = true }
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             visibleState = isScreenLabelVisible,
@@ -97,8 +97,18 @@ private fun ReceiveScreen(
                 contentKey = { it.uiState },
                 label = "ReceiveScreenAnimatedContent",
                 transitionSpec = {
-                    fadeIn(tween(1000, 0)) togetherWith
-                            fadeOut(tween(1000, 1000))
+                    fadeIn(
+                        tween(
+                            1000,
+                            0
+                        )
+                    ) togetherWith
+                            fadeOut(
+                                tween(
+                                    1000,
+                                    1000
+                                )
+                            )
                 },
                 contentAlignment = Alignment.Center,
             ) { state ->
@@ -127,14 +137,19 @@ private fun ReceiveScreen(
         }
         SnackbarHost(
             hostState = snackbarHostState,
-            modifier = Modifier.fillMaxWidth(0.8f).requiredHeight(80.dp)
-        ){ snackbarData ->
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .requiredHeight(80.dp)
+        ) { snackbarData ->
             CustomSnackbar(
                 snackbarData,
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(40.dp)
-                    .padding(horizontal = 30.dp, vertical = 0.dp),
+                    .padding(
+                        horizontal = 30.dp,
+                        vertical = 0.dp
+                    ),
                 textColor = Color.White.copy(alpha = 0.8f),
                 surfaceColor = Color.DarkGray.copy(alpha = 0.5f),
                 borderColor = Color.Transparent
@@ -272,19 +287,6 @@ private object ReceiveScreenSubScreens {
         }
     }
 
-    context(AnimatedContentScope)
-    @Composable
-    fun StatusInfoBlock(
-        statusLabel: String,
-        infoText : String? = null
-    ) {
-        Column {
-            Text(text = statusLabel, modifier = Modifier.animateFadeVerticalSlideInOut())
-            infoText?.let { Text(text = it, modifier = Modifier.animateFadeVerticalSlideInOut(enterDelay = 100))}
-        }
-    }
-
-
     @Composable
     fun SuccessScreen(onClickFinish: () -> Unit) {
         Column {
@@ -312,13 +314,4 @@ private object ReceiveScreenSubScreens {
         }
     }
 
-
-}
-
-@Preview
-@Composable
-private fun ResultScreenPreviews() {
-    ODCAppTheme {
-        Column {}
-    }
 }

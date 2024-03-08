@@ -32,6 +32,9 @@ class P2PSendUseCase(
         BluetoothState()
     )
 
+    private val _useCaseErrors = MutableSharedFlow<String>(extraBufferCapacity = 5)
+    val useCaseErrors: SharedFlow<String> = _useCaseErrors.asSharedFlow()
+
     val blErrors = bluetoothController.errors
     val transactionErrors = transactionController.errors
 
@@ -86,7 +89,8 @@ class P2PSendUseCase(
 
     /** Is main-safe. */
     suspend fun tryConstructAmount(amount: Int) {
-       transactionController.tryConstructAmount(amount)
+        if (amount > 0) transactionController.tryConstructAmount(amount)
+        else _useCaseErrors.emit("The amount must be positive")
     }
 
     /**

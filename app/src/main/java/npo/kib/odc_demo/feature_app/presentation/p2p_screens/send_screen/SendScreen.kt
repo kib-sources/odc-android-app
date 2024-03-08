@@ -3,51 +3,76 @@ package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.flow.SharedFlow
+import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider
+import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissions
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.CustomSnackbar
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientActionButton
+import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
+import npo.kib.odc_demo.feature_app.presentation.common.components.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.Success
 import npo.kib.odc_demo.ui.GradientColors
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SendRoute(
     navigateToP2PRoot: () -> Unit,
-    viewModel: SendViewModel
+    navBackStackEntry: NavBackStackEntry
 ) {
-    //todo manage permissions first
-    val sendScreenState by viewModel.state.collectAsStateWithLifecycle()
-    SendScreen(
-        navigateToP2PRoot = navigateToP2PRoot,
-        screenState = sendScreenState,
-        errorsFlow = viewModel.errors,
-        onEvent = viewModel::onEvent
-    )
+    val multiplePermissionsState =
+        rememberMultiplePermissionsState(permissions = PermissionProvider.LocalAppBluetoothPermissions.current)
+    if (multiplePermissionsState.allPermissionsGranted) {
+        val viewModel = hiltViewModel<SendViewModel>(viewModelStoreOwner = navBackStackEntry)
+        val sendScreenState by viewModel.state.collectAsStateWithLifecycle()
+        SendScreen(
+            navigateToP2PRoot = navigateToP2PRoot,
+            screenState = sendScreenState,
+            errorsFlow = viewModel.errors,
+            onEvent = viewModel::onEvent
+        )
+    } else {
+        MultiplePermissionsRequestBlock(permissionsRequestText = getTextToShowGivenPermissions(
+            multiplePermissionsState.revokedPermissions,
+            multiplePermissionsState.shouldShowRationale,
+        ),
+            onRequestPermissionsClick = { multiplePermissionsState.launchMultiplePermissionRequest() })
+    }
 }
 
 @Composable
 private fun SendScreen(
     navigateToP2PRoot: () -> Unit, //todo use in a separate button which would be inactive on unsafe steps
     screenState: SendScreenState,
-    errorsFlow : SharedFlow<String>,
+    errorsFlow: SharedFlow<String>,
     onEvent: (SendScreenEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        val isScreenLabelVisible = remember { MutableTransitionState(false) }.apply { targetState = true }
+        val isScreenLabelVisible =
+            remember { MutableTransitionState(false) }.apply { targetState = true }
         AnimatedVisibility(
             modifier = Modifier.align(Alignment.CenterHorizontally),
             visibleState = isScreenLabelVisible,
@@ -68,12 +93,21 @@ private fun SendScreen(
                 contentKey = { it.uiState },
                 label = "ReceiveScreenAnimatedContent",
                 transitionSpec = {
-                    fadeIn(tween(1000, 0)) togetherWith
-                            fadeOut(tween(1000, 0))
+                    fadeIn(
+                        tween(
+                            1000,
+                            0
+                        )
+                    ) togetherWith fadeOut(
+                        tween(
+                            1000,
+                            0
+                        )
+                    )
                 },
                 contentAlignment = Alignment.Center,
             ) { state ->
-                when (state.uiState) {
+                when (val uiState = state.uiState) {
                     Initial -> InitialScreen(onClickStartSearching = { onEvent(SendScreenEvent.SetDiscovering(true)) })
                     is Discovering -> SearchingScreen(foundDevices = screenState.bluetoothState.scannedDevices,
                         onUserClicked = { device -> onEvent(SendScreenEvent.ConnectToDevice(device = device)) },
@@ -81,12 +115,15 @@ private fun SendScreen(
                     Loading -> InProgressScreen(label = "Connecting...")
                     is InTransaction -> TransactionBlock(
                         dataBuffer = screenState.transactionDataBuffer,
-                        transactionStatus = state.uiState.status,
+                        transactionStatus = uiState.status,
                         onEvent = onEvent
                     )
-                    is OperationResult -> when (state.uiState.result) {
-                        is Failure -> FailureScreen(onClickRetry = {})
-                        Success -> SuccessScreen()
+                    is OperationResult -> when (val result = uiState.result) {
+                        is Failure -> FailureScreen(
+                            failureMessage = result.failureMessage,
+                            onClickAbort = navigateToP2PRoot
+                        )
+                        Success -> SuccessScreen(onClickFinish = navigateToP2PRoot)
                     }
                 }
             }
@@ -97,16 +134,21 @@ private fun SendScreen(
                 snackbarHostState.showSnackbar(message = "Error:\n$error")
             }
         }
-        SnackbarHost(
+        SnackbarHost( //todo extract to common package
             hostState = snackbarHostState,
-            modifier = Modifier.fillMaxWidth(0.8f).requiredHeight(80.dp)
-        ){ snackbarData ->
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .requiredHeight(80.dp)
+        ) { snackbarData ->
             CustomSnackbar(
                 snackbarData,
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(40.dp)
-                    .padding(horizontal = 30.dp, vertical = 0.dp),
+                    .padding(
+                        horizontal = 30.dp,
+                        vertical = 0.dp
+                    ),
                 textColor = Color.White.copy(alpha = 0.8f),
                 surfaceColor = Color.DarkGray.copy(alpha = 0.5f),
                 borderColor = Color.Transparent
@@ -144,15 +186,16 @@ private object SendScreenSubScreens {
         }
     }
 
+    context(AnimatedVisibilityScope)
     @Composable
     fun InProgressScreen(label: String) {
         Column {
-            Text(text = label)
+            StatusInfoBlock(statusLabel = label)
             CircularProgressIndicator()
         }
     }
 
-    context(AnimatedContentScope)
+    context(AnimatedVisibilityScope)
     @Composable
     fun TransactionBlock(
         modifier: Modifier = Modifier,
@@ -161,42 +204,46 @@ private object SendScreenSubScreens {
         onEvent: (SendScreenEvent) -> Unit
     ) {
         Column(modifier = modifier) {
-                when (transactionStatus) {
-                    INITIAL -> AmountSelectionScreen(dataBuffer = dataBuffer,
-                        onClickTryConstructAmount = { amount -> onEvent(SendScreenEvent.TryConstructAmount(amount)) })
-                    CONSTRUCTING_AMOUNT -> InProgressScreen(label = "Constructing amount...")
-                    SHOWING_AMOUNT_AVAILABILITY -> {}
-                    WAITING_FOR_OFFER_RESPONSE -> InProgressScreen(label = "Waiting for reaction to the offer...")
-                    OFFER_ACCEPTED -> StatusInfoBlock(statusLabel = "Offer accepted!")
-                    OFFER_REJECTED -> OfferRejectedScreen(onClickSendAnotherOffer = { /*TODO*/ }) {
-                        //todo here should return to constructing amount composable
-                    }
-                    SENDING_BANKNOTES_LIST -> StatusInfoBlock(statusLabel = "Sending banknotes...")
-                    WAITING_FOR_BANKNOTES_RECEIVED_RESPONSE -> StatusInfoBlock(statusLabel = "Waiting for \"banknotes received\" response.")
-                    WAITING_FOR_ACCEPTANCE_BLOCKS -> StatusInfoBlock(statusLabel = "Waiting for acceptance blocks...",
-                        infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
-                    )
-                    SIGNING_SENDING_NEW_BLOCK -> StatusInfoBlock(statusLabel = "Signing and sending new block...",
-                        infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
-                    )
-                    ALL_BANKNOTES_PROCESSED -> StatusInfoBlock(statusLabel = "All banknotes are processed!",
-                        infoText = "Waiting for the success confirmation...")
-                    DELETING_BANKNOTES_FROM_WALLET -> StatusInfoBlock(statusLabel = "Deleting banknotes from the wallet...")
-                    BANKNOTES_DELETED -> StatusInfoBlock(statusLabel = "Sent banknotes are removed from the wallet..." )
-                    FINISHED_SUCCESSFULLY -> { /* TransactionBlock is not visible here,
+            UserInfoBlock(
+                modifier = Modifier.animateFadeVerticalSlideInOut(),
+                userInfo = dataBuffer.otherUserInfo
+            )
+            when (transactionStatus) {
+                INITIAL, SHOWING_AMOUNT_AVAILABILITY, CONSTRUCTING_AMOUNT, OFFER_REJECTED -> AmountSelectionScreen(status = transactionStatus,
+                    dataBuffer = dataBuffer,
+                    onClickTryConstructAmount = { amount -> onEvent(SendScreenEvent.TryConstructAmount(amount)) },
+                    onClickSendOffer = { onEvent(SendScreenEvent.TrySendOffer) })
+                WAITING_FOR_OFFER_RESPONSE -> InProgressScreen(label = "Waiting for an answer to the offer...")
+                OFFER_ACCEPTED -> StatusInfoBlock(statusLabel = "Offer accepted!")
+                SENDING_BANKNOTES_LIST -> StatusInfoBlock(statusLabel = "Sending banknotes...")
+                WAITING_FOR_BANKNOTES_RECEIVED_RESPONSE -> StatusInfoBlock(statusLabel = "Waiting for \"banknotes received\" response.")
+                WAITING_FOR_ACCEPTANCE_BLOCKS -> StatusInfoBlock(
+                    statusLabel = "Waiting for acceptance blocks...",
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                )
+                SIGNING_SENDING_NEW_BLOCK -> StatusInfoBlock(
+                    statusLabel = "Signing and sending new block...",
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                )
+                ALL_BANKNOTES_PROCESSED -> StatusInfoBlock(
+                    statusLabel = "All banknotes are processed!",
+                    infoText = "Waiting for the success confirmation..."
+                )
+                DELETING_BANKNOTES_FROM_WALLET -> StatusInfoBlock(statusLabel = "Deleting banknotes from the wallet...")
+                BANKNOTES_DELETED -> StatusInfoBlock(statusLabel = "Sent banknotes are removed from the wallet...")
+                FINISHED_SUCCESSFULLY -> { /* TransactionBlock is not visible here,
                     ui state is automatically set to OperationResult Success in the viewmodel.*/
-                    }
-                    ERROR -> {/* TransactionBlock is not visible here,
+                }
+                ERROR -> {/* TransactionBlock is not visible here,
                     ui state is automatically set to OperationResult Failure in the viewmodel.*/
-                    }
                 }
             }
-            //todo maybe make visibly active only on safe steps, save safe steps in a list
-            ODCGradientActionButton(text = "Disconnect",
-                gradientColors = GradientColors.ButtonNegativeActionColors,
-                onClick = { onEvent(SendScreenEvent.Disconnect) })
         }
-
+        //todo maybe keep visible only on safe steps, store safe steps as a list
+        ODCGradientActionButton(text = "Disconnect",
+            gradientColors = GradientColors.ButtonNegativeActionColors,
+            onClick = { onEvent(SendScreenEvent.Disconnect) })
+    }
 
 
     /**
@@ -207,83 +254,88 @@ private object SendScreenSubScreens {
     context(AnimatedVisibilityScope)
     @Composable
     fun AmountSelectionScreen(
+        status: SenderTransactionStatus,
         dataBuffer: TransactionDataBuffer,
-        onClickTryConstructAmount: (Int) -> Unit
+        onClickTryConstructAmount: (Int) -> Unit,
+        onClickSendOffer: () -> Unit
+    ) {
+        var amountText by rememberSaveable {
+            mutableStateOf("")
+        }
+        val amountIsValid by rememberSaveable {
+            derivedStateOf { amountText.isAValidAmount() }
+        }
+        val isAmountAvailable by remember {
+            derivedStateOf { dataBuffer.isAmountAvailable == true }
+        }
+        Surface(modifier = Modifier.animateContentSize()) {
+            Column {
+                when (status) {
+                    CONSTRUCTING_AMOUNT -> InProgressScreen(label = "Constructing amount...")
+                    SHOWING_AMOUNT_AVAILABILITY -> {
+                        StatusInfoBlock(
+                            statusLabel = "The amount is ${if (isAmountAvailable) "available" else "not available"}"
+                        )
+                        ODCGradientActionButton(
+                            text = "Send the offer",
+                            gradientColors = if (isAmountAvailable) GradientColors.ButtonPositiveActionColors else GradientColors.ButtonNegativeActionColors,
+                            enabled = isAmountAvailable,
+                            onClick = onClickSendOffer
+                        )
+                    }
+                    else -> {
+                        when (status) {
+                            INITIAL -> StatusInfoBlock(statusLabel = "Enter the amount to send")
+                            OFFER_REJECTED -> StatusInfoBlock(
+                                statusLabel = "The offer was rejected",
+                                infoText = "Try again or disconnect"
+                            )
+                            else -> {/* not encountered on this screen */
+                            }
+                        }
+                        TransparentHintTextField(modifier = Modifier
+                            .fillMaxWidth()
+                            .requiredHeight(50.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(
+                                Dp.Hairline,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            .padding(15.dp),
+                            hint = "Enter a valid amount...",
+                            onValueChange = { amountText = it })
+                        ODCGradientActionButton(text = if (amountIsValid) "Construct the amount" else "The entered amount is invalid",
+                            enabled = amountIsValid,
+                            gradientColors = if (amountIsValid) GradientColors.ButtonPositiveActionColors else GradientColors.ButtonNegativeActionColors,
+                            onClick = { if (amountIsValid) onClickTryConstructAmount(amountText.toInt()) })
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun SuccessScreen(onClickFinish: () -> Unit) {
+        Column {
+            Text(text = "Transaction finished successfully")
+            ODCGradientActionButton(
+                text = "Finish",
+                onClick = onClickFinish
+            )
+        }
+    }
+
+    @Composable
+    fun FailureScreen(
+        failureMessage: String,
+        onClickAbort: () -> Unit
     ) {
         Column {
-            Text(text = "Connected to user")
-            UserInfoBlock(userInfo = dataBuffer.otherUserInfo)
-            //todo TextFieldWithHint(){}
-            Button(onClick = { } /*onClickTryConstructAmount(with the entered amount)
-            make a fast check if a valid number is entered*/) {
-                Text(text = "try constructing the amount")
+            Text(text = "An error has occurred:\n$failureMessage")
+            Button(onClick = onClickAbort) {
+                Text(text = "Abort transaction")
             }
         }
     }
-
-
-    @Composable
-    fun OfferRejectedScreen(
-        onClickSendAnotherOffer: () -> Unit,
-        onClickReset: () -> Unit
-    ) {
-        Column {
-            Text(text = "The user rejected the offer")
-            Button(onClick = onClickSendAnotherOffer) {
-                Text(text = "Send another offer")
-            }
-            Button(onClick = onClickReset) {
-                Text(text = "Cancel the transaction")
-            }
-        }
-    }
-
-    @Composable
-    fun SendingAllBanknotesScreen() {
-        Column {
-            Text(text = "Offer accepted!")
-            Text(text = "Sending all banknotes...")
-        }
-    }
-
-    //todo later pass some other valuable banknote info
-    @Composable
-    fun ProcessingBanknoteScreen(banknoteId: Int) {
-        Column {
-            Text(text = "All banknotes sent successfully, verifying...")
-            //todo screen for sending for each individual banknote verification status
-            Text(text = "Processing banknote number: $banknoteId")
-            Text(text = "Status: signing...")
-        }
-    }
-
-    @Composable
-    fun SuccessScreen() {
-        Column {
-            Text(text = "Transaction successful")
-        }
-    }
-
-    @Composable
-    fun FailureScreen(onClickRetry: () -> Unit) {
-        Column {
-            Text(text = "Something went wrong, try again?")
-            Button(onClick = onClickRetry) {
-                Text(text = "Retry")
-            }
-        }
-    }
-
-context(AnimatedContentScope)
-@Composable
-fun StatusInfoBlock(
-    statusLabel: String,
-    infoText : String? = null
-) {
-    Column {
-        Text(text = statusLabel, modifier = Modifier.animateFadeVerticalSlideInOut())
-        infoText?.let { Text(text = it, modifier = Modifier.animateFadeVerticalSlideInOut(enterDelay = 100))}
-    }
-}
 
 }

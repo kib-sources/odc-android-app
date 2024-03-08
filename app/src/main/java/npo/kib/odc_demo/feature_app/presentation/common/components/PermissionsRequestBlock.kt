@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui.components
+package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer

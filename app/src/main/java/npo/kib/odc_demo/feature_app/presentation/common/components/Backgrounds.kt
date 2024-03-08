@@ -1,8 +1,7 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui.components
+package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -14,7 +13,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import kotlinx.serialization.json.JsonNull.content
 import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme

@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui.components
+package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -81,12 +81,9 @@ private fun ODCTopBarWithBalanceBlock(modifier: Modifier = Modifier) {
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
             ODCTopBar(modifier = Modifier.weight(1f))
-//        Spacer(modifier = Modifier.weight(0.5f))
-            BalanceBlockConstraintLayout(
-                modifier = Modifier
-                    .align(CenterHorizontally)
-                    .weight(1f)
-            )
+            BalanceBlock(modifier = Modifier
+                .align(CenterHorizontally)
+                .weight(1f))
         }
     }
 }

@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui.components
+package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -48,7 +48,7 @@ fun RoundedSquareButton(modifier: Modifier = Modifier, onClick: () -> Unit, icon
 
 @Composable
 @Preview(showBackground = true)
-fun RSBPreview(modifier: Modifier = Modifier, onClick3: () -> Unit = {}) {
+private fun RSBPreview(modifier: Modifier = Modifier, onClick3: () -> Unit = {}) {
     Row(
         modifier = modifier
             .requiredWidth(300.dp)

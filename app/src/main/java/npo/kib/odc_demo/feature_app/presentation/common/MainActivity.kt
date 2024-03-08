@@ -8,35 +8,15 @@ import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.ui.Modifier
 import dagger.hilt.android.AndroidEntryPoint
 import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
 import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.bluetoothPermissionsList
-import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
-import npo.kib.odc_demo.feature_app.presentation.common.ui.ODCApp
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCTopBar
-import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeScreen
-import npo.kib.odc_demo.ui.DevicePreviews
-import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-
-// can not inject Assisted factory Hilt, gives error as it cannot be used for creation correctly
-//    @Inject
-//    lateinit var receiveViewModelFactory: ReceiveViewModelFactory
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
@@ -54,10 +34,8 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
 
-
             ODCAppTheme(useDarkTheme = darkTheme) {
                 CompositionLocalProvider(
-//                    LocalReceiveViewModelFactory provides receiveViewModelFactory,
                     LocalAppBluetoothPermissions provides bluetoothPermissionsList
                 ) {
                     ODCApp(
@@ -68,37 +46,3 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
-
-@ThemePreviews
-@DevicePreviews
-@Composable
-private fun HomeScreenPreview() {
-    ODCAppTheme {
-        BoxWithConstraints(propagateMinConstraints = false) {
-            val topBarHeightPercentage = maxHeight * 0.1f
-            val topBarWithBalanceBlockHeightPercentage = maxHeight * 0.25f
-            val bottomBarHeightPercentage = maxHeight * 0.07f
-
-
-            Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-                ODCTopBar(
-                    modifier = Modifier/*.height(topBarHeightPercentage)*/
-                )
-            }, bottomBar = {
-                ODCBottomBar(
-                    destinations = TopLevelDestination.entries,
-                    {},
-                    currentDestination = null,
-                    modifier = Modifier/*.height(bottomBarHeightPercentage)*/
-                )
-            }) { paddingValues ->
-                BoxWithConstraints(modifier = Modifier.padding(paddingValues = paddingValues)) {
-                    val a = maxHeight
-                    HomeScreen(modifier = Modifier, onHistoryClick = {})
-                }
-            }
-        }
-    }
-}
-

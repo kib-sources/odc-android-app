@@ -3,7 +3,9 @@ package npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components
 import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.ui.Alignment
@@ -46,6 +48,27 @@ fun FadeInOutBlock(
 }
 
 context(AnimatedVisibilityScope)
+@Composable
+fun StatusInfoBlock(
+    statusLabel: String,
+    infoText: String? = null
+) {
+    Column {
+        Text(
+            text = statusLabel,
+            modifier = Modifier.animateFadeVerticalSlideInOut()
+        )
+        infoText?.let {
+            Text(
+                text = it,
+                modifier = Modifier.animateFadeVerticalSlideInOut(enterDelay = 100)
+            )
+        }
+    }
+}
+
+
+context(AnimatedVisibilityScope)
 @OptIn(ExperimentalAnimationApi::class)
 fun Modifier.animateFadeVerticalSlideInOut(
     initialOffsetY: (Int) -> Int = { it },
@@ -77,4 +100,3 @@ fun Modifier.animateFadeInOut(
     ),
     exit = fadeOut(tween(durationMillis = exitDuration, delayMillis = exitDelay))
 )
-

@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui
+package npo.kib.odc_demo.feature_app.presentation.common
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
@@ -27,9 +27,6 @@ fun rememberODCAppState(navController: NavHostController = rememberNavController
     return remember(navController/*,currentAppUser*/) { ODCAppState(navController/*, currentAppUser*/) }
 }
 
-//The invariants that this annotation implies are used for optimizations by the compose compiler,
-// and have undefined behavior if the above assumptions are not met.
-// As a result, one should not use this annotation unless they are certain that these conditions are satisfied.
 @Stable
 class ODCAppState(
     //Created on log in screen, need to set a default one temporarily
@@ -62,7 +59,7 @@ class ODCAppState(
 
 
 
-    val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.values().asList()
+    val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.entries
 
 
     fun navigateToTopLevelDestination(topLevelDestination: TopLevelDestination) {
@@ -75,7 +72,6 @@ class ODCAppState(
             // Avoid multiple copies of the same destination when
             // re-selecting the same item
             launchSingleTop = true
-
 //             Restore state when re-selecting a previously selected item. Not needed because of how top-level screens are structured
 //             and how changing data on one screen may break the other screen's ongoing tasks
 //             restoreState = true

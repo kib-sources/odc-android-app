@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui.components
+package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -62,6 +62,7 @@ fun ODCGradientActionButton(
     text: String,
     gradientColors: GradientColors = GradientColors.ButtonPositiveActionColors,
     shape: Shape = RoundedCornerShape(50),
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Button(
@@ -82,6 +83,7 @@ fun ODCGradientActionButton(
             )
             .height(ButtonDefaults.MinHeight)
             .aspectRatio(4f),
+        enabled = enabled,
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
     ) {

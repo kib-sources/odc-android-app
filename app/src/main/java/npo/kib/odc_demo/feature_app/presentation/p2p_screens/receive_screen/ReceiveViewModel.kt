@@ -2,7 +2,6 @@ package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
 import androidx.activity.result.ActivityResultRegistry
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
@@ -48,7 +47,7 @@ class ReceiveViewModel @AssistedInject constructor(
             BluetoothConnectionStatus.CONNECTING -> Loading
             BluetoothConnectionStatus.CONNECTED -> {
                 when (transactionStatus) {
-                    ERROR -> OperationResult(Failure("Transaction Error"))
+                    ERROR -> OperationResult(Failure(transactionDataBuffer.value.lastException.toString()))
                     FINISHED_SUCCESSFULLY -> OperationResult(Success)
                     else -> InTransaction(status = transactionStatus)
                 }
@@ -80,6 +79,7 @@ class ReceiveViewModel @AssistedInject constructor(
     val errors: SharedFlow<String> = merge(
         useCase.blErrors,
         useCase.transactionErrors,
+        useCase.useCaseErrors,
         vmErrors
     ).shareIn(
         viewModelScope,
@@ -125,6 +125,7 @@ class ReceiveViewModel @AssistedInject constructor(
     private fun rejectOffer() {
         useCase.rejectOffer()
     }
+
     //todo can add a list constant containing all the statuses that it is safe to disconnect from
     // popping the backstack with this viewmodel should also only be possible on those safe states
     private fun disconnect() {
@@ -151,19 +152,6 @@ class ReceiveViewModel @AssistedInject constructor(
         @AssistedFactory
         interface ReceiveViewModelFactory {
             fun create(registry: ActivityResultRegistry): ReceiveViewModel
-        }
-
-        fun provideReceiveViewModelNewFactory(
-            factory: ReceiveViewModelFactory,
-            registry: ActivityResultRegistry
-        ): ViewModelProvider.Factory {
-            return object : ViewModelProvider.Factory {
-
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return factory.create(registry) as T
-                }
-
-            }
         }
     }
 }

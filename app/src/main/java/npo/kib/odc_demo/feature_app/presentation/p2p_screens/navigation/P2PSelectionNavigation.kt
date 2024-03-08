@@ -11,15 +11,19 @@ const val p2pSelectionGraphRoutePattern = "p2p_selection_graph"
 const val p2pRootRoute = "p2p_root_route"
 
 fun NavController.navigateToP2PSelectionGraph(navOptions: NavOptions? = null) {
-    this.navigate(p2pSelectionGraphRoutePattern, navOptions)
+    this.navigate(
+        p2pSelectionGraphRoutePattern,
+        navOptions
+    )
 }
 
-fun NavGraphBuilder.p2pSelectionGraph(startingP2PRoute: String = p2pRootRoute,
-                                      onHistoryClick: () -> Unit,
-                                      onATMButtonClick: () -> Unit,
-                                      onReceiveButtonClick: () -> Unit,
-                                      onSendButtonClick: () -> Unit,
-                                      nestedGraphs: NavGraphBuilder.() -> Unit
+fun NavGraphBuilder.p2pSelectionGraph(
+    startingP2PRoute: String = p2pRootRoute,
+    onHistoryClick: () -> Unit,
+    onATMButtonClick: () -> Unit,
+    onReceiveButtonClick: () -> Unit,
+    onSendButtonClick: () -> Unit,
+    nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
     navigation(
         route = p2pSelectionGraphRoutePattern,

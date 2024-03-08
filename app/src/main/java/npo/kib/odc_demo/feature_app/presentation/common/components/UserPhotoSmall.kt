@@ -1,6 +1,7 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui.components
+package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
@@ -20,7 +21,7 @@ fun UserPhotoSmall(
         resId: Int = R.drawable.profile_pic_sample_square
 ) {
     Image(
-            modifier = modifier.clip(shape),
+            modifier = modifier.aspectRatio(1f).clip(shape),
             painter = painterResource(id = resId),
             contentScale = ContentScale.Crop,
             contentDescription = "User Profile Picture"

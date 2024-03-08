@@ -1,35 +1,21 @@
-package npo.kib.odc_demo.feature_app.presentation.common.ui
+package npo.kib.odc_demo.feature_app.presentation.common
 
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCBottomBar
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCPlainBackground
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCTopBar
 import npo.kib.odc_demo.feature_app.presentation.common.navigation.ODCNavHost
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCBottomBar
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCPlainBackground
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCTopBar
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ODCApp(
-//  For later for adapting UI to different screen sizes --  windowSizeClass : WindowSizeClass,
     appState: ODCAppState = rememberODCAppState(/*windowSizeClass = windowSizeClass*/)
 ) {
-
     //val shouldShowSomeCustomBackground: Boolean
-
     ODCPlainBackground {
 //        ODCGradientBackground {}
         BoxWithConstraints {

@@ -32,6 +32,9 @@ class P2PReceiveUseCase(
         BluetoothState()
     )
 
+    private val _useCaseErrors = MutableSharedFlow<String>(extraBufferCapacity = 5)
+    val useCaseErrors: SharedFlow<String> = _useCaseErrors.asSharedFlow()
+
     val blErrors = bluetoothController.errors
     val transactionErrors = transactionController.errors
 

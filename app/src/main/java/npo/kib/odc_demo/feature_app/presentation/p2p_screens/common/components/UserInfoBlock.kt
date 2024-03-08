@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.presentation.common.ui.components.ODCGradientBackground
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientBackground
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 context(AnimatedVisibilityScope)

@@ -54,6 +54,6 @@ object UseCasesModule {
     ) = P2PSendUseCase(transactionController, bluetoothController, scope)
 
     @Provides
-    @Singleton
+    @ViewModelScoped
     fun provideGetInfoFromWalletUseCase(walletRepository: WalletRepository) = GetInfoFromWalletUseCase(walletRepository)
 }

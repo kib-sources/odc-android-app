@@ -51,7 +51,7 @@ class KeysDataStoreRepositoryImpl(private val context: Context) : KeysDataStoreR
                 throw exception
             }
         }.map { preferences ->
-            preferences[key.it] ?: key.defaultValue
+            preferences[key.key] ?: key.defaultValue
         }.first()
     }
 
@@ -60,7 +60,7 @@ class KeysDataStoreRepositoryImpl(private val context: Context) : KeysDataStoreR
         value: T
     ) {
         datastore.edit { preferences ->
-            preferences[key.it] = value
+            preferences[key.key] = value
         }
     }
 

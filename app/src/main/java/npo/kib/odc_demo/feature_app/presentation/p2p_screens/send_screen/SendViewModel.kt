@@ -43,7 +43,7 @@ class SendViewModel @Inject constructor(
             BluetoothConnectionStatus.CONNECTING -> Loading
             BluetoothConnectionStatus.CONNECTED -> {
                 when (transactionStatus) {
-                    ERROR -> OperationResult(Failure("Transaction Error"))
+                    ERROR -> OperationResult(Failure(transactionDataBuffer.value.lastException.toString()))
                     FINISHED_SUCCESSFULLY -> OperationResult(Success)
                     else -> InTransaction(status = transactionStatus)
                 }
@@ -67,7 +67,7 @@ class SendViewModel @Inject constructor(
         )
     }.stateIn(
         viewModelScope,
-        SharingStarted.WhileSubscribed(1000),
+        SharingStarted.WhileSubscribed(),
         SendScreenState()
     )
 
@@ -75,10 +75,11 @@ class SendViewModel @Inject constructor(
     val errors: SharedFlow<String> = merge(
         useCase.blErrors,
         useCase.transactionErrors,
+        useCase.useCaseErrors,
         vmErrors
     ).shareIn(
         viewModelScope,
-        SharingStarted.Lazily
+        SharingStarted.WhileSubscribed()
     )
 
     fun onEvent(event: SendScreenEvent) {
