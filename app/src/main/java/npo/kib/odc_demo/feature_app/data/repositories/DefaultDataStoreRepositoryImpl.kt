@@ -3,15 +3,12 @@ package npo.kib.odc_demo.feature_app.data.repositories
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
-import androidx.datastore.preferences.core.PreferenceDataStoreFactory
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.*
 import androidx.datastore.preferences.preferencesDataStoreFile
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey
+import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey.USER_NAME
+import npo.kib.odc_demo.feature_app.domain.model.user.UserPreferences
 import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
 
 class DefaultDataStoreRepositoryImpl(private val context: Context) : DefaultDataStoreRepository {
@@ -24,8 +21,7 @@ class DefaultDataStoreRepositoryImpl(private val context: Context) : DefaultData
         PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(datastore_name) })
 
 
-    //todo later expose a Flow containing all the datastore data converted to some data class like UserData
-    /*val userPreferencesFlow: Flow<UserPreferences> = dataStore.data
+    override val userPreferencesFlow: Flow<UserPreferences> = datastore.data
         .catch { exception ->
             // dataStore.data throws an IOException when an error is encountered when reading data
             if (exception is IOException) {
@@ -34,11 +30,8 @@ class DefaultDataStoreRepositoryImpl(private val context: Context) : DefaultData
                 throw exception
             }
         }.map { preferences ->
-            // Get our show completed value, defaulting to false if not set:
-            val userName = preferences[username key]?: default username
-            ...
-            UserPreferences(userName,...)
-        }*/
+            UserPreferences(userName = preferences[USER_NAME.key] ?: USER_NAME.defaultValue!! )
+        }
 
     override suspend fun <T> readValue(key: DefaultDataStoreKey<T>): T? {
         return datastore.data.catch { exception ->

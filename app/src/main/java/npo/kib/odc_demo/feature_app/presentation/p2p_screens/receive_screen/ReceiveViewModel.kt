@@ -15,6 +15,7 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuff
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
+import npo.kib.odc_demo.feature_app.domain.util.log
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Failure
@@ -104,7 +105,7 @@ class ReceiveViewModel @AssistedInject constructor(
         //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
         //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
         useCase.startAdvertising(registry = registry,
-            duration = 10,
+            duration = 30,
             callback = { resultDuration ->
                 resultDuration
                     ?: viewModelScope.launch { vmErrors.emit("Declined advertising prompt") }
@@ -144,7 +145,9 @@ class ReceiveViewModel @AssistedInject constructor(
     fun updateLocalUserInfo() = useCase.updateLocalUserInfo()
 
     override fun onCleared() {
-        useCase.reset()
+//        useCase.reset() //crashes the app
+        this.log("onCleared()")
+        useCase.disconnect()
         super.onCleared()
     }
 

@@ -2,25 +2,24 @@
    Декларирование одного блока
  */
 
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.ForeignKey
+import androidx.room.*
 import androidx.room.ForeignKey.Companion.CASCADE
-import androidx.room.Index
-import androidx.room.PrimaryKey
-import androidx.room.TypeConverters
 import kotlinx.serialization.Serializable
+import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 import npo.kib.odc_demo.feature_app.domain.core.Crypto
+import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
 import npo.kib.odc_demo.feature_app.domain.core.checkHashes
 import npo.kib.odc_demo.feature_app.domain.core.getStringPem
-import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 import npo.kib.odc_demo.feature_app.domain.model.serialization.PublicKeySerializerNotNull
 import npo.kib.odc_demo.feature_app.domain.model.serialization.UUIDSerializer
 import npo.kib.odc_demo.feature_app.domain.model.serialization.UUIDSerializerNotNull
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.SIGNED_BLOCK
+import npo.kib.odc_demo.feature_app.domain.util.log
 import java.security.PublicKey
 import java.util.UUID
 
@@ -68,14 +67,14 @@ data class Block(
             Crypto.hash(
                 uuid.toString(), otok.getStringPem(), bnid, time.toString()
             )
-        }
-        else {
+        } else {
             Crypto.hash(
                 uuid.toString(), parentUuid.toString(), otok.getStringPem(), bnid, time.toString()
             )
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     fun verification(publicKey: PublicKey): Boolean {
         // publicKey -- otok or bok
         if (magic == null) {
@@ -89,11 +88,17 @@ data class Block(
         }
 
         val hashValueCheck = makeBlockHashValue()
-        if (!checkHashes(hashValueCheck, transactionHash.encodeToByteArray())) {
+        this.log("local hash size: " + hashValueCheck.size)
+        this.log("received hash .hexToByteArray: " + transactionHash.hexToByteArray())
+        this.log("received hash encodeToByteArray().size: " + transactionHash.encodeToByteArray().size)
+        this.log("received hash .hexToByteArray.size: " + transactionHash.hexToByteArray().size)
+        this.log("local hash:    ${hashValueCheck.toHex()/*.toHexString()*/}" +
+                "\nreceived hash: $transactionHash")
+        if (!checkHashes(hashValueCheck, transactionHash.hexToByteArray())) {
             throw Exception("Некорректно подсчитан hashValue")
         }
         return Crypto.verifySignature(
-            transactionHash.encodeToByteArray(),
+            transactionHash.hexToByteArray(),
             transactionHashSignature,
             publicKey
         )
@@ -114,8 +119,7 @@ data class Block(
         if (transactionHash != null) {
             if (other.transactionHash == null) return false
             if (!transactionHash.contentEquals(other.transactionHash)) return false
-        }
-        else if (other.transactionHash != null) return false
+        } else if (other.transactionHash != null) return false
         return transactionHashSignature == other.transactionHashSignature
     }
 
@@ -126,7 +130,7 @@ data class Block(
         result = 31 * result + otok.hashCode()
         result = 31 * result + time
         result = 31 * result + (magic?.hashCode() ?: 0)
-        result = 31 * result + (transactionHash?.encodeToByteArray()?.contentHashCode() ?: 0)
+        result = 31 * result + (transactionHash?.hexToByteArray()?.contentHashCode() ?: 0)
         result = 31 * result + (transactionHashSignature?.hashCode() ?: 0)
         return result
     }

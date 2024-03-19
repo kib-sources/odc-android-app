@@ -1,10 +1,10 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.navigation
 
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.*
+import androidx.navigation.NavController
+import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendRoute
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendViewModel
 
 const val p2pSendRoute = "p2p_send_route"
 

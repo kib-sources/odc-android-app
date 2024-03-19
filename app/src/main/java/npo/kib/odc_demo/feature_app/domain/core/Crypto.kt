@@ -3,6 +3,7 @@ package npo.kib.odc_demo.feature_app.domain.core
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import npo.kib.odc_demo.feature_app.domain.util.logOut
 import org.bouncycastle.asn1.ASN1Object
 import org.bouncycastle.asn1.DLSequence
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers
@@ -63,8 +64,10 @@ object Crypto {
         keyStore.deleteEntry(uuid.toString())
     }
 
-    fun hash(vararg strings: String?) =
-        strings.joinToString(separator = " ", postfix = "]!L3bP9a@GM6U*LL").sha256()
+    fun hash(vararg strings: String?): ByteArray {
+        return strings.joinToString(separator = " ", postfix = "]!L3bP9a@GM6U*LL")
+            .logOut("To hash: ").sha256().logOut("Hash result: ")
+    }
 
     fun signature(hexHash: ByteArray, privateKey: PrivateKey): String {
         val privateSignature = Signature.getInstance("SHA256withRSA")

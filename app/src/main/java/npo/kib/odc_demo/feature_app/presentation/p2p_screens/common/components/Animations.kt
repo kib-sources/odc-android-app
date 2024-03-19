@@ -1,25 +1,43 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 
-@Composable
-fun AdvertisingAnimation() {
-
-}
-
-@Composable
-fun SearchingAnimation() {
-
-}
 
 @Composable
 fun ProgressBar() {
@@ -28,7 +46,7 @@ fun ProgressBar() {
 
 @Composable
 fun LoadingAnimation() {
-    CircularProgressIndicator()
+//    CircularProgressIndicator() fixme crashes the app
 }
 
 //todo add 3 dots infinite loading animation
@@ -50,10 +68,13 @@ fun FadeInOutBlock(
 context(AnimatedVisibilityScope)
 @Composable
 fun StatusInfoBlock(
+    modifier: Modifier = Modifier,
     statusLabel: String,
     infoText: String? = null
 ) {
-    Column {
+    Column(modifier,
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = statusLabel,
             modifier = Modifier.animateFadeVerticalSlideInOut()
@@ -71,18 +92,44 @@ fun StatusInfoBlock(
 context(AnimatedVisibilityScope)
 @OptIn(ExperimentalAnimationApi::class)
 fun Modifier.animateFadeVerticalSlideInOut(
-    initialOffsetY: (Int) -> Int = { it },
-    targetOffsetY: (Int) -> Int = { it },
-    enterDuration : Int = 1500,
-    exitDuration : Int = 1500,
-    enterDelay : Int = 0,
-    exitDelay : Int = 0
+    initialOffsetY: (Int) -> Int = { -it },
+    targetOffsetY: (Int) -> Int = { -it },
+    enterDuration: Int = 1000,
+    exitDuration: Int = 1000,
+    enterDelay: Int = 0,
+    exitDelay: Int = 0
 ): Modifier = animateEnterExit(
-    enter = fadeIn(tween(durationMillis = enterDuration, delayMillis = enterDelay)) + slideInVertically(
+    enter = fadeIn(
+        tween(
+            durationMillis = enterDuration, delayMillis = enterDelay
+        )
+    ) + slideInVertically(
         initialOffsetY = initialOffsetY,
         animationSpec = tween(durationMillis = enterDuration, delayMillis = enterDelay)
-    ),
-    exit = fadeOut(tween(durationMillis = exitDuration, delayMillis = exitDelay)) + slideOutVertically(
+    ), exit = fadeOut(
+        tween(
+            durationMillis = exitDuration, delayMillis = exitDelay
+        )
+    ) + slideOutVertically(
+        targetOffsetY = targetOffsetY,
+        animationSpec = tween(durationMillis = exitDuration, delayMillis = exitDelay)
+    )
+)
+
+context(AnimatedVisibilityScope)
+@OptIn(ExperimentalAnimationApi::class)
+fun Modifier.animateVerticalSlideInOut(
+    initialOffsetY: (Int) -> Int = { -it },
+    targetOffsetY: (Int) -> Int = { -it },
+    enterDuration: Int = 1000,
+    exitDuration: Int = 1000,
+    enterDelay: Int = 0,
+    exitDelay: Int = 0
+): Modifier = animateEnterExit(
+    enter = slideInVertically(
+        initialOffsetY = initialOffsetY,
+        animationSpec = tween(durationMillis = enterDuration, delayMillis = enterDelay)
+    ), exit = slideOutVertically(
         targetOffsetY = targetOffsetY,
         animationSpec = tween(durationMillis = exitDuration, delayMillis = exitDelay)
     )
@@ -91,12 +138,95 @@ fun Modifier.animateFadeVerticalSlideInOut(
 context(AnimatedVisibilityScope)
 @OptIn(ExperimentalAnimationApi::class)
 fun Modifier.animateFadeInOut(
-    enterDuration : Int = 1500,
-    exitDuration : Int = 1500,
-    enterDelay : Int = 0,
-    exitDelay : Int = 0
+    enterDuration: Int = 1000, exitDuration: Int = 1000, enterDelay: Int = 0, exitDelay: Int = 0
 ): Modifier = animateEnterExit(
-    enter = fadeIn(tween(durationMillis = enterDuration, delayMillis = enterDelay)
-    ),
-    exit = fadeOut(tween(durationMillis = exitDuration, delayMillis = exitDelay))
+    enter = fadeIn(
+        tween(durationMillis = enterDuration, delayMillis = enterDelay)
+    ), exit = fadeOut(tween(durationMillis = exitDuration, delayMillis = exitDelay))
 )
+
+
+fun Modifier.rotating(
+    duration: Int = 5000,
+    isClockwise: Boolean = true,
+    easing: Easing = LinearEasing
+): Modifier = this.composed {
+    val transition = rememberInfiniteTransition(label = "")
+    val angleRatio by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(animation = tween(duration, easing = easing)),
+        label = ""
+    )
+    graphicsLayer(
+        rotationZ = 360f * angleRatio * if (isClockwise) 1 else -1
+    )
+}
+
+@Preview
+@Composable
+private fun RotatingPreview() {
+    Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .align(Alignment.Center)
+                .size(150.dp)
+                .rotating()
+                .background(Color.Red)
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun ControllableRotatingPreview() {
+    var rotating by remember { mutableStateOf(false) }
+    Box(Modifier.fillMaxSize()) {
+        Button(onClick = { rotating = !rotating }) {
+            Text(text = "${if (rotating) "Stop" else "Start"} rotating")
+        }
+        Box(
+            Modifier
+                .align(Alignment.Center)
+                .size(150.dp)
+                .rotatingOnCondition(rotating, 4000, true)
+                .background(Color.Red)
+        )
+    }
+}
+
+fun Modifier.rotatingOnCondition(
+    isRotating: Boolean,
+    duration: Int = 5000,
+    isClockwise: Boolean = true,
+    easing: Easing = LinearEasing
+): Modifier = composed {
+    val angle = remember { Animatable(0f) }
+    // Handle the initiation and termination of animation based on isAnimating boolean
+    LaunchedEffect(isRotating) {
+        if (isRotating) {
+            // Animate indefinitely as long as isAnimating is true
+            angle.animateTo(
+                // Using a target value of 360 for a full rotation
+                targetValue = 360f,
+                // Restart the animation each time it completes
+                animationSpec = infiniteRepeatable(
+                    animation = tween(durationMillis = duration, easing = easing),
+                    // Restart immediately without delay
+                    repeatMode = RepeatMode.Restart
+                )
+            )
+        } else {
+            // If isAnimating becomes false, stop the animation
+            angle.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 1000)
+            )
+        }
+    }
+
+    graphicsLayer {
+        // Apply the rotation angle
+        rotationZ = angle.value * if (isClockwise) 1 else -1
+    }
+}

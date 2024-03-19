@@ -11,21 +11,21 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey
-import npo.kib.odc_demo.feature_app.domain.repository.KeysDataStoreRepository
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreKey
+import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
 
-class KeysDataStoreRepositoryImpl(private val context: Context) : KeysDataStoreRepository {
+class UtilityDataStoreRepositoryImpl(private val context: Context) : UtilityDataStoreRepository {
 
     private companion object {
-        const val datastore_name = "KEYS_DATASTORE"
+        const val datastore_name = "UTILITY_DATASTORE"
     }
 
     private val datastore: DataStore<Preferences> =
         PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(datastore_name) })
 
 
-    //todo later expose a Flow containing all the datastore data converted to some data class like KeysPreferences
-    /*val keysPreferencesFlow: Flow<KeysPreferences> = dataStore.data
+    //todo later expose a Flow containing all the datastore data converted to some data class like UtilData
+    /*val keysPreferencesFlow: Flow<UtilData> = dataStore.data
         .catch { exception ->
             // dataStore.data throws an IOException when an error is encountered when reading data
             if (exception is IOException) {
@@ -34,14 +34,13 @@ class KeysDataStoreRepositoryImpl(private val context: Context) : KeysDataStoreR
                 throw exception
             }
         }.map { preferences ->
-            // Get our show completed value, defaulting to false if not set:
             val value1 = preferences[key1]
             ...
             KeysPreferences(value1,...)
         }*/
 
 
-    override suspend fun <T> readValue(key: KeysDataStoreKey<T>): T? {
+    override suspend fun <T> readValue(key: UtilityDataStoreKey<T>): T? {
         return datastore.data.catch { exception ->
             // Handle IOException
             if (exception is IOException) {
@@ -56,7 +55,7 @@ class KeysDataStoreRepositoryImpl(private val context: Context) : KeysDataStoreR
     }
 
     override suspend fun <T> writeValue(
-        key: KeysDataStoreKey<T>,
+        key: UtilityDataStoreKey<T>,
         value: T
     ) {
         datastore.edit { preferences ->

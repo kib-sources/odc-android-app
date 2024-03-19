@@ -1,6 +1,8 @@
 package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -12,6 +14,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
@@ -38,7 +41,8 @@ fun ODCBottomBar(destinations: List<TopLevelDestination>,
 
             destinations.forEach { destination ->
                 val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
-                NavigationBarItem(selected = selected,
+                NavigationBarItem(modifier = Modifier.fillMaxHeight(),
+                    selected = selected,
                                   onClick = { onNavigateToDestination(destination) },
                                   icon = {
                                       val icon = if (selected) destination.selectedIcon
@@ -53,8 +57,8 @@ fun ODCBottomBar(destinations: List<TopLevelDestination>,
                                               contentDescription = null)
                                       }
 
-                                  },
-                                  label = { /*Text(stringResource(id = destination.iconTextId))*/ }
+                                  }
+//                                  ,label = { /*Text(stringResource(id = destination.iconTextId))*/ }
                 )
             }
         }
@@ -64,9 +68,9 @@ fun ODCBottomBar(destinations: List<TopLevelDestination>,
 @DevicePreviews
 @Composable
 private fun ODCBottomBarPreview() {
-    ODCBottomBar(destinations = TopLevelDestination.values().asList(),
+    ODCBottomBar(destinations = TopLevelDestination.entries,
                  onNavigateToDestination = {}, currentDestination = null,
-                 modifier = Modifier/*.height(70.dp)*/)
+                 modifier = Modifier.height(55.dp))
 }
 
 

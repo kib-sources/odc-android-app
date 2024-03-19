@@ -3,7 +3,7 @@ package npo.kib.odc_demo.feature_app.data.repositories
 import android.util.Log
 import kotlinx.coroutines.*
 import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey
-import npo.kib.odc_demo.feature_app.data.datastore.KeysDataStoreKey.*
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreKey.*
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.data.db.BanknotesDao
 import npo.kib.odc_demo.feature_app.data.db.BlockDao
@@ -16,6 +16,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.repository.*
+import npo.kib.odc_demo.feature_app.domain.util.log
 import java.security.PrivateKey
 import java.security.PublicKey
 
@@ -23,7 +24,7 @@ class WalletRepositoryImpl(
     private val banknotesDao: BanknotesDao,
     private val blockDao: BlockDao,
     private val bankRepository: BankRepository,
-    private val keysDataStoreRepository: KeysDataStoreRepository,
+    private val utilityDataStoreRepository: UtilityDataStoreRepository,
     private val defaultDataStoreRepository: DefaultDataStoreRepository,
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : WalletRepository {
@@ -36,24 +37,28 @@ class WalletRepositoryImpl(
     // only inside the repositories, so better not to return it
 
     override suspend fun getOrRegisterWallet(): Wallet {
-        wallet?.let { return it }
+        wallet?.let {
+            this.log("Returning existing wallet")
+            return it
+        }
         return withContext(ioDispatcher) {
+            this@WalletRepositoryImpl.log("Registering the wallet")
             //Getting keys from KeyStore or generating new ones
             var keys: Pair<PublicKey, PrivateKey>
             try {
                 keys = Crypto.getSimKeys()
             } catch (e: NullPointerException) {
                 keys = Crypto.initSKP()
-                keysDataStoreRepository.clear()
+                utilityDataStoreRepository.clear()
             }
 
             val sok = keys.first
             val spk = keys.second
 
-            var sokSignature = keysDataStoreRepository.readValue(SOK_SIGN_KEY)
-            var wid = keysDataStoreRepository.readValue(WID_KEY)
-            var bin = keysDataStoreRepository.readValue(BIN_KEY)
-            var bokString = keysDataStoreRepository.readValue(BOK_KEY)
+            var sokSignature = utilityDataStoreRepository.readValue(SOK_SIGN_KEY)
+            var wid = utilityDataStoreRepository.readValue(WID_KEY)
+            var bin = utilityDataStoreRepository.readValue(BIN_KEY)
+            var bokString = utilityDataStoreRepository.readValue(BOK_KEY)
 
             if (sokSignature == null || wid == null || bokString == null || bin == null) {
                 Log.d("OpenDigitalCash", "getting sok_sign, wid and bok from server")
@@ -64,7 +69,7 @@ class WalletRepositoryImpl(
                 sokSignature = walletResp.sokSignature
                 verifySokSign(sok, sokSignature, bokString)
                 wid = walletResp.wid
-                with(keysDataStoreRepository) {
+                with(utilityDataStoreRepository) {
                     writeValue(BIN_KEY, bin)
                     writeValue(BOK_KEY, bokString)
                     writeValue(SOK_SIGN_KEY, sokSignature)
@@ -80,10 +85,10 @@ class WalletRepositoryImpl(
 
     override suspend fun isWalletRegistered(): Boolean {
         return withContext(ioDispatcher) {
-            val sokSignature = keysDataStoreRepository.readValue(SOK_SIGN_KEY)
-            val wid = keysDataStoreRepository.readValue(WID_KEY)
-            val bin = keysDataStoreRepository.readValue(BIN_KEY)
-            val bokString = keysDataStoreRepository.readValue(BOK_KEY)
+            val sokSignature = utilityDataStoreRepository.readValue(SOK_SIGN_KEY)
+            val wid = utilityDataStoreRepository.readValue(WID_KEY)
+            val bin = utilityDataStoreRepository.readValue(BIN_KEY)
+            val bokString = utilityDataStoreRepository.readValue(BOK_KEY)
             !(sokSignature == null || wid == null || bokString == null || bin == null)
         }
     }
@@ -159,15 +164,18 @@ class WalletRepositoryImpl(
         val wallet = try {
             getOrRegisterWallet()
         } catch (e: Exception) {
+            this@WalletRepositoryImpl.log("Issuing banknotes exception: WALLET_ERROR")
             return@withContext WALLET_ERROR
         }
-        return@withContext bankRepository.issueBanknotes(wallet = wallet, amount = amount,
-                                                         walletInsertionCallback = { banknoteWithProtectedBlock, block ->
-                                                             banknotesDao.insertBanknote(
-                                                                 banknoteWithProtectedBlock
-                                                             )
-                                                             blockDao.insertBlock(block)
-                                                         })
+        return@withContext bankRepository.issueBanknotes(wallet = wallet,
+            amount = amount,
+            walletInsertionCallback = { banknoteWithProtectedBlock, block ->
+                this@WalletRepositoryImpl.log("Saving received banknotes from server to wallet")
+                banknotesDao.insertBanknote(
+                    banknoteWithProtectedBlock
+                )
+                blockDao.insertBlock(block)
+            })
     }
 
     override suspend fun insertBlock(block: Block) = withContext(ioDispatcher) {

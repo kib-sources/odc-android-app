@@ -11,7 +11,7 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Prot
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
-import npo.kib.odc_demo.feature_app.domain.util.myLogs
+import npo.kib.odc_demo.feature_app.domain.util.log
 
 class BankRepositoryImpl(
     private val bankApi: BankApi, private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -66,7 +66,7 @@ class BankRepositoryImpl(
                     }
                 }
             } catch (e: Exception) {
-                myLogs(e)
+                this@BankRepositoryImpl.log(e)
                 return@withContext ServerConnectionStatus.ERROR
             }
             return@withContext ServerConnectionStatus.SUCCESS

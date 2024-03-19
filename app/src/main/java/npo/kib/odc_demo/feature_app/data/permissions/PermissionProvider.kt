@@ -4,10 +4,11 @@ import android.Manifest
 import android.os.Build
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.staticCompositionLocalOf
 
 object PermissionProvider {
     val LocalAppBluetoothPermissions: ProvidableCompositionLocal<List<String>> =
-        compositionLocalOf { bluetoothPermissionsList }
+        staticCompositionLocalOf { bluetoothPermissionsList }
 
     val bluetoothPermissionsList = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         listOf(
@@ -23,7 +24,7 @@ object PermissionProvider {
     )
 
     val LocalAppNFCPermissions: ProvidableCompositionLocal<List<String>> =
-        compositionLocalOf { nfcPermissionsList }
+        staticCompositionLocalOf { nfcPermissionsList }
 
     val nfcPermissionsList: List<String> = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         listOf(

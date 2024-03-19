@@ -69,8 +69,8 @@ abstract class TransactionController(
             receivedPacketsChannel.cancel()
             outputDataPacketChannel.cancel()
             _transactionDataBuffer.update { TransactionDataBuffer() }
-            started = false
             scope.cancelChildren()
+            started = false
             true
         } else false
     }
@@ -88,7 +88,7 @@ abstract class TransactionController(
                     _transactionDataBuffer.update { it.copy(lastException = "${e::class.simpleName}: ${e.message}") }
                     onTransactionError()
                     //todo maybe create a new ERROR packet variant and send it instead?
-                    repeat(2) { sendNegativeResult("A TRANSACTION ERROR HAS OCCURRED ON THE ${role.name} SIDE") }
+//                    repeat(2) { sendNegativeResult("A TRANSACTION ERROR HAS OCCURRED ON THE ${role.name} SIDE") } // seems to be crashing the app
                     throw CancellationException("Cancelled due to a transaction exception caught")
                 }
             }

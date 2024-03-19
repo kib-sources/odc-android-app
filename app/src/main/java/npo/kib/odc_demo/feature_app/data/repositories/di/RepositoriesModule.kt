@@ -10,11 +10,11 @@ import npo.kib.odc_demo.feature_app.data.api.BankApi
 import npo.kib.odc_demo.feature_app.data.db.BlockchainDatabase
 import npo.kib.odc_demo.feature_app.data.repositories.BankRepositoryImpl
 import npo.kib.odc_demo.feature_app.data.repositories.DefaultDataStoreRepositoryImpl
-import npo.kib.odc_demo.feature_app.data.repositories.KeysDataStoreRepositoryImpl
+import npo.kib.odc_demo.feature_app.data.repositories.UtilityDataStoreRepositoryImpl
 import npo.kib.odc_demo.feature_app.data.repositories.WalletRepositoryImpl
 import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
 import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.repository.KeysDataStoreRepository
+import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import javax.inject.Singleton
 
@@ -31,10 +31,10 @@ object RepositoriesModule {
 
     @Provides
     @Singleton
-    fun provideKeysDataStoreRepository(
+    fun provideUtilityDataStoreRepository(
         @ApplicationContext
         context: Context
-    ): KeysDataStoreRepository = KeysDataStoreRepositoryImpl(context = context)
+    ): UtilityDataStoreRepository = UtilityDataStoreRepositoryImpl(context = context)
 
     @Singleton
     @Provides
@@ -48,13 +48,13 @@ object RepositoriesModule {
     fun provideWalletRepository(
         db: BlockchainDatabase,
         bankRepository: BankRepository,
-        keysDataStoreRepository: KeysDataStoreRepository,
+        utilityDataStoreRepository: UtilityDataStoreRepository,
         defaultDataStoreRepository: DefaultDataStoreRepository
     ): WalletRepository = WalletRepositoryImpl(
         banknotesDao = db.banknotesDao,
         blockDao = db.blockDao,
         bankRepository = bankRepository,
-        keysDataStoreRepository = keysDataStoreRepository,
+        utilityDataStoreRepository = utilityDataStoreRepository,
         defaultDataStoreRepository = defaultDataStoreRepository
     )
 }

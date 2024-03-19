@@ -18,7 +18,7 @@ import npo.kib.odc_demo.R
 fun UserPhotoSmall(
         modifier: Modifier = Modifier,
         shape: Shape = CircleShape,
-        resId: Int = R.drawable.profile_pic_sample_square
+        resId: Int = R.drawable.profile_pic_sample_square //todo pass image data to display, get image data from local storage
 ) {
     Image(
             modifier = modifier.aspectRatio(1f).clip(shape),

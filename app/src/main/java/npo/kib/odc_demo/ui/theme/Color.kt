@@ -1,7 +1,7 @@
 package npo.kib.odc_demo.ui.theme
 
 import androidx.compose.ui.graphics.Color
-
+//todo change light theme colors
 val md_theme_light_primary = Color(0xFF00639C)
 val md_theme_light_onPrimary = Color(0xFFFFFFFF)
 val md_theme_light_primaryContainer = Color(0xFFCFE5FF)
@@ -19,9 +19,9 @@ val md_theme_light_errorContainer = Color(0xFFFFDAD6)
 val md_theme_light_onError = Color(0xFFFFFFFF)
 val md_theme_light_onErrorContainer = Color(0xFF410002)
 val md_theme_light_background = Color(0xFFF3FFFA)
-val md_theme_light_onBackground = Color(0xFF00201A)
-val md_theme_light_surface = Color(0xFFF3FFFA)
-val md_theme_light_onSurface = Color(0xFF00201A)
+val md_theme_light_onBackground = Color(0xFF000000)
+val md_theme_light_surface = Color(0xFF00BA88)
+val md_theme_light_onSurface = Color(0xFFCCFFEA)
 val md_theme_light_surfaceVariant = Color(0xFFDEE3EB)
 val md_theme_light_onSurfaceVariant = Color(0xFF42474E)
 val md_theme_light_outline = Color(0xFF72777F)
@@ -29,9 +29,9 @@ val md_theme_light_inverseOnSurface = Color(0xFFB7FFEC)
 val md_theme_light_inverseSurface = Color(0xFF00382E)
 val md_theme_light_inversePrimary = Color(0xFF98CBFF)
 val md_theme_light_shadow = Color(0xFF000000)
-val md_theme_light_surfaceTint = Color(0xFF00639C)
+val md_theme_light_surfaceTint = Color(0xFF18FFFF)
 val md_theme_light_outlineVariant = Color(0xFFC2C7CF)
-val md_theme_light_scrim = Color(0xFF000000)
+val md_theme_light_scrim = Color(0xFF000099)
 
 val md_theme_dark_primary = Color(0xFF98CBFF)
 val md_theme_dark_onPrimary = Color(0xFF003354)

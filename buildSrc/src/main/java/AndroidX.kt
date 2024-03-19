@@ -36,4 +36,7 @@ object AndroidX {
     private const val datastorePreferencesVer = "1.1.0-alpha06"
     const val datastorePreferences = "androidx.datastore:datastore-preferences:$datastorePreferencesVer"
 
+    private const val splashScreenVer = "1.0.1"
+    const val splashScreen = "androidx.core:core-splashscreen:$splashScreenVer"
+
 }

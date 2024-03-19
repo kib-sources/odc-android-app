@@ -5,8 +5,27 @@ import android.util.Log
 import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
+import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
 
-fun myLogs(msg: Any?) = Log.d("myLogs", msg.toString())
+fun myLogs(msg: Any?, tag: Any? = "myLogs") = Log.d(tag.toString(), msg.toString())
+
+fun Any.log(
+    msg: Any?,
+    tag: String = this::class.simpleName ?: "Anonymous: ${this::class}"
+) = Log.d(tag, msg.toString())
+
+fun <T : Any> T.logOut(startMsg: String = ""): T {
+    try {
+        if (this is ByteArray) Log.d("logOut", startMsg + " toHex: " + toHex())
+        Log.d(
+            "logOut",
+            startMsg + if (this is ByteArray) decodeToString(throwOnInvalidSequence = true) else toString()
+        )
+    } catch (e : CharacterCodingException){
+        Log.d("logOut", "caught CharacterCodingException")
+    }
+        return this
+}
 
 fun Context.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
     Toast.makeText(this, text, duration).show()
@@ -14,4 +33,4 @@ fun Context.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
 
 fun CoroutineScope.cancelChildren() = coroutineContext.cancelChildren()
 
-fun String.isAValidAmount() : Boolean  = toIntOrNull()?.let { it > 0 } ?: false
+fun String.isAValidAmount(): Boolean = toIntOrNull()?.let { it > 0 } ?: false

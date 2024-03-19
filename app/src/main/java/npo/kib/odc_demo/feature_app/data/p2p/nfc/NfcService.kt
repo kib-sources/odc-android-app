@@ -5,7 +5,7 @@ import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
 import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
-import npo.kib.odc_demo.feature_app.domain.util.myLogs
+import npo.kib.odc_demo.feature_app.domain.util.log
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.ApduCommands
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceCommands
 import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceKeys
@@ -59,7 +59,7 @@ class NfcService : HostApduService() {
 
         if (!isServiceEnabled) return byteArrayOf(ApduCommands.REJECTED)
 
-        myLogs(commandApdu.decodeToString() + " message " + commandApdu.toHex())
+        log(commandApdu.decodeToString() + " message " + commandApdu.toHex())
 
         //Инициализация соединения
         if (commandApdu.contentEquals(selectApdu)) {

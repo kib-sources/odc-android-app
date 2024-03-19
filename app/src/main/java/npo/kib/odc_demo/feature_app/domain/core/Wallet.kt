@@ -7,6 +7,7 @@ package npo.kib.odc_demo.feature_app.domain.core
     В рамках презентации -- внутри самого приложения, что не безопасно .
  */
 
+import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
@@ -209,7 +210,7 @@ class Wallet(
             otok = childBlock.otok,
             time = childBlock.time,
             magic = magic,
-            transactionHash = hashValue.decodeToString(),
+            transactionHash = hashValue.toHex(),
             transactionHashSignature = signature,
         )
     }

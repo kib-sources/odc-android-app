@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import npo.kib.odc_demo.ui.GradientColors
@@ -21,8 +22,8 @@ import npo.kib.odc_demo.ui.theme.ODCAppTheme
 @Composable
 fun ODCPlainBackground(
     modifier: Modifier = Modifier,
-    color: Color = MaterialTheme.colorScheme.surface,
-    shape: Shape = RoundedCornerShape(10),
+    color: Color = MaterialTheme.colorScheme.background,
+    shape: Shape = RectangleShape,
     opacity: Float = 1f,
     content: @Composable () -> Unit
 ) {

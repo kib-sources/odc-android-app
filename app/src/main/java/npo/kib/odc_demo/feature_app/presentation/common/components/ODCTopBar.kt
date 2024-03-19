@@ -1,18 +1,14 @@
 package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -22,19 +18,18 @@ import npo.kib.odc_demo.R
 import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
-@ThemePreviews
 @Composable
 fun ODCTopBar(modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.padding(16.dp)
+        modifier = modifier
+            .requiredHeight(100.dp)
+            .requiredWidthIn(min = 330.dp)
+            .padding(10.dp)
     ) {
         Column(
             modifier = Modifier
-                .weight(
-                    1f,
-                    fill = true
-                )
-                .align(Alignment.CenterVertically)
+                .fillMaxHeight()
+                .weight(1f)
         ) {
             Image(
                 painter = painterResource(id = R.drawable.logo_1),
@@ -44,46 +39,61 @@ fun ODCTopBar(modifier: Modifier = Modifier) {
         }
         Column(
             modifier = Modifier
-                .weight(
-                    3f,
-                    fill = true
-                )
-                .align(Alignment.Bottom)
+                .fillMaxHeight()
+                .weight(3f)
+                .padding(horizontal = 10.dp),
+            verticalArrangement = Arrangement.Bottom
         ) {
-            Row(modifier = Modifier.offset(y = (-5).dp)) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "OpenDigitalCash",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+            Text(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                text = "OpenDigitalCash",
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 23.sp,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth().height(15.dp)
+            )
         }
-        Column(
+        Spacer(
             modifier = Modifier
-                .weight(
-                    1f,
-                    fill = true
-                )
-                .align(Alignment.CenterVertically)
-        ) {}
+                .fillMaxHeight()
+                .weight(0.7f)
+        )
     }
 }
 
 @ThemePreviews
 @Composable
-private fun ODCTopBarWithBalanceBlock(modifier: Modifier = Modifier) {
+private fun ODCTopAppBarPreview() {
+    ODCAppTheme {
+        Box(Modifier.requiredWidth(400.dp)) {
+            ODCTopBar()
+        }
+    }
+}
+
+@ThemePreviews
+@Composable
+private fun ODCTopBarWithBalanceBlock() {
     ODCAppTheme {
         Column(
-            modifier = modifier,
-            verticalArrangement = Arrangement.SpaceEvenly
+            modifier = Modifier
+                .size(
+                    width = 350.dp,
+                    height = 500.dp
+                )
+                .background(Color.DarkGray)
         ) {
-            ODCTopBar(modifier = Modifier.weight(1f))
-            BalanceBlock(modifier = Modifier
-                .align(CenterHorizontally)
-                .weight(1f))
+            ODCTopBar(
+                modifier = Modifier.align(CenterHorizontally)
+                    .width(600.dp)
+            )
+            BalanceBlock(modifier = Modifier.align(CenterHorizontally))
         }
     }
 }

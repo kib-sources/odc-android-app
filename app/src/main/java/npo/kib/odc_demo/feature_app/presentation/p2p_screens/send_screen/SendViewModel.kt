@@ -13,6 +13,7 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuff
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
+import npo.kib.odc_demo.feature_app.domain.util.log
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.*
@@ -141,7 +142,9 @@ class SendViewModel @Inject constructor(
     fun updateLocalUserInfo() = useCase.updateLocalUserInfo()
 
     override fun onCleared() {
-        useCase.reset()
+//        useCase.reset() crashes the app
+        this.log("onCleared()")
+        useCase.disconnect()
         super.onCleared()
     }
 }

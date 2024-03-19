@@ -15,36 +15,28 @@ import org.bouncycastle.asn1.x500.style.RFC4519Style.st
 @Composable
 fun P2PNavHost(
     modifier: Modifier = Modifier,
-    startingP2PRoute: String = p2pRootRoute,
-    onHistoryClick: () -> Unit,
     p2pCommonState: P2PCommonState,
-    startDestination: String = p2pSelectionGraphRoutePattern
+    onHistoryClick: () -> Unit,
 ) {
     val navController = p2pCommonState.navController
     NavHost(
-        navController = navController,
-        startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
+        startDestination = p2pSelectionGraphRoutePattern,
+        navController = navController
     ) {
-        p2pSelectionGraph(startingP2PRoute = startingP2PRoute,
+        p2pSelectionGraph(startingP2PRoute = p2pRootRoute,
             onHistoryClick = onHistoryClick,
             onATMButtonClick = navController::navigateToATMScreen,
             onReceiveButtonClick = navController::navigateToReceiveScreen,
             onSendButtonClick = navController::navigateToSendScreen,
             nestedGraphs = {
-                atmScreen(/*navigateToP2PRoot = { navController.popBackStack(route = startDestination, inclusive = false)}*/)
-                receiveScreen(navigateToP2PRoot = {
-                    navController.popBackStack(
-                        route = startDestination,
-                        inclusive = false
-                    )
-                })
-                sendScreen(navigateToP2PRoot = {
-                    navController.popBackStack(
-                        route = startDestination,
-                        inclusive = false
-                    )
-                })
+                atmScreen(navigateToP2PRoot = p2pCommonState::popToRoot)
+                receiveScreen(
+                    navigateToP2PRoot = p2pCommonState::popToRoot
+                )
+                sendScreen(
+                    navigateToP2PRoot = p2pCommonState::popToRoot
+                )
             })
     }
 }

@@ -1,18 +1,13 @@
 package npo.kib.odc_demo.feature_app.presentation.common
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Stable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
-import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
+import kotlinx.coroutines.CoroutineScope
 import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination
 import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination.HOME
 import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination.SETTINGS
@@ -23,15 +18,18 @@ import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_scre
 
 
 @Composable
-fun rememberODCAppState(navController: NavHostController = rememberNavController() /*, currentAppUser: AppUser*/): ODCAppState {
-    return remember(navController/*,currentAppUser*/) { ODCAppState(navController/*, currentAppUser*/) }
-}
+fun rememberODCAppState(navController: NavHostController = rememberNavController(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+//    userPreferencesDataSource : DefaultDataStoreRepository,
+    ): ODCAppState =
+    remember(navController) { ODCAppState(navController, coroutineScope, /*userPreferencesDataSource*/) }
+
 
 @Stable
 class ODCAppState(
-    //Created on log in screen, need to set a default one temporarily
-    val navController: NavHostController
-//    ,val currentAppUser : AppUser?,
+    val navController: NavHostController,
+    coroutineScope: CoroutineScope,
+//    private val userPreferencesDataSource : DefaultDataStoreRepository,
 //    val windowSizeClass: WindowSizeClass add later if/when adapting UI to different screen classes is needed
 ) {
     val currentDestination: NavDestination?
@@ -47,16 +45,6 @@ class ODCAppState(
     //To be able to disable bottom bar on log-in screen in the future
     var shouldShowBottomBar: Boolean by mutableStateOf(true)
         private set
-
-    //Initialized by log in
-    var currentAppUser: AppUser by mutableStateOf(AppUser())
-        private set
-
-//    var isAuthenticated: Boolean = false
-//        private set
-
-    
-
 
 
     val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.entries
@@ -81,5 +69,7 @@ class ODCAppState(
             SETTINGS -> navController.navigateToSettingsScreen(topLevelNavOptions)
         }
     }
+
+
 
 }

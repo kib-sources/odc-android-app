@@ -19,10 +19,9 @@ fun NavController.navigateToReceiveScreen(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.receiveScreen(navigateToP2PRoot: () -> Unit) {
     composable(route = p2pReceiveRoute) {
-        val backStackEntry: NavBackStackEntry = remember { it }
         ReceiveRoute(
             navigateToP2PRoot = navigateToP2PRoot,
-            navBackStackEntry = backStackEntry
+            navBackStackEntry = it
         )
     }
 }

@@ -84,6 +84,7 @@ dependencies {
     implementation(AndroidX.appCompat)
     implementation(AndroidX.constraintLayout)
     implementation(AndroidX.activity)
+    implementation(AndroidX.splashScreen)
 
     //Compose
     implementation(platform(Compose.composeBOM))
@@ -201,7 +202,7 @@ dependencies {
 
     androidTestImplementation(Testing.testRunner)
 
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.5.4")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.3")
 }
 //
 //kapt {

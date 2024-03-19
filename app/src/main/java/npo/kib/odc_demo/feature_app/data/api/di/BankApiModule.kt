@@ -19,7 +19,8 @@ object BankApiModule {
     @Provides
     fun provideBankApi(): BankApi {
 //        val baseUrl = "http://10.0.2.2:80"
-        val baseUrl = "http://192.168.0.103:5001"
+//        val baseUrl = "http://192.168.0.103:5001"
+        val baseUrl = "http://185.154.195.223"
         val interceptor = HttpLoggingInterceptor().apply {
             this.level = HttpLoggingInterceptor.Level.BODY
         }

@@ -18,8 +18,6 @@ fun MultiplePermissionsRequestBlock(
     Column(modifier = modifier) {
         Text(text = permissionsRequestText)
         Spacer(modifier = Modifier.height(8.dp))
-        Button(onClick = onRequestPermissionsClick) {
-            Text("Request permissions")
-        }
+        ODCGradientActionButton(text = "Request permissions", onClick = onRequestPermissionsClick)
     }
 }

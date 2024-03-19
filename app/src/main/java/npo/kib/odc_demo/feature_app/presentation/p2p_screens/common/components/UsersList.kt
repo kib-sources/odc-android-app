@@ -66,7 +66,7 @@ fun UsersList(
             ) {
                 items(
                     items = deviceList,
-                    key = { device -> device.address },
+//                    key = { device -> device.address + device.name },
                 ) { device ->
                     DeviceItem(modifier = Modifier.animateItemPlacement(),
                                name = device.name,

@@ -21,7 +21,7 @@ class BluetoothDataTransferService(
                 val byteCount = try {
                     socket.inputStream.read(buffer)
                 } catch (e: IOException) {
-                    throw TransferFailedException()
+                    throw TransferFailedException(e.message ?: "null")
                 }
 
                 emit(
@@ -43,5 +43,9 @@ class BluetoothDataTransferService(
         }
     }
 
-    private class TransferFailedException : Exception()
+    class TransferFailedException(message : String = "") : Exception(message){
+        override fun toString(): String {
+            return this::class.simpleName + " : " + message
+        }
+    }
 }

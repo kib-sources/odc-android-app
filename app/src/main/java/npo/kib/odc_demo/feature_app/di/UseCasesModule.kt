@@ -45,15 +45,15 @@ object UseCasesModule {
         @P2PUseCaseScope scope: CoroutineScope
     ) = P2PReceiveUseCase(transactionController, bluetoothController, scope)
 
-    @Provides
-    @ViewModelScoped
-    fun provideSendUseCase(
-        transactionController: SenderTransactionController,
-        bluetoothController: BluetoothController,
-        @P2PUseCaseScope scope: CoroutineScope
-    ) = P2PSendUseCase(transactionController, bluetoothController, scope)
+//    @Provides
+//    @ViewModelScoped
+//    fun provideSendUseCase(
+//        transactionController: SenderTransactionController,
+//        bluetoothController: BluetoothController,
+//        @P2PUseCaseScope scope: CoroutineScope
+//    ) = P2PSendUseCase(transactionController, bluetoothController, scope)
 
-    @Provides
-    @ViewModelScoped
-    fun provideGetInfoFromWalletUseCase(walletRepository: WalletRepository) = GetInfoFromWalletUseCase(walletRepository)
+//    @Provides
+//    @ViewModelScoped
+//    fun provideGetInfoFromWalletUseCase(walletRepository: WalletRepository) = GetInfoFromWalletUseCase(walletRepository)
 }

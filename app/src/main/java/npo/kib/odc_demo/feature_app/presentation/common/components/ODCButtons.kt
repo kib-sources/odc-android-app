@@ -81,8 +81,8 @@ fun ODCGradientActionButton(
                 shape = shape,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            .height(ButtonDefaults.MinHeight)
-            .aspectRatio(4f),
+            /*.height(ButtonDefaults.MinHeight)
+            .aspectRatio(4f)*/,
         enabled = enabled,
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)

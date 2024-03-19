@@ -1,9 +1,11 @@
 package npo.kib.odc_demo.feature_app.domain.use_cases
 
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
+import npo.kib.odc_demo.feature_app.di.P2PUseCaseScope
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.toSerializedDataPacket
@@ -11,11 +13,13 @@ import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
 import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
+import javax.inject.Inject
 
-class P2PSendUseCase(
+@ViewModelScoped
+class P2PSendUseCase @Inject constructor(
     private val transactionController: SenderTransactionController,
     private val bluetoothController: BluetoothController,
-    private val scope: CoroutineScope
+    @P2PUseCaseScope private val scope: CoroutineScope
 ) {
     private var connectionJob: Job? = null
 
