@@ -22,7 +22,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
-import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientActionButton
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
 import npo.kib.odc_demo.feature_app.presentation.common.components.TransparentHintTextField
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.StatusInfoBlock
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.animateFadeVerticalSlideInOut
@@ -137,7 +137,7 @@ private object AtmScreenSubScreens {
                 hint = "Enter amount to request...",
                 onValueChange = { amountText = it })
             Spacer(modifier = Modifier.height(10.dp))
-            ODCGradientActionButton(text = if (amountIsValid) "Send request" else "Invalid amount",
+            ODCGradientButton(text = if (amountIsValid) "Send request" else "Invalid amount",
                 enabled = amountIsValid,
                 gradientColors = if (amountIsValid) GradientColors.ButtonPositiveActionColors else GradientColors.ButtonNegativeActionColors,
                 onClick = {

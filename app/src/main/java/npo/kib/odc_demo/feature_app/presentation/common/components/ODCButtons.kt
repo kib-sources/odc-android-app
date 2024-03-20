@@ -18,7 +18,7 @@ import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 @Composable
-fun ODCPlainActionButton(
+fun ODCPlainButton(
     modifier: Modifier = Modifier,
     text: String,
     color: Color = MaterialTheme.colorScheme.primaryContainer,
@@ -51,13 +51,13 @@ fun ODCPlainActionButton(
 private fun ODCPlainActionButtonPreview() {
     ODCAppTheme {
         Column {
-            ODCPlainActionButton(text = "Sample action") {}
+            ODCPlainButton(text = "Sample action") {}
         }
     }
 }
 
 @Composable
-fun ODCGradientActionButton(
+fun ODCGradientButton(
     modifier: Modifier = Modifier,
     text: String,
     gradientColors: GradientColors = GradientColors.ButtonPositiveActionColors,
@@ -97,11 +97,11 @@ fun ODCGradientActionButton(
 private fun ODCGradientActionButtonPreview() {
     ODCAppTheme {
         Column {
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Accept",
                 gradientColors = GradientColors.ButtonPositiveActionColors
             ) {}
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Reject",
                 gradientColors = GradientColors.ButtonNegativeActionColors
             ) {}

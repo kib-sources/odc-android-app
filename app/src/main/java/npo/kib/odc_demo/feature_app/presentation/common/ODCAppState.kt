@@ -18,18 +18,22 @@ import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_scre
 
 
 @Composable
-fun rememberODCAppState(navController: NavHostController = rememberNavController(),
-    coroutineScope: CoroutineScope = rememberCoroutineScope(),
-//    userPreferencesDataSource : DefaultDataStoreRepository,
-    ): ODCAppState =
-    remember(navController) { ODCAppState(navController, coroutineScope, /*userPreferencesDataSource*/) }
+fun rememberODCAppState(
+    navController: NavHostController = rememberNavController(),
+    coroutineScope: CoroutineScope = rememberCoroutineScope()
+): ODCAppState =
+    remember(navController) {
+        ODCAppState(
+            navController,
+            coroutineScope
+        )
+    }
 
 
 @Stable
 class ODCAppState(
     val navController: NavHostController,
-    coroutineScope: CoroutineScope,
-//    private val userPreferencesDataSource : DefaultDataStoreRepository,
+    private val coroutineScope: CoroutineScope
 //    val windowSizeClass: WindowSizeClass add later if/when adapting UI to different screen classes is needed
 ) {
     val currentDestination: NavDestination?
@@ -69,7 +73,6 @@ class ODCAppState(
             SETTINGS -> navController.navigateToSettingsScreen(topLevelNavOptions)
         }
     }
-
 
 
 }

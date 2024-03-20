@@ -35,11 +35,20 @@ fun UsersList(
     deviceList: List<CustomBluetoothDevice>,
     onClickDevice: (CustomBluetoothDevice) -> Unit
 ) {
-    Surface(modifier = modifier.clip(RoundedCornerShape(10.dp)).animateContentSize()) {
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .animateContentSize(),
+        color = MaterialTheme.colorScheme.background
+    ) {
         Column(
-            modifier = Modifier.border(
-                width = 2.dp, color = LocalContentColor.current, shape = RoundedCornerShape(10.dp)
-            ).animateContentSize()
+            modifier = Modifier
+                .border(
+                    width = 2.dp,
+                    color = LocalContentColor.current,
+                    shape = RoundedCornerShape(10.dp)
+                )
+                .animateContentSize()
         ) {
             Column(
                 modifier
@@ -66,14 +75,14 @@ fun UsersList(
             ) {
                 items(
                     items = deviceList,
-//                    key = { device -> device.address + device.name },
+//                    key = { device -> device.address + device.name }, can cause app crash due to key collisions
                 ) { device ->
                     DeviceItem(modifier = Modifier.animateItemPlacement(),
-                               name = device.name,
-                               address = device.address,
-                               onItemClick = {
-                                   onClickDevice(device)
-                               })
+                        name = device.name,
+                        address = device.address,
+                        onItemClick = {
+                            onClickDevice(device)
+                        })
 
                 }
             }

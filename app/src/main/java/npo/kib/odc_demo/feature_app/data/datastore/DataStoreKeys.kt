@@ -32,4 +32,7 @@ sealed class UtilityDataStoreKey<T>(
     data object SOK_SIGN_KEY : UtilityDataStoreKey<String>(stringPreferencesKey("SOK_signed"))
     data object WID_KEY : UtilityDataStoreKey<String>(stringPreferencesKey("WID"))
     data object CACHED_BLUETOOTH_NAME : DefaultDataStoreKey<String>(key = stringPreferencesKey("CACHED_BLUETOOTH_NAME"))
+
+    //todo can add a key SHOULD_UPDATE_BALANCE for a Boolean to react to changes and trigger on 'true'
+    // HomeViewModel.updateBalanceAndAppUserInfo()
 }

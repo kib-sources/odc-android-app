@@ -5,8 +5,13 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,13 +33,15 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.R
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
 import npo.kib.odc_demo.feature_app.presentation.common.components.CustomSnackbar
 import npo.kib.odc_demo.feature_app.presentation.common.components.MultiplePermissionsRequestBlock
-import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientActionButton
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.StatusInfoBlock
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UserInfoBlock
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Success
 import npo.kib.odc_demo.ui.GradientColors
+import npo.kib.odc_demo.ui.GradientColors.ButtonNegativeActionColors
+import npo.kib.odc_demo.ui.GradientColors.ButtonPositiveActionColors
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -124,9 +131,7 @@ private fun ReceiveScreen(
                     })
 
                     Advertising -> AdvertisingScreen(onClickStopAdvertising = {
-                        onEvent(
-                            ReceiveScreenEvent.SetAdvertising(false)
-                        )
+                        onEvent(ReceiveScreenEvent.SetAdvertising(false))
                     })
 
                     Loading -> InProgressScreen("Connecting")
@@ -186,9 +191,7 @@ private object ReceiveScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Initial screen")
-            Button(onClick = onClickStartAdvertising) {
-                Text(text = "Start advertising")
-            }
+            ODCGradientButton(text = "Start advertising", onClick = onClickStartAdvertising)
         }
     }
 
@@ -200,9 +203,7 @@ private object ReceiveScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Advertising screen")
-            Button(onClick = onClickStopAdvertising) {
-                Text(text = "Stop advertising")
-            }
+            ODCGradientButton(text = "Stop advertising", onClick = onClickStopAdvertising, gradientColors = ButtonNegativeActionColors)
         }
     }
 
@@ -322,15 +323,15 @@ private object ReceiveScreenSubScreens {
                 statusLabel = "Amount:", infoText = "$amount RUB"
             )
             Spacer(modifier = Modifier.height(5.dp))
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Accept offer",
-                gradientColors = GradientColors.ButtonPositiveActionColors,
+                gradientColors = ButtonPositiveActionColors,
                 onClick = onClickAccept
             )
             Spacer(modifier = Modifier.height(3.dp))
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Reject offer",
-                gradientColors = GradientColors.ButtonNegativeActionColors,
+                gradientColors = ButtonNegativeActionColors,
                 onClick = onClickReject
             )
 
@@ -346,7 +347,7 @@ private object ReceiveScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Transaction finished successfully")
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Finish", onClick = onClickFinish
             )
         }
@@ -363,9 +364,9 @@ private object ReceiveScreenSubScreens {
         ) {
             Text(text = "An error has occurred:")
             Text(text = failureMessage)
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Abort transaction",
-                gradientColors = GradientColors.ButtonNegativeActionColors,
+                gradientColors = ButtonNegativeActionColors,
                 onClick = onClickAbort
             )
         }

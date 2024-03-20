@@ -98,7 +98,7 @@ dependencies {
 
     //Material
     implementation(Compose.material3)
-    implementation (Google.material)
+    implementation(Google.material)
 
     debugImplementation(Compose.uiTooling)
 
@@ -117,9 +117,6 @@ dependencies {
     implementation(Retrofit.gsonConverter)
     implementation(Retrofit.okHttp)
     implementation(Retrofit.okHttpLoggingInterfceptor)
-
-    //Nearby
-    implementation(Google.playServicesNearby)
 
     //HTTP networking
     implementation(Kittinunf.fuel)
@@ -161,7 +158,7 @@ dependencies {
     androidTestImplementation(Compose.composeBOM)
 
     // Hilt testing dependency
-    androidTestImplementation (Testing.hiltTesting)
+    androidTestImplementation(Testing.hiltTesting)
     // Make Hilt generate code in the androidTest folder
     kspAndroidTest(DaggerHilt.hiltCompiler)
 //    kaptAndroidTest(DaggerHilt.hiltCompiler)

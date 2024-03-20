@@ -10,7 +10,6 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.navi
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.navigation.receiveScreen
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.navigation.navigateToSendScreen
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.navigation.sendScreen
-import org.bouncycastle.asn1.x500.style.RFC4519Style.st
 
 @Composable
 fun P2PNavHost(

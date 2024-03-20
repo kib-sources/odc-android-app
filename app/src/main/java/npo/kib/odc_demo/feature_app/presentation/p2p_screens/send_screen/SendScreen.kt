@@ -178,9 +178,7 @@ private object SendScreenSubScreens {
         ) {
             Text(text = "Search for users", Modifier.animateFadeVerticalSlideInOut())
             Spacer(modifier = Modifier.height(10.dp))
-            Button(onClick = onClickStartSearching) {
-                Text(text = "Start searching")
-            }
+            ODCGradientButton(text = "Start searching", onClick = onClickStartSearching)
         }
     }
 
@@ -196,9 +194,11 @@ private object SendScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            Button(onClick = onClickCancelSearching) {
-                Text(text = "Cancel searching")
-            }
+            ODCGradientButton(
+                text = "Cancel searching",
+                onClick = onClickCancelSearching,
+                gradientColors = GradientColors.ButtonNegativeActionColors
+            )
             UsersList(
                 deviceList = foundDevices, onClickDevice = onUserClicked
             )
@@ -335,9 +335,8 @@ private object SendScreenSubScreens {
                         StatusInfoBlock(
                             statusLabel = "The amount is ${if (isAmountAvailable) "available!" else "not available, try again"}"
                         )
-                        if (isAmountAvailable) ODCGradientActionButton(
-                            text = "Send the offer",
-                            onClick = onClickSendOffer
+                        if (isAmountAvailable) ODCGradientButton(
+                            text = "Send the offer", onClick = onClickSendOffer
                         )
                     }
 
@@ -359,7 +358,7 @@ private object SendScreenSubScreens {
                         hint = "Enter a valid amount...",
                         onValueChange = { amountText = it })
                     Spacer(modifier = Modifier.height(5.dp))
-                    ODCGradientActionButton(text = if (amountIsValid) "Construct the amount" else "Invalid amount entered",
+                    ODCGradientButton(text = if (amountIsValid) "Construct the amount" else "Invalid amount entered",
                         enabled = amountIsValid,
                         gradientColors = if (amountIsValid) GradientColors.ButtonPositiveActionColors else GradientColors.ButtonNegativeActionColors,
                         onClick = { if (amountIsValid) onClickTryConstructAmount(amountText.toInt()) })
@@ -376,7 +375,7 @@ private object SendScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Transaction finished successfully")
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Finish", onClick = onClickFinish
             )
         }
@@ -393,7 +392,7 @@ private object SendScreenSubScreens {
         ) {
             Text(text = "An error has occurred:")
             Text(text = failureMessage)
-            ODCGradientActionButton(
+            ODCGradientButton(
                 text = "Abort transaction",
                 gradientColors = GradientColors.ButtonNegativeActionColors,
                 onClick = onClickAbort

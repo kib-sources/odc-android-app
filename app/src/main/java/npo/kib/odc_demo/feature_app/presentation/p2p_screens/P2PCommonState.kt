@@ -38,12 +38,7 @@ class P2PCommonState(
             else -> null
         }
 
-    //    var currentRoute : String
-//        get
     fun popToRoot() {
         navController.popBackStack(route = p2pRootRoute, inclusive = false)
     }
-
-
-
 }

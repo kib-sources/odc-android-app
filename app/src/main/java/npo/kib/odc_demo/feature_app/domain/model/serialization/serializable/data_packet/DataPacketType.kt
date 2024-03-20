@@ -15,3 +15,4 @@ enum class DataPacketType {
     ACCEPTANCE_BLOCKS,
     TRANSACTION_RESULT
 }
+//todo add and use new type "NEXT_PACKET_SIZE"

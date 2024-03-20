@@ -2,9 +2,7 @@ package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,12 +27,13 @@ fun HomeRoute() {
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(),
-    onHistoryClick: () -> Unit
+    viewModel: HomeViewModel = hiltViewModel(), onHistoryClick: () -> Unit
 ) {
+
     val p2pCommonState = rememberP2PCommonState()
 
     val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
+
 
     LaunchedEffect(key1 = true) {
         p2pCommonState.popToRoot()
@@ -51,6 +50,7 @@ fun HomeScreen(
                 .align(CenterHorizontally)
                 .weight(1f),
             appUser = homeState.currentUser,
+            isUpdatingBalanceAndInfo = homeState.isUpdatingBalanceAndInfo,
             refreshBalanceAndUserInfo = viewModel::updateBalanceAndAppUserInfo
         )
         P2PNavHost(
@@ -86,20 +86,16 @@ private fun HomeScreenPreview() {
             val bottomBarHeightPercentage = maxHeight * 0.07f
 
 
-            Scaffold(modifier = Modifier.fillMaxSize(),
-                topBar = {
-                    ODCTopBar(
-                        modifier = Modifier/*.height(topBarHeightPercentage)*/
-                    )
-                },
-                bottomBar = {
-                    ODCBottomBar(
-                        destinations = TopLevelDestination.entries,
-                        {},
-                        currentDestination = null,
-                        modifier = Modifier/*.height(bottomBarHeightPercentage)*/
-                    )
-                }) { paddingValues ->
+            Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
+                ODCTopBar(modifier = Modifier/*.height(topBarHeightPercentage)*/)
+            }, bottomBar = {
+                ODCBottomBar(
+                    destinations = TopLevelDestination.entries,
+                    {},
+                    currentDestination = null,
+                    modifier = Modifier/*.height(bottomBarHeightPercentage)*/
+                )
+            }) { paddingValues ->
                 Box(modifier = Modifier.padding(paddingValues = paddingValues)) {
                     HomeScreen(onHistoryClick = {})
                 }

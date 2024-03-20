@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -26,22 +27,19 @@ class HomeViewModel @Inject constructor(
         updateBalanceAndAppUserInfo()
     }
 
-    //Use on the "refresh" button of the balance block
     fun updateBalanceAndAppUserInfo() {
         if (!homeScreenState.value.isUpdatingBalanceAndInfo) {
             viewModelScope.launch {
-                this@HomeViewModel.log("Updating balance")
                 _homeScreenState.update { it.copy(isUpdatingBalanceAndInfo = true) }
+                this@HomeViewModel.log("Updating balance")
                 val balance = async { useCase.getSumInWallet() }
                 val currentAppUser = async { useCase.getLocalUserInfo().toAppUser() }
                 _homeScreenState.update {
-                    it.copy(
-                        balance = balance.await(), currentUser = currentAppUser.await()
-                    )
+                    it.copy(balance = balance.await(), currentUser = currentAppUser.await())
                 }
                 this@HomeViewModel.log("Balance updated")
+                _homeScreenState.update { it.copy(isUpdatingBalanceAndInfo = false) }
             }
-            _homeScreenState.update { it.copy(isUpdatingBalanceAndInfo = false) }
         }
     }
 

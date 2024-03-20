@@ -8,8 +8,15 @@ import kotlinx.serialization.json.Json
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacket
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketType
+import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.serializeToByteArray
+import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.toSerializedDataPacket
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.BanknotesList
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -35,6 +42,49 @@ class SerializationTests {
 
     }
 
+    private fun Any.p(startMsg: String = "") = println(startMsg + this)
+
+    private fun List<*>.pList(startMsg: String = ""): List<*> {
+        println(startMsg + this.toStr())
+        return this
+    }
+
+    @Test
+    fun testBanknotesListSerAndDeser() {
+        val mList: MutableList<BanknoteWithBlockchain> = mutableListOf()
+        for (i in (0..999)) {
+            mList.add(
+                BanknoteWithBlockchain(
+                    banknoteWithProtectedBlock = BanknoteWithProtectedBlock(
+                        banknote = Banknote(
+                            bin = 5550 * i,
+                            amount = 1467 * i,
+                            code = 9211 * i,
+                            bnid = "Jesslyn",
+                            signature = "Daysha",
+                            time = 7525 * i
+                        ),
+                        protectedBlock = ProtectedBlock(
+                            parentSok = null,
+                            parentSokSignature = null,
+                            parentOtokSignature = null,
+                            refUuid = null,
+                            sok = null,
+                            sokSignature = null,
+                            otokSignature = "Cherese",
+                            transactionSignature = "Cindi",
+                            time = 826 * i
+                        ),
+                    ), blocks = listOf()
+                )
+            )
+        }
+        val bList = BanknotesList(list = mList.toList())
+        val serializedBList = bList.toSerializedDataPacket()
+        println("Serialized list size in bytes :\n" + serializedBList.size)
+        assertEquals(bList, serializedBList.deserializeToDataPacketVariant())
+    }
+
 
     @DisplayName("Test if an object serialized and deserialized back is still the same")
     private inline fun <reified T : DataPacketVariant> testObjectSerializationAndDeserialization(
@@ -45,7 +95,7 @@ class SerializationTests {
 
     @Test
     @DisplayName("Test [DataPacket] serialization and deserialization")
-    fun testDataPacketSerializationAndDeserialization() {
+    fun testUserInfoDataPacketSerializationAndDeserialization() {
         val primitiveByteArray = ByteArray(1270) { it.toByte() }
         val userInfo = UserInfo(userName = "User", walletId = "some_wallet_id")
         val packet = DataPacket(
@@ -59,7 +109,7 @@ class SerializationTests {
     }
 
     @Serializable
-    private data class Pair1<out A , out B>(
+    private data class Pair1<out A, out B>(
         @Serializable
         val p1: A,
         @Serializable
@@ -88,7 +138,7 @@ class SerializationTests {
     }
 
     //Does not work without reified A & B because of Type Erasure
-    private inline fun <reified A , reified B> Pair1<A, B>.serialize(): ByteArray {
+    private inline fun <reified A, reified B> Pair1<A, B>.serialize(): ByteArray {
         val json = Json {
             ignoreUnknownKeys = true
         }
