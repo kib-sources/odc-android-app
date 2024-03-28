@@ -13,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
@@ -28,7 +27,7 @@ fun HistoryBlock(onHistoryClick: () -> Unit, modifier: Modifier = Modifier) {
                 .fillMaxSize()
                 .border(
                     width = 2.dp,
-                    color = Color.Black,
+                    color = MaterialTheme.colorScheme.onBackground,
                     shape = RoundedCornerShape(10)
                 )
                 .clickable { onHistoryClick() }) {

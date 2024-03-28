@@ -4,7 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.LocalAbsoluteTonalElevation
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -32,8 +35,10 @@ fun ODCPlainBackground(
 //    val color = LocalBackgroundTheme.current.color
 //    val tonalElevation = LocalBackgroundTheme.current.tonalElevation
     Surface(
-        modifier = modifier, shape = shape,
-        color = if (opacity < 1f) color else color.copy(alpha = opacity)
+        modifier = modifier,
+        shape = shape,
+        color = if (opacity < 1f) color else color.copy(alpha = opacity),
+        contentColor = contentColorFor(color)
     ) {
         CompositionLocalProvider(LocalAbsoluteTonalElevation provides 0.dp) {
             content()
@@ -50,7 +55,8 @@ fun ODCGradientBackground(
     content: @Composable () -> Unit
 ) {
     Surface(
-        modifier = modifier, shape = shape,
+        modifier = modifier,
+        shape = shape,
         color = if (gradientColors.container == Color.Unspecified) {
             Color.Transparent
         } else {

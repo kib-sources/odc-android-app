@@ -6,13 +6,16 @@ import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.di.P2PUseCaseScope
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult.ConnectionEstablished
+import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult.TransferSucceeded
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.toSerializedDataPacket
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionController
 import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
+import npo.kib.odc_demo.feature_app.domain.util.log
+import npo.kib.odc_demo.feature_app.domain.util.logOut
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -31,9 +34,7 @@ class P2PSendUseCase @Inject constructor(
     val transactionStatus = transactionController.transactionStatus
 
     val bluetoothState = bluetoothController.bluetoothStateColdFlow.stateIn(
-        scope,
-        SharingStarted.WhileSubscribed(replayExpirationMillis = 0),
-        BluetoothState()
+        scope, SharingStarted.WhileSubscribed(replayExpirationMillis = 0), BluetoothState()
     )
 
     private val _useCaseErrors = MutableSharedFlow<String>(extraBufferCapacity = 5)
@@ -55,7 +56,7 @@ class P2PSendUseCase @Inject constructor(
         cancelJob()
         connectionJob = bluetoothController.connectToDevice(device).onEach { connectionResult ->
             when (connectionResult) {
-                BluetoothConnectionResult.ConnectionEstablished -> {
+                ConnectionEstablished -> {
                     transactionController.initController()
                     startSendingPacketsFromTransactionController()
                     //todo handle the situation when an exception happens and the flow in this method
@@ -64,20 +65,21 @@ class P2PSendUseCase @Inject constructor(
                     // and be able to disconnect by pressing the "disconnect" UI button.
                     transactionController.startProcessingIncomingPackets()
                 }
-                is BluetoothConnectionResult.TransferSucceeded -> transactionControllerInputChannel.send(
+
+                is TransferSucceeded -> transactionControllerInputChannel.send(
                     connectionResult.bytes.deserializeToDataPacketVariant()
+                        .logOut("Received DataPacketVariant:\n", tag = "P2PSendUseCase")
                 )
             }
         }.onCompletion {
-            withContext(
-                NonCancellable
-            ) { transactionController.resetController() }
+            withContext(NonCancellable) { transactionController.resetController() }
         }.launchIn(scope)
     }
 
     private fun startSendingPacketsFromTransactionController(): Boolean {
         return if (bluetoothState.value.connectionStatus == BluetoothConnectionStatus.CONNECTED) {
             packetsToSend.onEach { packet ->
+                this@P2PSendUseCase.log("BLUETOOTH conn status = ${bluetoothState.value.connectionStatus}\nGoing to send packet: ${packet.packetType}" )
                 if (bluetoothState.value.connectionStatus == BluetoothConnectionStatus.CONNECTED) bluetoothController.trySendBytes(
                     packet.toSerializedDataPacket()
                 )

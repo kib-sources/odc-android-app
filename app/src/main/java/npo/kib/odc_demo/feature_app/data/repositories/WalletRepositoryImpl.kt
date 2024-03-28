@@ -29,12 +29,9 @@ class WalletRepositoryImpl(
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : WalletRepository {
 
-    //todo better add field isRegistered : Boolean (?) here or
-    // maybe inside the wallet class itself
+    //todo add field isRegistered : Boolean here or
+    // inside the Wallet class
     private var wallet: Wallet? = null
-
-    //todo actually should not need to use Wallet directly anywhere outside,
-    // only inside the repositories, so better not to return it
 
     override suspend fun getOrRegisterWallet(): Wallet {
         wallet?.let {

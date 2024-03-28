@@ -39,7 +39,6 @@ class MainActivity : ComponentActivity() {
     private val viewModel: MainActivityViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //todo add splash.xml and etc to resources
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         this.log("Created")
@@ -53,16 +52,12 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-
         splashScreen.setKeepOnScreenCondition {
             when (uiState) {
                 Loading -> true
                 else -> false
             }
         }
-
-
-        enableEdgeToEdge()
 
         setContent {
             val darkTheme = isSystemInDarkTheme()
@@ -80,14 +75,16 @@ class MainActivity : ComponentActivity() {
 //                        darkScrim,
                         TRANSPARENT,
                         TRANSPARENT,
-                    ) { darkTheme },
+                    ) { darkTheme }
                 )
                 onDispose {}
             }
 
             ODCAppTheme(useDarkTheme = darkTheme) {
                 when (uiState) {
-                    Loading -> {/* Splash screen is active */}
+                    Loading -> {/* Splash screen is active */
+                    }
+
                     MainActivityUiState.FailureConnectingToBank -> Column(
                         Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.Center,
@@ -98,12 +95,12 @@ class MainActivity : ComponentActivity() {
                             text = "Try again", onClick = viewModel::registerWalletWithBank
                         )
                     }
-                    is MainActivityUiState.Success ->
-                        CompositionLocalProvider(
-                            LocalAppBluetoothPermissions provides bluetoothPermissionsList
-                        ) {
-                            ODCApp(/* windowSizeClass = calculateWindowSizeClass(this) */)
-                        }
+
+                    is MainActivityUiState.Success -> CompositionLocalProvider(
+                        LocalAppBluetoothPermissions provides bluetoothPermissionsList
+                    ) {
+                        ODCApp(/* windowSizeClass = calculateWindowSizeClass(this)*/)
+                    }
                 }
             }
         }

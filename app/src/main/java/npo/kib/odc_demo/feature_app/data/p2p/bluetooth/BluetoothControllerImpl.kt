@@ -201,6 +201,7 @@ class BluetoothControllerImpl(
                 }
             }
         }.onCompletion {
+            this@BluetoothControllerImpl.log("startBluetoothServerAndGetFlow flow.onCompletion{} called")
             closeConnection()
         }.flowOn(ioDispatcher)
     }
@@ -241,6 +242,7 @@ class BluetoothControllerImpl(
                 }
             }
         }.onCompletion {
+            this@BluetoothControllerImpl.log("connectToDevice flow.onCompletion{} called")
             closeConnection()
         }.flowOn(ioDispatcher)
     }

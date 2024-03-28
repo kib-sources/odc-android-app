@@ -1,6 +1,8 @@
 package npo.kib.odc_demo.feature_app.domain.model.serialization
 
+import androidx.compose.ui.util.fastReduce
 import com.upokecenter.cbor.CBORObject
+import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -11,11 +13,45 @@ import kotlinx.serialization.json.Json
 import npo.kib.odc_demo.feature_app.domain.core.getString
 import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
-import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.serializeToByteArray
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
+import java.nio.ByteBuffer
 import java.security.PublicKey
 import java.util.UUID
+import kotlin.coroutines.coroutineContext
+
+const val DEFAULT_PACKET_CHUNK_SIZE: Int = 1024
+
+object ByteArrayChunkedConverter {
+
+    //chunk size is amount in bytes that a connection allows to send in one operation
+    suspend fun ByteArray.toChunksList(
+        chunkSize: Int = DEFAULT_PACKET_CHUNK_SIZE
+    ): List<ByteArray> {
+        val resultList: MutableList<ByteArray> = mutableListOf()
+
+        for (i in indices step chunkSize) {
+            coroutineContext.ensureActive()
+            resultList.add(this.copyOfRange(i, minOf(i + chunkSize, this.size)))
+        }
+
+        return resultList.toList() //contains the packet bytes in chunks
+    }
+
+    suspend fun List<ByteArray>.toByteArrayFromChunks(): ByteArray = fastReduce { acc, bytes ->
+        coroutineContext.ensureActive()
+        acc + bytes
+    }
+
+}
+
+fun Int.toBytes(): ByteArray =
+    ByteBuffer.allocate(Int.SIZE_BYTES).putInt(this).array()
+
+fun ByteArray.bytesToInt(): Int =
+    ByteBuffer.wrap(this).int
+
 
 object BytesToTypeConverter {
     private val json = Json {
@@ -43,27 +79,31 @@ object BytesToTypeConverter {
     }
 
     /**
-     * Fully deserializes [DataPacket] based on [DataPacketType]
+     * Fully deserializes [DataPacket] based on [DataPacketType] that it contains.
      * @return [DataPacketVariant]
      * */
     fun ByteArray.deserializeToDataPacketVariant(): DataPacketVariant {
         val dataPacket = this.deserializeToDataPacket()
         val packetType = dataPacket.packetType
         val packetBytes = dataPacket.bytes
-        val deserializedPacket: DataPacketVariant
-        with(packetBytes) {
-            deserializedPacket = when (packetType) {
-                DataPacketType.USER_INFO -> deserializeToDataPacketType<UserInfo>()
-                DataPacketType.AMOUNT_REQUEST -> deserializeToDataPacketType<AmountRequest>()
-                DataPacketType.BANKNOTES_LIST -> deserializeToDataPacketType<BanknotesList>()
-                DataPacketType.ACCEPTANCE_BLOCKS -> deserializeToDataPacketType<AcceptanceBlocks>()
-                DataPacketType.SIGNED_BLOCK -> deserializeToDataPacketType<Block>()
-                DataPacketType.TRANSACTION_RESULT -> deserializeToDataPacketType<TransactionResult>()
+        return with(packetBytes) {
+            when (packetType) {
+                USER_INFO -> deserializeToDataPacketType<UserInfo>()
+                AMOUNT_REQUEST -> deserializeToDataPacketType<AmountRequest>()
+                BANKNOTES_LIST -> deserializeToDataPacketType<BanknotesList>()
+                ACCEPTANCE_BLOCKS -> deserializeToDataPacketType<AcceptanceBlocks>()
+                SIGNED_BLOCK -> deserializeToDataPacketType<Block>()
+                TRANSACTION_RESULT -> deserializeToDataPacketType<TransactionResult>()
+//                NEXT_PACKET_SIZE_INFO -> {
+//                    require(packetBytes.size in (1..4)) {
+//                        this@BytesToTypeConverter.log("NEXT_PACKET_SIZE_INFO content bytes length is not in (1..4)")
+//                        "NEXT_PACKET_SIZE_INFO content bytes length is not in (1..4)"
+//                    }
+//                    deserializeToDataPacketType<NextPacketSizeInfo>()
+//                }
             }
         }
-        return deserializedPacket
     }
-
 
 }
 
@@ -95,8 +135,7 @@ object TypeToBytesConverter {
      * */
     fun DataPacketVariant.toSerializedDataPacket(): ByteArray {
         val resultDataPacket = DataPacket(
-            packetType,
-            serializeToByteArray()
+            packetType, serializeToByteArray()
         )
         val jsonString = json.encodeToString(resultDataPacket)
         return CBORObject.FromJSONString(jsonString).EncodeToBytes()
@@ -105,8 +144,7 @@ object TypeToBytesConverter {
 
 object UUIDSerializer : KSerializer<UUID?> {
     override val descriptor = PrimitiveSerialDescriptor(
-        "UUID",
-        PrimitiveKind.STRING
+        "UUID", PrimitiveKind.STRING
     )
 
     override fun deserialize(decoder: Decoder): UUID? {
@@ -116,8 +154,7 @@ object UUIDSerializer : KSerializer<UUID?> {
     }
 
     override fun serialize(
-        encoder: Encoder,
-        value: UUID?
+        encoder: Encoder, value: UUID?
     ) {
         encoder.encodeString(value.toString())
     }
@@ -125,15 +162,13 @@ object UUIDSerializer : KSerializer<UUID?> {
 
 object UUIDSerializerNotNull : KSerializer<UUID> {
     override val descriptor = PrimitiveSerialDescriptor(
-        "UUID",
-        PrimitiveKind.STRING
+        "UUID", PrimitiveKind.STRING
     )
 
     override fun deserialize(decoder: Decoder): UUID = UUID.fromString(decoder.decodeString())
 
     override fun serialize(
-        encoder: Encoder,
-        value: UUID
+        encoder: Encoder, value: UUID
     ) {
         encoder.encodeString(value.toString())
     }
@@ -141,8 +176,7 @@ object UUIDSerializerNotNull : KSerializer<UUID> {
 
 object PublicKeySerializer : KSerializer<PublicKey?> {
     override val descriptor = PrimitiveSerialDescriptor(
-        "PublicKey",
-        PrimitiveKind.STRING
+        "PublicKey", PrimitiveKind.STRING
     )
 
     override fun deserialize(decoder: Decoder): PublicKey? {
@@ -152,8 +186,7 @@ object PublicKeySerializer : KSerializer<PublicKey?> {
     }
 
     override fun serialize(
-        encoder: Encoder,
-        value: PublicKey?
+        encoder: Encoder, value: PublicKey?
     ) {
         if (value != null) {
             encoder.encodeString(value.getString())
@@ -163,15 +196,13 @@ object PublicKeySerializer : KSerializer<PublicKey?> {
 
 object PublicKeySerializerNotNull : KSerializer<PublicKey> {
     override val descriptor = PrimitiveSerialDescriptor(
-        "PublicKey",
-        PrimitiveKind.STRING
+        "PublicKey", PrimitiveKind.STRING
     )
 
     override fun deserialize(decoder: Decoder): PublicKey = decoder.decodeString().loadPublicKey()
 
     override fun serialize(
-        encoder: Encoder,
-        value: PublicKey
+        encoder: Encoder, value: PublicKey
     ) {
         encoder.encodeString(value.getString())
     }

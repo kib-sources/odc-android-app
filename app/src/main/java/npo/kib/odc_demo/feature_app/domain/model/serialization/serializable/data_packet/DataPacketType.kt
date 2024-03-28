@@ -13,6 +13,6 @@ enum class DataPacketType {
     BANKNOTES_LIST,
     SIGNED_BLOCK,
     ACCEPTANCE_BLOCKS,
-    TRANSACTION_RESULT
+    TRANSACTION_RESULT,
+//    NEXT_PACKET_SIZE_INFO
 }
-//todo add and use new type "NEXT_PACKET_SIZE"

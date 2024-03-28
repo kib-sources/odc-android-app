@@ -2,7 +2,9 @@ package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
@@ -36,12 +38,13 @@ fun HomeScreen(
 
 
     LaunchedEffect(key1 = true) {
-        p2pCommonState.popToRoot()
+//        p2pCommonState.popToRoot() fixme would pop to root on screen rotation, not only on initial navigation
     }
     Column(
         Modifier
             .fillMaxSize()
             .padding(5.dp)
+//            .border(2.dp, color = MaterialTheme.colorScheme.onBackground, shape = RoundedCornerShape(10))
     ) {
         Spacer(modifier = Modifier.weight(0.1f))
         BalanceBlock(

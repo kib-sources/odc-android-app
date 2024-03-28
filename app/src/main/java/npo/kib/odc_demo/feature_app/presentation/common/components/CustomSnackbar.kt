@@ -3,6 +3,7 @@ package npo.kib.odc_demo.feature_app.presentation.common.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -25,12 +26,11 @@ fun CustomSnackbar(
     Surface(
         shape = MaterialTheme.shapes.medium,
         color = surfaceColor,
-        modifier = modifier,
+        modifier = modifier.padding(5.dp),
         border = BorderStroke(5.dp, color = borderColor)
-
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.Top,
         ) {
             Column(modifier = Modifier.weight(3f)) {
                 Text(

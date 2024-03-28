@@ -1,7 +1,9 @@
 package npo.kib.odc_demo
 
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.algorithms.findBanknotesWithSum
 import org.junit.jupiter.api.Assertions.*
@@ -23,7 +25,7 @@ class SubsetSumTest {
         testWithRandomlyGeneratedBanknotesListsAndTargetSums(runs = 100, maxTargetSum = 10000)
     }
 
-    private fun testPreselectedBanknotes(sum: Int, shouldSucceed: Boolean) = testScope.runTest {
+    private fun testPreselectedBanknotes(sum: Int, shouldSucceed: Boolean) = testScope.launch {
         val amounts = listOf(
             Amount("0", 14),
             Amount("1", 7),
@@ -43,7 +45,7 @@ class SubsetSumTest {
     private fun testWithRandomlyGeneratedBanknotesListsAndTargetSums(
         runs: Int, maxTargetSum: Int
     ) {
-        testScope.runTest {
+        testScope.launch {
             var failed = 0
             for (i in 1..runs) {
                 val randSum = (1..maxTargetSum).random()

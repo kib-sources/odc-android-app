@@ -1,16 +1,21 @@
 package npo.kib.odc_demo
 
+import androidx.compose.ui.util.fastJoinToString
 import com.upokecenter.cbor.CBORObject
 import io.mockk.InternalPlatformDsl.toStr
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import npo.kib.odc_demo.feature_app.domain.model.DataPacket
+import npo.kib.odc_demo.feature_app.domain.model.serialization.ByteArrayChunkedConverter.toByteArrayFromChunks
+import npo.kib.odc_demo.feature_app.domain.model.serialization.ByteArrayChunkedConverter.toChunksList
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacket
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketType
 import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.serializeToByteArray
 import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.toSerializedDataPacket
+import npo.kib.odc_demo.feature_app.domain.model.serialization.bytesToInt
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
@@ -19,12 +24,91 @@ import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.BanknotesList
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.DataPacketVariant
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
+import npo.kib.odc_demo.feature_app.domain.model.serialization.toBytes
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
 class SerializationTests {
 
+    @Test
+    fun testIntToByteArrayAndBack(){
+        for(i in (Int.MIN_VALUE..Int.MAX_VALUE)){
+            if (i % 10000000 == 0) println("testIntToByteArrayAndBack: $i processed")
+            assertEquals(i, i.toBytes().bytesToInt())
+        }
+    }
+
+
+    @Test
+    fun testReduce() {
+        runTest {
+            val initial = byteArrayOf(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 'a'.code.toByte())
+            val inList = initial.map { byteArrayOf(it) }
+            initial.contentToString().p("Initial barray:\n")
+            inList.fastJoinToString {
+                it.first().toString()
+            }.p("Initial list:\n")
+            inList.toByteArrayFromChunks().contentToString().p("Result barray")
+        }
+    }
+
+    @Test
+    fun testBytesToChunksAndBack_x10_000() {
+        runTest {
+            val chunkSize = 1024
+            var cyclesDone = 0
+            for (i in (1..10000)) {
+//                    launch { //total time higher with launch
+                val initial =
+                    ByteArray(chunkSize * (0..100).random() + (1 until chunkSize).random()) {
+                        (0..Byte.MAX_VALUE).random().toByte()
+                    }
+                val result = initial.toChunksList(chunkSize).toByteArrayFromChunks()
+                assert(initial.size == result.size) { "Sizes are different:\nInitial size = ${initial.size}\nResult size = ${result.size}" }
+                result.forEachIndexed { index, byte ->
+                    assertEquals(
+                        byte, initial[index]
+                    ) { "Bytes did not match\nArray size = ${result.size}\nAt index = $index" }
+                }
+                cyclesDone++
+                if (cyclesDone % 1000 == 0) println("Running testBytesToChunksAndBack :\n$cyclesDone cycles done")
+            }
+//            }
+        }
+    }
+
+    @Test
+    fun testChunkSizesAreValid() {
+        runTest {
+            var cyclesDone = 0
+            for (chunkSize in (1..10_000)) {
+                val arr = ByteArray(chunkSize * (0..100).random() + (1..chunkSize).random()) {
+                    (0..Byte.MAX_VALUE).random().toByte()
+                }
+                val chunked = arr.toChunksList(chunkSize)
+                chunked.forEach {
+                    assert(it.size <= chunkSize) { "Subarray size is > chunkSize.\nGot size: ${it.size}\nExpected size: $chunkSize " }
+                }
+                cyclesDone++
+                if (cyclesDone % 1000 == 0) println("Running testChunkSizesAreValid :\n$cyclesDone cycles done")
+            }
+        }
+    }
+
+
+    @Test
+    fun testChunkedCborSerializeDeserialize() {
+        runTest {
+            val initial = UserInfo("TestName", "TestWID")
+            assertSameObjectSerializeDeserialize(initial)
+            val result = initial.toSerializedDataPacket()
+                .toChunksList(10)
+                .toByteArrayFromChunks()
+                .deserializeToDataPacketVariant()
+            assertEquals(initial, result)
+        }
+    }
 
     @Test
     @DisplayName("Test all existing obj")
@@ -87,11 +171,9 @@ class SerializationTests {
 
 
     @DisplayName("Test if an object serialized and deserialized back is still the same")
-    private inline fun <reified T : DataPacketVariant> testObjectSerializationAndDeserialization(
-        obj: DataPacketVariant
-    ) {
-        assertEquals(obj, obj.serializeToByteArray().deserializeToDataPacketType<T>())
-    }
+    private fun assertSameObjectSerializeDeserialize(dataPacket: DataPacketVariant) = assertEquals(
+        dataPacket, dataPacket.toSerializedDataPacket().deserializeToDataPacketVariant()
+    )
 
     @Test
     @DisplayName("Test [DataPacket] serialization and deserialization")
@@ -108,12 +190,10 @@ class SerializationTests {
         assertEquals(userInfo, resultUserInfo)
     }
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////
     @Serializable
     private data class Pair1<out A, out B>(
-        @Serializable
-        val p1: A,
-        @Serializable
-        val p2: B
+        @Serializable val p1: A, @Serializable val p2: B
     )
 
     @Test
@@ -156,7 +236,7 @@ class SerializationTests {
 
 
     @Test
-    fun testSerializeAndDeserialize() {
+    fun testGenericSerializeAndDeserialize() {
 
         @Serializable
         abstract class SomeSuperType
@@ -215,8 +295,11 @@ class SerializationTests {
 
         assertEquals(
             obj,
-            obj.printObj().serializeToByteArray().printObj()
-                .deserializeToSomeSuperInterfaceSubType<ExampleSerializable1>().printObj()
+            obj.printObj()
+                .serializeToByteArray()
+                .printObj()
+                .deserializeToSomeSuperInterfaceSubType<ExampleSerializable1>()
+                .printObj()
         )
     }
 
@@ -227,8 +310,11 @@ class SerializationTests {
 
         assertEquals(
             obj,
-            obj.printObj().serializeToByteArray().printObj()
-                .deserializeToSomeSuperInterfaceSubType<ExampleSerializable2>().printObj()
+            obj.printObj()
+                .serializeToByteArray()
+                .printObj()
+                .deserializeToSomeSuperInterfaceSubType<ExampleSerializable2>()
+                .printObj()
         )
     }
 

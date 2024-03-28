@@ -1,7 +1,5 @@
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.navigation
 
-import androidx.compose.runtime.remember
-import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions

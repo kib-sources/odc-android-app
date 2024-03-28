@@ -36,7 +36,9 @@ android {
     }
 
     buildTypes {
+//        debug {  }
         release {
+//            isMinifyEnabled = true todo enable in release
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -69,8 +71,10 @@ android {
 
 tasks.withType<Test> {
     useJUnitPlatform() // Enables JUnit Platform (JUnit 5 + JUnit 4)
+        minHeapSize = "512m"
+        maxHeapSize = "2048m"
+        jvmArgs = listOf("-XX:MaxPermSize=2048m")
 }
-
 
 dependencies {
     //AndroidX
@@ -199,7 +203,7 @@ dependencies {
 
     androidTestImplementation(Testing.testRunner)
 
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.3")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.4")
 }
 //
 //kapt {

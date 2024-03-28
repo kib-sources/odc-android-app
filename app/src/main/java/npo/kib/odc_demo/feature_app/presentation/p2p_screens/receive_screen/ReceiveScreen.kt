@@ -39,7 +39,6 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.U
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Success
-import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.GradientColors.ButtonNegativeActionColors
 import npo.kib.odc_demo.ui.GradientColors.ButtonPositiveActionColors
 
@@ -161,14 +160,15 @@ private fun ReceiveScreen(
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth(0.9f)
                 .requiredHeightIn(min = 80.dp, max = 250.dp)
         ) { snackbarData ->
             CustomSnackbar(
                 snackbarData,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(40.dp)
+//                    .requiredHeight(40.dp)
+                    .fillMaxHeight()
                     .padding(
                         horizontal = 30.dp, vertical = 0.dp
                     ),
@@ -177,8 +177,6 @@ private fun ReceiveScreen(
                 borderColor = Color.Transparent
             )
         }
-
-
     }
 }
 

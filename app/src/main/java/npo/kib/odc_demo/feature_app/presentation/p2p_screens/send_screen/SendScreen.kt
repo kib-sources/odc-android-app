@@ -147,14 +147,15 @@ private fun SendScreen(
         SnackbarHost( //todo extract to common package
             hostState = snackbarHostState,
             modifier = Modifier
-                .fillMaxWidth(0.8f)
+                .fillMaxWidth(0.9f)
                 .requiredHeightIn(min = 80.dp, max = 250.dp)
         ) { snackbarData ->
             CustomSnackbar(
                 snackbarData,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .requiredHeight(40.dp)
+                    .fillMaxHeight()
+//                    .requiredHeight(40.dp)
                     .padding(
                         horizontal = 30.dp, vertical = 0.dp
                     ),
@@ -184,7 +185,7 @@ private object SendScreenSubScreens {
 
     @Composable
     fun SearchingScreen(
-//        bondedDevices : List<CustomBluetoothDevice>, //todo show bondedDevices at the top
+//        bondedDevices : List<CustomBluetoothDevice>,
         foundDevices: List<CustomBluetoothDevice>,
         onUserClicked: (CustomBluetoothDevice) -> Unit,
         onClickCancelSearching: () -> Unit

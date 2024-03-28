@@ -29,12 +29,12 @@ abstract class TransactionController(
     protected lateinit var outputDataPacketChannel: Channel<DataPacketVariant>
         private set
     val outputDataPacketFlow: Flow<DataPacketVariant>
-        get() = outputDataPacketChannel.consumeAsFlow()
+        get() = outputDataPacketChannel.receiveAsFlow() //todo fix calls outside. java.lang.IllegalStateException: ReceiveChannel.consumeAsFlow can be collected just once
 
     lateinit var receivedPacketsChannel: Channel<DataPacketVariant>
         private set
     protected val receivedPacketsFlow: Flow<DataPacketVariant>
-        get() = receivedPacketsChannel.consumeAsFlow()
+        get() = receivedPacketsChannel.receiveAsFlow()
 
     protected var currentBanknoteOrdinal: Int
         get() = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal

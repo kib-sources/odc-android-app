@@ -2,14 +2,7 @@ package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -32,14 +25,14 @@ fun RoundedSquareButton(modifier: Modifier = Modifier, onClick: () -> Unit, icon
         .clickable { onClick() }) {
         Surface(
             color = Color.LightGray, modifier = modifier.fillMaxSize()
-               ) {
+        ) {
             Image(
                 painter = painterResource(id = iconImageResId),
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(16.dp),
                 contentDescription = "Icon"
-                 )
+            )
         }
     }
 
@@ -54,50 +47,48 @@ private fun RSBPreview(modifier: Modifier = Modifier, onClick3: () -> Unit = {})
             .requiredWidth(300.dp)
             .padding(8.dp),
         horizontalArrangement = Arrangement.SpaceBetween
-       ) {
+    ) {
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
             onClick = { },
             iconImageResId = R.drawable.atm_top_up_icon
-                           )
+        )
         RoundedSquareButton(
-            modifier = Modifier.weight(1f),
-            onClick = { },
-            iconImageResId = R.drawable.receive_money
-                           )
+            modifier = Modifier.weight(1f), onClick = { }, iconImageResId = R.drawable.receive_money
+        )
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
             onClick = onClick3,
             iconImageResId = R.drawable.send_money
-                           )
+        )
     }
 }
 
 @Composable
-fun RoundedSquareButtonRow(modifier: Modifier = Modifier,
-                           onclickATM: () -> Unit = {},
-                           onclickReceive: () -> Unit = {},
-                           onClickSend: () -> Unit = {}) {
+fun P2PSelectionButtonRow(
+    modifier: Modifier = Modifier,
+    onclickATM: () -> Unit = {},
+    onclickReceive: () -> Unit = {},
+    onClickSend: () -> Unit = {}
+) {
     Row(
-        modifier = modifier
-            .requiredWidth(300.dp)
-            .padding(8.dp),
+        modifier = modifier.requiredSize(width = 300.dp, height = 80.dp),
         horizontalArrangement = Arrangement.SpaceBetween
-       ) {
+    ) {
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
             onClick = onclickATM,
             iconImageResId = R.drawable.atm_top_up_icon
-                           )
+        )
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
             onClick = onclickReceive,
             iconImageResId = R.drawable.receive_money
-                           )
+        )
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
             onClick = onClickSend,
             iconImageResId = R.drawable.send_money
-                           )
+        )
     }
 }
