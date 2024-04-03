@@ -5,8 +5,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
-import kotlinx.coroutines.*
-import javax.inject.Qualifier
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 
 
 @Module
@@ -18,8 +19,4 @@ object CoroutinesModule {
     @ViewModelScoped
     fun provideP2PCoroutineScope() = CoroutineScope(Job() + Dispatchers.Default)
 
-    @Provides
-    @P2PTransactionScope
-    @ViewModelScoped
-    fun provideP2PTransactionScope() = CoroutineScope(Job() + Dispatchers.Default)
 }

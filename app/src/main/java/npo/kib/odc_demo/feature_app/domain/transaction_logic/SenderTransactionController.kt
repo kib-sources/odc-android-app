@@ -1,7 +1,13 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
+import dagger.hilt.android.scopes.ViewModelScoped
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.withContext
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
@@ -14,17 +20,13 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.Fo
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_ACCEPTANCE_BLOCKS
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_OFFER_RESPONSE
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.algorithms.findBanknotesWithSum
+import javax.inject.Inject
 
-
-class SenderTransactionController(
-    walletRepository: WalletRepository,
-    scope: CoroutineScope,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+@ViewModelScoped
+class SenderTransactionController @Inject constructor(
+    walletRepository: WalletRepository
 ) : TransactionController(
-    scope = scope,
-    walletRepository = walletRepository,
-    role = TransactionRole.SENDER
+    walletRepository = walletRepository, role = TransactionRole.SENDER
 ) {
     private val _currentStep: MutableStateFlow<ForSender> = MutableStateFlow(INITIAL)
     private val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
@@ -69,6 +71,7 @@ class SenderTransactionController(
                 //initial step where we can try to construct amount and then send it
                 //when we send it (trigger manually through UI), the step is set to WAITING_FOR_OFFER_RESPONSE
             }
+
             WAITING_FOR_OFFER_RESPONSE -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
                 when ((packet as TransactionResult).value) {
@@ -77,6 +80,7 @@ class SenderTransactionController(
                         updateStatus(OFFER_ACCEPTED)
                         sendBanknotesList()
                     }
+
                     is TransactionResult.ResultType.Failure -> {
                         //when rejected go back to initial and be able to send offer again or
                         // try to construct another amount
@@ -85,6 +89,7 @@ class SenderTransactionController(
                     }
                 }
             }
+
             WAITING_FOR_BANKNOTES_LIST_RECEIVED_RESPONSE -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
                 val result = packet as TransactionResult
@@ -94,16 +99,19 @@ class SenderTransactionController(
                         updateStep(WAITING_FOR_ACCEPTANCE_BLOCKS)
                         updateStatus(SenderTransactionStatus.WAITING_FOR_ACCEPTANCE_BLOCKS)
                     }
+
                     is TransactionResult.ResultType.Failure -> {
                         //If an invalid BanknotesList was received
                         throw transactionExceptionWithRole("The receiver got an invalid BanknotesList")
                     }
                 }
             }
+
             WAITING_FOR_ACCEPTANCE_BLOCKS -> {
                 packet.requireToBeOfTypes(ACCEPTANCE_BLOCKS)
                 onAcceptanceBlocksReceived(packet as AcceptanceBlocks)
             }
+
             WAITING_FOR_RESULT -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
                 val result = (packet as TransactionResult).value
@@ -119,6 +127,7 @@ class SenderTransactionController(
                     } else throw transactionExceptionWithRole("on WAITING_FOR_RESULT step, received result but no conditions were satisfied")
                 }
             }
+
             FINISHED -> {
 //                nothing is expected after the transaction has finished
             }
@@ -177,6 +186,7 @@ class SenderTransactionController(
             updateStatus(SenderTransactionStatus.WAITING_FOR_OFFER_RESPONSE)
             outputDataPacketChannel.send(transactionDataBuffer.value.amountRequest!!)
         }
+
         else -> throw transactionExceptionWithRole("Cannot send the offer, the amount is not available in transactionDataBuffer")
     }
 
@@ -232,8 +242,7 @@ class SenderTransactionController(
         val allAmounts = walletRepository.getBanknotesIdsAndAmounts()
         return withContext(defaultDispatcher) {
             val resultAmounts = findBanknotesWithSum(
-                banknotesIdsAmounts = allAmounts,
-                targetSum = amount
+                banknotesIdsAmounts = allAmounts, targetSum = amount
             ) ?: return@withContext null
             val resultBnids = resultAmounts.map { ensureActive(); it.bnid }
             return@withContext walletRepository.getBanknotesWithBlockchainByBnids(resultBnids)

@@ -1,13 +1,11 @@
 package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.navigation
 
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navigation
-import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeScreen
-import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeViewModel
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen.HomeRoute
 
 
 const val HOME_GRAPH_ROUTE_PATTERN = "home_graph"
@@ -17,7 +15,7 @@ fun NavController.navigateToHomeGraph(navOptions: NavOptions? = null) {
     this.navigate(HOME_GRAPH_ROUTE_PATTERN, navOptions)
 }
 
-fun NavGraphBuilder.homeGraph(onHistoryClick: () -> Unit,
+fun NavGraphBuilder.homeGraph(onWalletDetailsClick: () -> Unit, onHistoryClick: () -> Unit,
     nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
     navigation(
@@ -25,7 +23,7 @@ fun NavGraphBuilder.homeGraph(onHistoryClick: () -> Unit,
             startDestination = homeRoute
     ) {
         composable(route = homeRoute){
-            HomeScreen(onHistoryClick = onHistoryClick, viewModel = hiltViewModel<HomeViewModel>(viewModelStoreOwner = it))
+            HomeRoute(onHistoryClick = onHistoryClick, onWalletDetailsClick = onWalletDetailsClick)
         }
         nestedGraphs()
     }

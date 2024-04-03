@@ -3,61 +3,70 @@ package npo.kib.odc_demo.feature_app.data.repositories
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.core.IOException
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.PreferenceDataStoreFactory
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
-import kotlinx.coroutines.flow.*
-import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey
-import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey.USER_NAME
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreObject
+import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreObject.USER_NAME
 import npo.kib.odc_demo.feature_app.domain.model.user.UserPreferences
 import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
 
 class DefaultDataStoreRepositoryImpl(private val context: Context) : DefaultDataStoreRepository {
 
     private companion object {
-        const val datastore_name = "DEFAULT_DATASTORE"
+        const val NAME = "DEFAULT_DATASTORE"
+
+        fun <T> Preferences.getOrDefault(obj: DefaultDataStoreObject<T>): T =
+            this[obj.key] ?: obj.defaultValue
     }
 
     private val datastore: DataStore<Preferences> =
-        PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(datastore_name) })
+        PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(NAME) })
 
 
-    override val userPreferencesFlow: Flow<UserPreferences> = datastore.data
-        .catch { exception ->
-            // dataStore.data throws an IOException when an error is encountered when reading data
+    override val userPreferencesFlow: Flow<UserPreferences> = datastore.data.map { preferences ->
+        UserPreferences(userName = preferences.getOrDefault(USER_NAME))
+    }.catch { exception ->
+        // dataStore.data throws an IOException when an error is encountered when reading data
+        if (exception is IOException) {
+            emit(UserPreferences())
+        } else {
+            throw exception
+        }
+    }
+
+    override suspend fun <T> readValue(key: DefaultDataStoreObject<T>): T? {
+        return datastore.data.catch { exception ->
+            // Handle IOException
             if (exception is IOException) {
                 emit(emptyPreferences())
             } else {
                 throw exception
             }
         }.map { preferences ->
-            UserPreferences(userName = preferences[USER_NAME.key] ?: USER_NAME.defaultValue!! )
-        }
-
-    override suspend fun <T> readValue(key: DefaultDataStoreKey<T>): T? {
-        return datastore.data.catch { exception ->
-            // Handle IOException
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            }
-            else {
-                throw exception
-            }
-        }.map { preferences ->
-            preferences[key.key] ?: key.defaultValue
+            preferences[key.key]
         }.first()
     }
 
+    override suspend fun <T> readValueOrDefault(key: DefaultDataStoreObject<T>): T =
+        readValue(key) ?: key.defaultValue
+
     override suspend fun <T> writeValue(
-        key: DefaultDataStoreKey<T>,
-        value: T
+        key: DefaultDataStoreObject<T>, value: T
     ) {
         datastore.edit { preferences ->
             preferences[key.key] = value
         }
     }
+//todo can save UserPreferences as a parcelable data structure, add it to keys ?
 
     override suspend fun clear() {
         datastore.edit { preferences -> preferences.clear() }
     }
-
 }

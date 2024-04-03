@@ -6,21 +6,25 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.*
+import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
 import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
 import npo.kib.odc_demo.feature_app.domain.util.log
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.*
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.Failure
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.Success
 import javax.inject.Inject
 
 @HiltViewModel
 class SendViewModel @Inject constructor(
+    private val utilDataStore: UtilityDataStoreRepository,
     private val useCase: P2PSendUseCase
 ) : ViewModel() {
     private var amountConstructionJob: Job? = null
@@ -34,53 +38,47 @@ class SendViewModel @Inject constructor(
     private val bluetoothState: StateFlow<BluetoothState> = useCase.bluetoothState
 
     private val combinedUiState: StateFlow<SendUiState> = combine(
-        currentTransactionStatus,
-        bluetoothState
+        currentTransactionStatus, bluetoothState
     ) { transactionStatus, blState ->
         when (blState.connectionStatus) {
             BluetoothConnectionStatus.DISCONNECTED -> Initial
-            BluetoothConnectionStatus.ADVERTISING -> {/*should not be advertising as a sender*/ Loading }
+            BluetoothConnectionStatus.ADVERTISING -> {/*should not be advertising as a sender*/ Loading
+            }
+
             BluetoothConnectionStatus.DISCOVERING -> Discovering
             BluetoothConnectionStatus.CONNECTING -> Loading
             BluetoothConnectionStatus.CONNECTED -> {
                 when (transactionStatus) {
                     ERROR -> OperationResult(Failure(transactionDataBuffer.value.lastException.toString()))
-                    FINISHED_SUCCESSFULLY -> OperationResult(Success)
+                    FINISHED_SUCCESSFULLY -> {
+                        utilDataStore.writeValue(SHOULD_UPDATE_UI_USER_INFO, true)
+                        this@SendViewModel.log("SHOULD_UPDATE_UI_USER_INFO set to TRUE")
+                        OperationResult(Success)
+                    }
+
                     else -> InTransaction(status = transactionStatus)
                 }
             }
         }
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        Initial
+        viewModelScope, SharingStarted.WhileSubscribed(), Initial
     )
 
     val state: StateFlow<SendScreenState> = combine(
-        combinedUiState,
-        transactionDataBuffer,
-        bluetoothState
+        combinedUiState, transactionDataBuffer, bluetoothState
     ) { uiState, buffer, btState ->
         SendScreenState(
-            uiState = uiState,
-            transactionDataBuffer = buffer,
-            bluetoothState = btState
+            uiState = uiState, transactionDataBuffer = buffer, bluetoothState = btState
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        SendScreenState()
+        viewModelScope, SharingStarted.WhileSubscribed(), SendScreenState()
     )
 
     private val vmErrors: MutableSharedFlow<String> = MutableSharedFlow(extraBufferCapacity = 10)
     val errors: SharedFlow<String> = merge(
-        useCase.blErrors,
-        useCase.transactionErrors,
-        useCase.useCaseErrors,
-        vmErrors
+        useCase.blErrors, useCase.transactionErrors, useCase.useCaseErrors, vmErrors
     ).shareIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed()
+        viewModelScope, SharingStarted.WhileSubscribed()
     )
 
     fun onEvent(event: SendScreenEvent) {
@@ -89,6 +87,7 @@ class SendViewModel @Inject constructor(
                 true -> startDiscovering()
                 false -> stopDiscovering()
             }
+
             Disconnect -> disconnect()
             is ConnectToDevice -> connectToDevice(device = event.device)
             is TryConstructAmount -> tryConstructAmount(event.amount)
@@ -116,6 +115,7 @@ class SendViewModel @Inject constructor(
     private fun trySendOffer() {
         useCase.trySendOffer()
     }
+
     //todo can create a list of states where it is safe to disconnect or pop the backstack with this viewmodel
     private fun disconnect() {
         when (val state = state.value.uiState) {
@@ -130,6 +130,7 @@ class SendViewModel @Inject constructor(
                     ERROR
                 ).contains(state.status)
             ) useCase.disconnect()
+
             else -> viewModelScope.launch { vmErrors.emit("Cannot disconnect during critical operations!") }
         }
     }

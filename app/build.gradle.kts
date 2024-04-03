@@ -1,9 +1,8 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    //KSP instead of Kapt for faster builds
     id("com.google.devtools.ksp")
-//    kotlin("kapt")
+    id ("kotlin-parcelize")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.dagger.hilt.android")
     id(Testing.junit5_plugin)

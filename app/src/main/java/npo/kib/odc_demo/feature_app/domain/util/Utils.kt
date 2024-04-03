@@ -6,6 +6,7 @@ import android.widget.Toast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancelChildren
 import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
 
 fun myLogs(msg: Any?, tag: Any? = "myLogs") = Log.d(tag.toString(), msg.toString())
 
@@ -16,7 +17,10 @@ fun Any.log(
 fun <T : Any> T.logOut(startMsg: String = "", tag: String? = null): T {
     try {
         if (this is ByteArray) {
-            Log.d(tag ?: "logOut", startMsg + "This is ByteArray. toHex: " + toHex()+"\ndecodeToString: decodeToString(throwOnInvalidSequence = true)")
+            Log.d(
+                tag ?: "logOut",
+                startMsg + "This is ByteArray. toHex: " + toHex() + "\ndecodeToString: decodeToString(throwOnInvalidSequence = true)"
+            )
         }
     } catch (e: CharacterCodingException) {
         Log.d(tag ?: "logOut", "This is ByteArray. Caught CharacterCodingException")
@@ -32,3 +36,10 @@ fun Context.makeToast(text: String, duration: Int = Toast.LENGTH_LONG) {
 fun CoroutineScope.cancelChildren() = coroutineContext.cancelChildren()
 
 fun String.isAValidAmount(): Boolean = toIntOrNull()?.let { it > 0 } ?: false
+
+fun String?.containsPrefix(prefix: String = BluetoothController.DEVICE_NAME_PREFIX): Boolean =
+    this?.startsWith(prefix) ?: false
+
+
+fun String.withoutPrefix(prefix: String = BluetoothController.DEVICE_NAME_PREFIX): String =
+    substringAfter(prefix)

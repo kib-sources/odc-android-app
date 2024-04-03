@@ -46,7 +46,6 @@ fun ProgressBar() {
 
 @Composable
 fun LoadingAnimation() {
-//    CircularProgressIndicator() fixme crashes the app
 }
 
 //todo add 3 dots infinite loading animation

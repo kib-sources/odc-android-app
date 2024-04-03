@@ -8,55 +8,57 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreKey
+import npo.kib.odc_demo.feature_app.data.datastore.PublicUtilData
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreObject
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
 import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
 
 class UtilityDataStoreRepositoryImpl(private val context: Context) : UtilityDataStoreRepository {
 
     private companion object {
-        const val datastore_name = "UTILITY_DATASTORE"
+        const val NAME = "UTILITY_DATASTORE"
+
+        fun <T> Preferences.getOrDefault(obj: UtilityDataStoreObject<T>): T =
+            this[obj.key] ?: obj.defaultValue
     }
 
     private val datastore: DataStore<Preferences> =
-        PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(datastore_name) })
+        PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(NAME) })
 
 
-    //todo later expose a Flow containing all the datastore data converted to some data class like UtilData
-    /*val keysPreferencesFlow: Flow<UtilData> = dataStore.data
-        .catch { exception ->
-            // dataStore.data throws an IOException when an error is encountered when reading data
+    override val publicUtilDataFlow: Flow<PublicUtilData> = datastore.data.map { preferences ->
+        PublicUtilData(shouldUpdateUiUserInfo = preferences.getOrDefault(SHOULD_UPDATE_UI_USER_INFO))
+    }.catch { exception ->
+        // dataStore.data throws an IOException when an error is encountered when reading data
+        if (exception is IOException) {
+            emit(PublicUtilData())
+        } else {
+            throw exception
+        }
+    }
+
+    override suspend fun <T> readValue(key: UtilityDataStoreObject<T>): T? {
+        return datastore.data.catch { exception ->
+            // Handle IOException
             if (exception is IOException) {
                 emit(emptyPreferences())
             } else {
                 throw exception
             }
         }.map { preferences ->
-            val value1 = preferences[key1]
-            ...
-            KeysPreferences(value1,...)
-        }*/
-
-
-    override suspend fun <T> readValue(key: UtilityDataStoreKey<T>): T? {
-        return datastore.data.catch { exception ->
-            // Handle IOException
-            if (exception is IOException) {
-                emit(emptyPreferences())
-            }
-            else {
-                throw exception
-            }
-        }.map { preferences ->
-            preferences[key.key] ?: key.defaultValue
+            preferences[key.key]
         }.first()
     }
 
+    override suspend fun <T> readValueOrDefault(key: UtilityDataStoreObject<T>): T =
+        readValue(key) ?: key.defaultValue
+
     override suspend fun <T> writeValue(
-        key: UtilityDataStoreKey<T>,
-        value: T
+        key: UtilityDataStoreObject<T>, value: T
     ) {
         datastore.edit { preferences ->
             preferences[key.key] = value

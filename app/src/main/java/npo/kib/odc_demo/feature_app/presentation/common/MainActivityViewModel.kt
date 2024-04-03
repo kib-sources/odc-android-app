@@ -4,11 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.feature_app.domain.model.user.UserPreferences
 import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
@@ -30,11 +26,12 @@ class MainActivityViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<MainActivityUiState> = MutableStateFlow(Loading)
     val uiState = _uiState.asStateFlow()
 
-    private val userPreferences: StateFlow<UserPreferences> = defaultDatastore.userPreferencesFlow.stateIn(
-        scope = viewModelScope,
-        initialValue = UserPreferences(),
-        started = SharingStarted.WhileSubscribed(5_000),
-    )
+    private val userPreferences: StateFlow<UserPreferences> =
+        defaultDatastore.userPreferencesFlow.stateIn(
+            scope = viewModelScope,
+            initialValue = UserPreferences(),
+            started = SharingStarted.WhileSubscribed(5_000),
+        )
 
     init {
         registerWalletWithBank()
@@ -44,10 +41,12 @@ class MainActivityViewModel @Inject constructor(
 
     fun registerWalletWithBank() {
         viewModelScope.launch(Dispatchers.IO) {
+            this.log("Registering wallet with bank")
             registerWallet()
             val registered = isWalletRegistered()
             _uiState.value = if (registered) Success(userPreferences.value)
             else FailureConnectingToBank
+            this.log(if (registered) "Wallet registered" else "Failed registering wallet")
         }
     }
 

@@ -1,13 +1,19 @@
 package npo.kib.odc_demo.feature_app.domain.repository
 
-import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreKey
+import kotlinx.coroutines.flow.Flow
+import npo.kib.odc_demo.feature_app.data.datastore.PublicUtilData
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreObject
 
 interface UtilityDataStoreRepository {
 
-    suspend fun <T> readValue(key: UtilityDataStoreKey<T>): T?
+    val publicUtilDataFlow: Flow<PublicUtilData>
+
+    suspend fun <T> readValue(key: UtilityDataStoreObject<T>): T?
+
+    suspend fun <T> readValueOrDefault(key: UtilityDataStoreObject<T>): T
 
     suspend fun <T> writeValue(
-        key: UtilityDataStoreKey<T>,
+        key: UtilityDataStoreObject<T>,
         value: T
     )
 

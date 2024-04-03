@@ -1,6 +1,5 @@
 package npo.kib.odc_demo.feature_app.domain.use_cases
 
-import dagger.hilt.android.scopes.ViewModelScoped
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
 import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository

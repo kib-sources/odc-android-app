@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus.*
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController.Companion.SERVICE_UUID
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.toCustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.util.log
@@ -290,19 +291,15 @@ class BluetoothControllerImpl(
         _connectionStatus.value = status
     }
 
-    //Todo save name to datastore preferences then change to pattern, filter found devices to match pattern,
-    // then return the name back when finished
-    suspend fun changeMyDeviceName() {
-        this.log("changeMyDeviceName() called")
-        withContext(ioDispatcher) {/* */ }
+    override suspend fun setDeviceName(newName: String): Boolean {
+        this.log("setDeviceName() called")
+        return withContext(ioDispatcher) {
+            bluetoothAdapter?.setName(newName) ?: false
+        }
     }
 
-    suspend fun changeMyDeviceNameBack() {
-        this.log("changeMyDeviceNameBack() called")
-        withContext(ioDispatcher) {/* */ }
-    }
-
-    companion object {
-        const val SERVICE_UUID = "133f71c6-b7b6-437e-8fd1-d2f59cc76066"
+    override fun getDeviceName(): String {
+        this.log("getDeviceName() called")
+        return bluetoothAdapter?.name ?: "null"
     }
 }

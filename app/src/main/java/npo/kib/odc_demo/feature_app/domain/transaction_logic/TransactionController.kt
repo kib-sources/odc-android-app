@@ -12,15 +12,24 @@ import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
 
 abstract class TransactionController(
-    protected val scope: CoroutineScope,
+    protected val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+    protected val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
     protected val walletRepository: WalletRepository,
     protected val role: TransactionRole
 ) {
+
+    private val exceptionHandler: CoroutineExceptionHandler = CoroutineExceptionHandler { _, e ->
+        val exceptionText = "${e::class.simpleName}: ${e.message}"
+        _transactionDataBuffer.update { it.copy(lastException = exceptionText) }
+        CoroutineScope(ioDispatcher).launch { _errors.emit(exceptionText) }
+        onTransactionError()
+    }
+
+    protected val scope = CoroutineScope(defaultDispatcher + exceptionHandler)
+
     protected val _transactionDataBuffer: MutableStateFlow<TransactionDataBuffer> =
         MutableStateFlow(TransactionDataBuffer())
     val transactionDataBuffer = _transactionDataBuffer.asStateFlow()
-
-    protected abstract fun onTransactionError()
 
     //todo maybe only create errors flow outside controllers
     // and catch TransactionException
@@ -29,12 +38,12 @@ abstract class TransactionController(
     protected lateinit var outputDataPacketChannel: Channel<DataPacketVariant>
         private set
     val outputDataPacketFlow: Flow<DataPacketVariant>
-        get() = outputDataPacketChannel.receiveAsFlow() //todo fix calls outside. java.lang.IllegalStateException: ReceiveChannel.consumeAsFlow can be collected just once
+        get() = outputDataPacketChannel.consumeAsFlow() //todo fix calls outside. java.lang.IllegalStateException: ReceiveChannel.consumeAsFlow can be collected just once
 
     lateinit var receivedPacketsChannel: Channel<DataPacketVariant>
         private set
     protected val receivedPacketsFlow: Flow<DataPacketVariant>
-        get() = receivedPacketsChannel.receiveAsFlow()
+        get() = receivedPacketsChannel.consumeAsFlow()
 
     protected var currentBanknoteOrdinal: Int
         get() = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
@@ -48,6 +57,8 @@ abstract class TransactionController(
 
     protected var started: Boolean = false
         private set
+
+    protected abstract fun onTransactionError()
 
     /** Initializes controller
      * @return **false** if already started, else **true** */
@@ -82,22 +93,11 @@ abstract class TransactionController(
     fun startProcessingIncomingPackets() {
         receivedPacketsFlow.onEach { packet ->
             processPacketOnCurrentStep(packet)
-        }.catch { e ->
-            withContext(NonCancellable) {
-                if (e is TransactionException) {
-                    _transactionDataBuffer.update { it.copy(lastException = "${e::class.simpleName}: ${e.message}") }
-                    onTransactionError()
-                    //todo maybe create a new ERROR packet variant and send it instead?
-//                    repeat(2) { sendNegativeResult("A TRANSACTION ERROR HAS OCCURRED ON THE ${role.name} SIDE") } // seems to be crashing the app
-                    throw CancellationException("Cancelled due to a transaction exception caught")
-                }
-            }
         }.onCompletion {
             withContext(NonCancellable) {
-                delay(5000)
                 resetController()
             }
-        }.launchIn(scope)
+        }.flowOn(ioDispatcher).launchIn(scope)
     }
 
     protected abstract suspend fun processPacketOnCurrentStep(packet: DataPacketVariant)
@@ -163,9 +163,7 @@ abstract class TransactionController(
 
     //todo for some reason with a protected constructor would not be visible in subclasses of TransactionController
     protected class TransactionException(message: String? = null) : Exception(message)
-    //todo maybe makes sense to create an Error DataPacketVariant to distinguish
-    // exceptions from this side or from the other side. For the received exceptions
-    // it probably makes sense not to send anything back.
+
     protected fun transactionExceptionWithRole(message: String? = null) =
         TransactionException("${role.name}: ${message.orEmpty()}")
 }

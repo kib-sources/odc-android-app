@@ -14,13 +14,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavBackStackEntry
 import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
 import npo.kib.odc_demo.feature_app.presentation.common.components.TransparentHintTextField
@@ -31,9 +31,9 @@ import npo.kib.odc_demo.ui.GradientColors
 
 @Composable
 fun ATMRoute(
-    navigateToP2PRoot: () -> Unit, navBackStackEntry: NavBackStackEntry
+    navigateToP2PRoot: () -> Unit,
+    viewModel: ATMViewModel = hiltViewModel()
 ) {
-    val viewModel = hiltViewModel<ATMViewModelNew>(viewModelStoreOwner = navBackStackEntry)
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     ATMScreen(
         uiState = uiState, navigateToP2PRoot = navigateToP2PRoot, onEvent = viewModel::onEvent
@@ -63,7 +63,8 @@ fun ATMScreen(
                 text = "Request banknotes from server on this screen",
                 modifier = Modifier
                     .fillMaxHeight()
-                    .animateVerticalSlideInOut(),
+                    .animateVerticalSlideInOut()
+                    .clickable {},
                 textAlign = TextAlign.Center,
                 textDecoration = TextDecoration.Underline,
             )
@@ -84,17 +85,17 @@ fun ATMScreen(
                 ATMUiState.Waiting -> StatusInfoBlock(statusLabel = "Waiting for result")
                 is ATMUiState.Result -> when (state.result) {
                     is ATMUiState.ResultType.Failure -> StatusInfoBlock(
-                            statusLabel = "Failed with an error:",
-                            infoText = state.result.failureMessage
-                        )
+                        statusLabel = "Failed with an error:",
+                        infoText = state.result.failureMessage
+                    )
+
                     ATMUiState.ResultType.Success -> StatusInfoBlock(statusLabel = "Received successfully!")
                 }
             }
         }
         Spacer(modifier = Modifier.height(10.dp))
         AnimatedVisibility(
-            modifier = Modifier
-                .requiredHeight(40.dp),
+            modifier = Modifier.requiredHeight(40.dp),
             visibleState = areScreenLabelsVisible,
         ) {
             Text(text = "Back",
@@ -126,16 +127,20 @@ private object AtmScreenSubScreens {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TransparentHintTextField(modifier = Modifier
-                .fillMaxWidth()
-                .requiredHeight(50.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .border(
-                    Dp.Hairline, color = MaterialTheme.colorScheme.onSurface
-                )
-                .padding(15.dp),
+            TransparentHintTextField(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .requiredHeight(50.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .border(
+                        Dp.Hairline, color = MaterialTheme.colorScheme.onBackground
+                    )
+                    .padding(15.dp),
                 hint = "Enter amount to request...",
-                onValueChange = { amountText = it })
+                textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+                onValueChange = { amountText = it },
+                singleLine = true
+            )
             Spacer(modifier = Modifier.height(10.dp))
             ODCGradientButton(text = if (amountIsValid) "Send request" else "Invalid amount",
                 enabled = amountIsValid,
@@ -145,6 +150,5 @@ private object AtmScreenSubScreens {
                 })
         }
     }
-
 
 }

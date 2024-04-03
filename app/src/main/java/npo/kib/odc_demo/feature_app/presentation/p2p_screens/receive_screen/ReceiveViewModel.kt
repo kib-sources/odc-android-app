@@ -9,8 +9,10 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
+import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
@@ -24,6 +26,7 @@ import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.Rece
 
 @HiltViewModel(assistedFactory = ReceiveViewModelFactory::class)
 class ReceiveViewModel @AssistedInject constructor(
+    private val utilDataStore: UtilityDataStoreRepository,
     private val useCase: P2PReceiveUseCase,
     @Assisted private val registry: ActivityResultRegistry
 ) : ViewModel() {
@@ -37,54 +40,47 @@ class ReceiveViewModel @AssistedInject constructor(
     private val bluetoothState: StateFlow<BluetoothState> = useCase.bluetoothState
 
     private val combinedUiState: StateFlow<ReceiveUiState> = combine(
-        currentTransactionStatus,
-        bluetoothState
+        currentTransactionStatus, bluetoothState
     ) { transactionStatus, blState ->
         when (blState.connectionStatus) {
             BluetoothConnectionStatus.DISCONNECTED -> Initial
             BluetoothConnectionStatus.ADVERTISING -> Advertising
             BluetoothConnectionStatus.DISCOVERING -> {/*should not be discovering as a receiver*/ Loading
             }
+
             BluetoothConnectionStatus.CONNECTING -> Loading
             BluetoothConnectionStatus.CONNECTED -> {
                 when (transactionStatus) {
                     ERROR -> OperationResult(Failure(transactionDataBuffer.value.lastException.toString()))
-                    FINISHED_SUCCESSFULLY -> OperationResult(Success)
+                    FINISHED_SUCCESSFULLY -> {
+                        utilDataStore.writeValue(SHOULD_UPDATE_UI_USER_INFO, true)
+                        this@ReceiveViewModel.log("SHOULD_UPDATE_UI_USER_INFO set to TRUE")
+                        OperationResult(Success)
+                    }
+
                     else -> InTransaction(status = transactionStatus)
                 }
             }
         }
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        Initial
+        viewModelScope, SharingStarted.WhileSubscribed(), Initial
     )
 
     val state: StateFlow<ReceiveScreenState> = combine(
-        combinedUiState,
-        transactionDataBuffer,
-        bluetoothState
+        combinedUiState, transactionDataBuffer, bluetoothState
     ) { uiState, buffer, btState ->
         ReceiveScreenState(
-            uiState = uiState,
-            transactionDataBuffer = buffer,
-            bluetoothState = btState
+            uiState = uiState, transactionDataBuffer = buffer, bluetoothState = btState
         )
     }.stateIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed(),
-        ReceiveScreenState()
+        viewModelScope, SharingStarted.WhileSubscribed(), ReceiveScreenState()
     )
 
     private val vmErrors: MutableSharedFlow<String> = MutableSharedFlow(extraBufferCapacity = 10)
     val errors: SharedFlow<String> = merge(
-        useCase.blErrors,
-        useCase.transactionErrors,
-        useCase.useCaseErrors,
-        vmErrors
+        useCase.blErrors, useCase.transactionErrors, useCase.useCaseErrors, vmErrors
     ).shareIn(
-        viewModelScope,
-        SharingStarted.WhileSubscribed()
+        viewModelScope, SharingStarted.WhileSubscribed()
     )
 
     fun onEvent(event: ReceiveScreenEvent) {
@@ -93,6 +89,7 @@ class ReceiveViewModel @AssistedInject constructor(
                 true -> startAdvertising()
                 false -> stopAdvertising()
             }
+
             is Disconnect -> disconnect()
             is ReactToOffer -> when (event.accept) {
                 true -> acceptOffer()
@@ -104,12 +101,9 @@ class ReceiveViewModel @AssistedInject constructor(
     private fun startAdvertising() {
         //Duration of 0 corresponds to indefinite advertising. Unrecommended. Stop advertising manually after.
         //Edit: passing 0 actually makes system prompt for default duration (120 seconds)
-        useCase.startAdvertising(registry = registry,
-            duration = 30,
-            callback = { resultDuration ->
-                resultDuration
-                    ?: viewModelScope.launch { vmErrors.emit("Declined advertising prompt") }
-            })
+        useCase.startAdvertising(registry = registry, duration = 30, callback = { resultDuration ->
+            resultDuration ?: viewModelScope.launch { vmErrors.emit("Declined advertising prompt") }
+        })
     }
 
     //Due to a bug (?) in Android some devices will start advertising for 120s instead of 1s
@@ -133,11 +127,10 @@ class ReceiveViewModel @AssistedInject constructor(
         when (val state = state.value.uiState) {
             is OperationResult -> useCase.disconnect()
             is InTransaction -> if (state.status in listOf(
-                    WAITING_FOR_OFFER,
-                    OFFER_RECEIVED,
-                    FINISHED_SUCCESSFULLY,
-                    ERROR
-                )) useCase.disconnect()
+                    WAITING_FOR_OFFER, OFFER_RECEIVED, FINISHED_SUCCESSFULLY, ERROR
+                )
+            ) useCase.disconnect()
+
             else -> viewModelScope.launch { vmErrors.emit("Cannot disconnect during critical operations!") }
         }
     }

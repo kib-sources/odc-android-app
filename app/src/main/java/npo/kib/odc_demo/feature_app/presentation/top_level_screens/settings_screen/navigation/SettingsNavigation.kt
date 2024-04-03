@@ -4,7 +4,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
-import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_screen.SettingsScreen
+import npo.kib.odc_demo.feature_app.presentation.top_level_screens.settings_screen.SettingsRoute
 
 const val settingsRoute = "settings_route"
 
@@ -14,6 +14,6 @@ fun NavController.navigateToSettingsScreen(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.settingsScreen(onBackClick : () -> Unit) {
     composable(route = settingsRoute) {
-        SettingsScreen(onBackClick = onBackClick)
+        SettingsRoute(onBackClick = onBackClick)
     }
 }

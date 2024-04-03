@@ -19,7 +19,7 @@ import npo.kib.odc_demo.ui.ThemePreviews
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 @Composable
-fun ODCTopBar(modifier: Modifier = Modifier) {
+fun ODCTopBar(modifier: Modifier = Modifier, text : String = "OpenDigitalCash") {
     Row(
         modifier = modifier
             .requiredHeight(100.dp)
@@ -47,7 +47,7 @@ fun ODCTopBar(modifier: Modifier = Modifier) {
             Text(
                 modifier = Modifier
                     .fillMaxWidth(),
-                text = "OpenDigitalCash",
+                text = text,
                 color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodyLarge,
@@ -93,7 +93,7 @@ private fun ODCTopBarWithBalanceBlock() {
                 modifier = Modifier.align(CenterHorizontally)
                     .width(600.dp)
             )
-            BalanceBlock(modifier = Modifier.align(CenterHorizontally))
+            BalanceBlock(modifier = Modifier.align(CenterHorizontally), onWalletDetailsClick = {})
         }
     }
 }

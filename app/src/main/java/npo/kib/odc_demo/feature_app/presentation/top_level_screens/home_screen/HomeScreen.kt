@@ -3,7 +3,6 @@ package npo.kib.odc_demo.feature_app.presentation.top_level_screens.home_screen
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
@@ -11,6 +10,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.savedstate.SavedStateRegistry
+import androidx.savedstate.SavedStateRegistryOwner
+import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
 import npo.kib.odc_demo.feature_app.presentation.common.components.BalanceBlock
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCBottomBar
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCTopBar
@@ -23,28 +25,32 @@ import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
 
 @Composable
-fun HomeRoute() {
-
+fun HomeRoute(
+    viewModel: HomeViewModel = hiltViewModel(),
+    onWalletDetailsClick: () -> Unit,
+    onHistoryClick: () -> Unit
+) {
+    val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
+    HomeScreen(
+        homeState = homeState,
+        onWalletDetailsClick = onWalletDetailsClick,
+        onHistoryClick = onHistoryClick,
+        updateBalanceAndUserInfo = viewModel::updateBalanceAndAppUserInfo
+    )
 }
 
 @Composable
-fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel(), onHistoryClick: () -> Unit
+private fun HomeScreen(
+    homeState: HomeScreenState,
+    onWalletDetailsClick: () -> Unit,
+    onHistoryClick: () -> Unit,
+    updateBalanceAndUserInfo: () -> Unit
 ) {
-
     val p2pCommonState = rememberP2PCommonState()
-
-    val homeState by viewModel.homeScreenState.collectAsStateWithLifecycle()
-
-
-    LaunchedEffect(key1 = true) {
-//        p2pCommonState.popToRoot() fixme would pop to root on screen rotation, not only on initial navigation
-    }
     Column(
         Modifier
             .fillMaxSize()
             .padding(5.dp)
-//            .border(2.dp, color = MaterialTheme.colorScheme.onBackground, shape = RoundedCornerShape(10))
     ) {
         Spacer(modifier = Modifier.weight(0.1f))
         BalanceBlock(
@@ -54,7 +60,8 @@ fun HomeScreen(
                 .weight(1f),
             appUser = homeState.currentUser,
             isUpdatingBalanceAndInfo = homeState.isUpdatingBalanceAndInfo,
-            refreshBalanceAndUserInfo = viewModel::updateBalanceAndAppUserInfo
+            refreshBalanceAndUserInfo = updateBalanceAndUserInfo,
+            onWalletDetailsClick = onWalletDetailsClick
         )
         P2PNavHost(
             modifier = Modifier
@@ -64,19 +71,20 @@ fun HomeScreen(
             onHistoryClick = onHistoryClick,
 //            refreshBalanceAndUserInfo = viewModel::updateBalanceAndAppUserInfo
         )
-
     }
 }
-
 
 @Preview(showSystemUi = false)
 @Composable
 private fun HomePreview() {
     ODCAppTheme {
-        HomeScreen(onHistoryClick = {})
+        HomeScreen(onHistoryClick = {}, homeState = HomeScreenState(
+            balance = 0, currentUser = AppUser(
+                userName = "", walletId = ""
+            ), isUpdatingBalanceAndInfo = false
+        ), updateBalanceAndUserInfo = { }, onWalletDetailsClick = {})
     }
 }
-
 
 @ThemePreviews
 @DevicePreviews
@@ -100,7 +108,11 @@ private fun HomeScreenPreview() {
                 )
             }) { paddingValues ->
                 Box(modifier = Modifier.padding(paddingValues = paddingValues)) {
-                    HomeScreen(onHistoryClick = {})
+                    HomeScreen(onHistoryClick = {}, homeState = HomeScreenState(
+                        balance = 0, currentUser = AppUser(
+                            userName = "", walletId = ""
+                        ), isUpdatingBalanceAndInfo = false
+                    ), updateBalanceAndUserInfo = { }, onWalletDetailsClick = {})
                 }
             }
         }

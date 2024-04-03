@@ -15,9 +15,6 @@ fun NavController.navigateToATMScreen(navOptions: NavOptions? = null) {
 
 fun NavGraphBuilder.atmScreen(navigateToP2PRoot: () -> Unit) {
     composable(route = p2pATMRoute) {
-        ATMRoute(
-            navigateToP2PRoot = navigateToP2PRoot,
-            navBackStackEntry = it
-        )
+        ATMRoute(navigateToP2PRoot = navigateToP2PRoot)
     }
 }

@@ -2,17 +2,17 @@ package npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientBackground
 import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.ThemePreviews
@@ -23,41 +23,44 @@ fun DeviceItem(
     modifier: Modifier = Modifier,
     id: Int? = null,
     name: String?,
-    address: String,
+    address: String?,
     onItemClick: () -> Unit
 ) {
     ODCGradientBackground(
         gradientColors = GradientColors.ColorSet2, shape = RoundedCornerShape(10.dp)
     ) {
-        Row(modifier = modifier
-//            .clip(shape = RoundedCornerShape(10.dp))
+        Row(modifier = modifier.requiredHeightIn(min = 70.dp)
             .border(
                 width = 1.dp,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
                 shape = RoundedCornerShape(10.dp)
             )
             .padding(5.dp)
-            .clickable { onItemClick() }) {
+            .clickable { onItemClick() }, verticalAlignment = CenterVertically
+        ) {
             Spacer(modifier = Modifier.weight(0.05f))
             id?.let {
                 Text(
                     text = "$id",
                     modifier = Modifier
                         .weight(0.1f)
-                        .align(Alignment.CenterVertically),
+                        .align(CenterVertically),
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Spacer(modifier = Modifier.weight(0.05f))
             } ?: Spacer(modifier = Modifier.weight(0.15f))
-            Column(modifier = Modifier.weight(1f)) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Center) {
                 Text(
-                    text = "name = ${name ?: "Unknown name"}",
+                    text = name ?: "Unknown name",
+                    fontSize = if (address != null) 16.sp else 20.sp,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
-                Text(
-                    text = "address = $address",
+                if (address != null) Text(
+                    text = "Device address: $address",
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
+
             }
             Spacer(modifier = Modifier.weight(0.05f))
         }
@@ -70,14 +73,18 @@ fun DeviceItem(
 private fun DeviceItemPreview() {
     ODCAppTheme {
         Column {
-//            DeviceItem(id = null, name = null, address = "00:00:00:00:00:00", onItemClick = {})
-            DeviceItem(id = 0,
-                       name = "Sample name",
-                       address = "00:00:00:00:00:00",
-                       onItemClick = {})
-            DeviceItem(name = "Sample name",
-                       address = "00:00:00:00:00:00",
-                       onItemClick = {})
+            DeviceItem(
+                id = 0,
+                name = "Sample name",
+                address = "00:00:00:00:00:00",
+                onItemClick = {})
+            DeviceItem(name = "Sample name", address = "00:00:00:00:00:00", onItemClick = {})
+            DeviceItem(
+                id = 0,
+                name = "Sample name",
+                address = null,
+                onItemClick = {})
+            DeviceItem(name = "Sample name", address = null, onItemClick = {})
         }
     }
 }

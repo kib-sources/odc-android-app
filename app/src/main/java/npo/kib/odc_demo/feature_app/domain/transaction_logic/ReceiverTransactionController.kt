@@ -1,5 +1,6 @@
 package npo.kib.odc_demo.feature_app.domain.transaction_logic
 
+import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
@@ -11,16 +12,13 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.R
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver.*
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForReceiver.WAITING_FOR_SIGNED_BLOCK
+import javax.inject.Inject
 
-class ReceiverTransactionController(
-    walletRepository: WalletRepository,
-    scope: CoroutineScope,
-    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
-    private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+@ViewModelScoped
+class ReceiverTransactionController @Inject constructor(
+    walletRepository: WalletRepository
 ) : TransactionController(
-    scope = scope,
-    walletRepository = walletRepository,
-    role = TransactionRole.RECEIVER
+    walletRepository = walletRepository, role = TransactionRole.RECEIVER
 ) {
     private val _currentStep = MutableStateFlow(WAITING_FOR_AMOUNT_REQUEST)
     private val currentStep = _currentStep.asStateFlow()
@@ -74,6 +72,7 @@ class ReceiverTransactionController(
                     sendAmountRequestRejection(e.message)
                 }
             }
+
             AMOUNT_REQUEST_RECEIVED -> {
                 packet.requireToBeOfTypes()
                 //should not receive anything until reacting to the offer (except userInfo that can be received at any moment now)
@@ -81,15 +80,18 @@ class ReceiverTransactionController(
                 //if the amount request is invalid, send rejection immediately
 
             }
+
             WAITING_FOR_BANKNOTES_LIST -> {
                 //we are on this step when have accepted the offer
                 packet.requireToBeOfTypes(BANKNOTES_LIST)
                 onReceivedBanknotesList(packet as BanknotesList)
             }
+
             WAITING_FOR_SIGNED_BLOCK -> {
                 packet.requireToBeOfTypes(SIGNED_BLOCK)
                 verifyReceivedBlock(packet as Block)
             }
+
             WAITING_FOR_RESULT -> {
                 packet.requireToBeOfTypes(TRANSACTION_RESULT)
                 val result = packet as TransactionResult
@@ -108,6 +110,7 @@ class ReceiverTransactionController(
                 )
                 //todo check for results on other steps if needed
             }
+
             FINISHED -> {
 //                nothing is expected after the transaction has finished
             }
@@ -197,8 +200,7 @@ class ReceiverTransactionController(
             val resultBanknote = BanknoteWithBlockchain(
                 currentProcessedBanknote.banknoteWithProtectedBlock.copy(
                     protectedBlock = lastSentNewProtectedBlock
-                ),
-                resultBlocks
+                ), resultBlocks
             )
             _transactionDataBuffer.update {
                 it.copy(
@@ -235,9 +237,11 @@ class ReceiverTransactionController(
             amount <= 0 -> throw transactionExceptionWithRole(
                 "Received an invalid amount request, amount is <= 0 "
             )
+
             walletId.isBlank() -> throw transactionExceptionWithRole(
                 "The wid in the amount request was empty or blank"
             )
+
             walletId != transactionDataBuffer.value.otherUserInfo?.walletId -> throw transactionExceptionWithRole(
                 """The wid in the amount request was different from your saved UserInfo wid. 
                     |Request wid: $walletId .

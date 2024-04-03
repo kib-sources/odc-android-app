@@ -1,21 +1,33 @@
 package npo.kib.odc_demo.feature_app.data.repositories
 
 import android.util.Log
-import kotlinx.coroutines.*
-import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreKey
-import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreKey.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.withContext
+import npo.kib.odc_demo.feature_app.data.datastore.DefaultDataStoreObject
+import npo.kib.odc_demo.feature_app.data.datastore.UtilityDataStoreObject.*
 import npo.kib.odc_demo.feature_app.data.db.Amount
 import npo.kib.odc_demo.feature_app.data.db.BanknotesDao
 import npo.kib.odc_demo.feature_app.data.db.BlockDao
-import npo.kib.odc_demo.feature_app.domain.core.*
+import npo.kib.odc_demo.feature_app.domain.core.Crypto
+import npo.kib.odc_demo.feature_app.domain.core.Wallet
+import npo.kib.odc_demo.feature_app.domain.core.getStringPem
+import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus.WALLET_ERROR
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.*
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.WalletRequest
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.domain.repository.*
+import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
+import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
+import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
+import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
 import npo.kib.odc_demo.feature_app.domain.util.log
 import java.security.PrivateKey
 import java.security.PublicKey
@@ -52,10 +64,10 @@ class WalletRepositoryImpl(
             val sok = keys.first
             val spk = keys.second
 
-            var sokSignature = utilityDataStoreRepository.readValue(SOK_SIGN_KEY)
-            var wid = utilityDataStoreRepository.readValue(WID_KEY)
-            var bin = utilityDataStoreRepository.readValue(BIN_KEY)
-            var bokString = utilityDataStoreRepository.readValue(BOK_KEY)
+            var sokSignature = utilityDataStoreRepository.readValue(SOK_SIGN)
+            var wid = utilityDataStoreRepository.readValue(WID)
+            var bin = utilityDataStoreRepository.readValue(BIN)
+            var bokString = utilityDataStoreRepository.readValue(BOK)
 
             if (sokSignature == null || wid == null || bokString == null || bin == null) {
                 Log.d("OpenDigitalCash", "getting sok_sign, wid and bok from server")
@@ -67,10 +79,10 @@ class WalletRepositoryImpl(
                 verifySokSign(sok, sokSignature, bokString)
                 wid = walletResp.wid
                 with(utilityDataStoreRepository) {
-                    writeValue(BIN_KEY, bin)
-                    writeValue(BOK_KEY, bokString)
-                    writeValue(SOK_SIGN_KEY, sokSignature)
-                    writeValue(WID_KEY, wid)
+                    writeValue(BIN, bin)
+                    writeValue(BOK, bokString)
+                    writeValue(SOK_SIGN, sokSignature)
+                    writeValue(WID, wid)
                 }
             }
 
@@ -82,10 +94,10 @@ class WalletRepositoryImpl(
 
     override suspend fun isWalletRegistered(): Boolean {
         return withContext(ioDispatcher) {
-            val sokSignature = utilityDataStoreRepository.readValue(SOK_SIGN_KEY)
-            val wid = utilityDataStoreRepository.readValue(WID_KEY)
-            val bin = utilityDataStoreRepository.readValue(BIN_KEY)
-            val bokString = utilityDataStoreRepository.readValue(BOK_KEY)
+            val sokSignature = utilityDataStoreRepository.readValue(SOK_SIGN)
+            val wid = utilityDataStoreRepository.readValue(WID)
+            val bin = utilityDataStoreRepository.readValue(BIN)
+            val bokString = utilityDataStoreRepository.readValue(BOK)
             !(sokSignature == null || wid == null || bokString == null || bin == null)
         }
     }
@@ -95,8 +107,8 @@ class WalletRepositoryImpl(
 
     override suspend fun getLocalUserInfo(): UserInfo = withContext(ioDispatcher) {
         UserInfo(
-            defaultDataStoreRepository.readValue(DefaultDataStoreKey.USER_NAME)
-                ?: "Unspecified User", getOrRegisterWallet().walletId
+            defaultDataStoreRepository.readValueOrDefault(DefaultDataStoreObject.USER_NAME),
+            getOrRegisterWallet().walletId
         )
     }
 

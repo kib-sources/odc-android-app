@@ -33,6 +33,7 @@ import npo.kib.odc_demo.ui.theme.ODCAppTheme
 fun UsersList(
     modifier: Modifier = Modifier,
     deviceList: List<CustomBluetoothDevice>,
+    showAddresses: Boolean = true,
     onClickDevice: (CustomBluetoothDevice) -> Unit
 ) {
     Surface(
@@ -79,7 +80,7 @@ fun UsersList(
                 ) { device ->
                     DeviceItem(modifier = Modifier.animateItemPlacement(),
                         name = device.name,
-                        address = device.address,
+                        address = if (showAddresses) device.address else null,
                         onItemClick = {
                             onClickDevice(device)
                         })

@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
@@ -30,9 +31,17 @@ import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
+import npo.kib.odc_demo.feature_app.domain.util.containsPrefix
 import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
-import npo.kib.odc_demo.feature_app.presentation.common.components.*
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.*
+import npo.kib.odc_demo.feature_app.domain.util.withoutPrefix
+import npo.kib.odc_demo.feature_app.presentation.common.components.CustomSnackbar
+import npo.kib.odc_demo.feature_app.presentation.common.components.MultiplePermissionsRequestBlock
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
+import npo.kib.odc_demo.feature_app.presentation.common.components.TransparentHintTextField
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.StatusInfoBlock
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UserInfoBlock
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UsersList
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.animateFadeVerticalSlideInOut
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen.SendUiState.OperationResult.ResultType.Success
@@ -175,10 +184,10 @@ private object SendScreenSubScreens {
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             Text(text = "Search for users", Modifier.animateFadeVerticalSlideInOut())
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(15.dp))
             ODCGradientButton(text = "Start searching", onClick = onClickStartSearching)
         }
     }
@@ -200,8 +209,10 @@ private object SendScreenSubScreens {
                 onClick = onClickCancelSearching,
                 gradientColors = GradientColors.ButtonNegativeActionColors
             )
-            UsersList(
-                deviceList = foundDevices, onClickDevice = onUserClicked
+            UsersList(deviceList = foundDevices.filter { it.name.containsPrefix() }
+                .map { it.copy(name = it.name!!.withoutPrefix()) },
+                showAddresses = false,
+                onClickDevice = onUserClicked
             )
         }
     }
@@ -215,7 +226,6 @@ private object SendScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             StatusInfoBlock(statusLabel = label)
-//            CircularProgressIndicator() fixme crashes the app
         }
     }
 
@@ -350,14 +360,18 @@ private object SendScreenSubScreens {
                 }
                 //Second part with the text field and button
                 if (shouldShowTextInput) {
-                    TransparentHintTextField(modifier = Modifier
-                        .fillMaxWidth()
-                        .requiredHeight(50.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                        .border(Dp.Hairline, color = MaterialTheme.colorScheme.onSurface)
-                        .padding(15.dp),
+                    TransparentHintTextField(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .requiredHeight(50.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .border(Dp.Hairline, color = MaterialTheme.colorScheme.onBackground)
+                            .padding(15.dp),
                         hint = "Enter a valid amount...",
-                        onValueChange = { amountText = it })
+                        onValueChange = { amountText = it },
+                        textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+                        singleLine = true
+                    )
                     Spacer(modifier = Modifier.height(5.dp))
                     ODCGradientButton(text = if (amountIsValid) "Construct the amount" else "Invalid amount entered",
                         enabled = amountIsValid,

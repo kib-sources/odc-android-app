@@ -3,15 +3,19 @@ package npo.kib.odc_demo.feature_app.presentation.common.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import npo.kib.odc_demo.ui.GradientColors
 import npo.kib.odc_demo.ui.ThemePreviews
@@ -21,27 +25,29 @@ import npo.kib.odc_demo.ui.theme.ODCAppTheme
 fun ODCPlainButton(
     modifier: Modifier = Modifier,
     text: String,
+    textStyle: TextStyle = odcButtonsTextStyle,
     color: Color = MaterialTheme.colorScheme.primaryContainer,
-    shape: Shape = RoundedCornerShape(50),
+    shape: Shape = RoundedCornerShape(15),
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Button(
         modifier = modifier
             .background(
-                color = color,
-                shape = shape
+                color = color, shape = shape
             )
             .border(
                 width = Dp.Hairline,
                 shape = shape,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            .height(ButtonDefaults.MinHeight)
-            .aspectRatio(4f),
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+            .heightIn(min = ButtonDefaults.MinHeight),
+        shape = shape,
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        onClick = onClick
     ) {
-        Text(text = text)
+        Text(text = text, style = textStyle)
     }
 
 }
@@ -60,8 +66,9 @@ private fun ODCPlainActionButtonPreview() {
 fun ODCGradientButton(
     modifier: Modifier = Modifier,
     text: String,
+    textStyle: TextStyle = odcButtonsTextStyle,
     gradientColors: GradientColors = GradientColors.ButtonPositiveActionColors,
-    shape: Shape = RoundedCornerShape(50),
+    shape: Shape = RoundedCornerShape(15),
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
@@ -70,24 +77,22 @@ fun ODCGradientButton(
             .background(
                 brush = Brush.horizontalGradient(
                     colors = listOf(
-                        gradientColors.color1,
-                        gradientColors.color2
+                        gradientColors.color1, gradientColors.color2
                     )
-                ),
-                shape = shape
+                ), shape = shape
             )
             .border(
                 width = Dp.Hairline,
                 shape = shape,
                 color = MaterialTheme.colorScheme.onPrimaryContainer
             )
-            /*.height(ButtonDefaults.MinHeight)
-            .aspectRatio(4f)*/,
+            .heightIn(min = ButtonDefaults.MinHeight),
+        shape = shape,
         enabled = enabled,
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+        colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        onClick = onClick
     ) {
-        Text(text)
+        Text(text, style = textStyle)
     }
 
 }
@@ -98,13 +103,16 @@ private fun ODCGradientActionButtonPreview() {
     ODCAppTheme {
         Column {
             ODCGradientButton(
-                text = "Accept",
-                gradientColors = GradientColors.ButtonPositiveActionColors
+                text = "Accept", gradientColors = GradientColors.ButtonPositiveActionColors
             ) {}
             ODCGradientButton(
-                text = "Reject",
-                gradientColors = GradientColors.ButtonNegativeActionColors
+                text = "Reject", gradientColors = GradientColors.ButtonNegativeActionColors
             ) {}
         }
     }
 }
+
+val odcButtonsTextStyle: TextStyle
+    @Composable get() = TextStyle(
+        color = MaterialTheme.colorScheme.onBackground, textAlign = TextAlign.Center
+    )

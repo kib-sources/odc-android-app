@@ -16,16 +16,16 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.SenderTransactionCo
 @InstallIn(ViewModelComponent::class)
 object TransactionControllersModule {
 
-    @Provides
-    @ViewModelScoped
-    fun provideReceiverTransactionControllerBl(
-        walletRepository: WalletRepository, @P2PTransactionScope scope: CoroutineScope
-    ) = ReceiverTransactionController(walletRepository, scope)
-
-    @Provides
-    @ViewModelScoped
-    fun provideSenderTransactionController(
-        walletRepository: WalletRepository, @P2PTransactionScope scope: CoroutineScope
-    ) = SenderTransactionController(walletRepository, scope)
+//    @Provides
+//    @ViewModelScoped
+//    fun provideReceiverTransactionControllerBl(
+//        walletRepository: WalletRepository, @P2PTransactionScope scope: CoroutineScope
+//    ) = ReceiverTransactionController(walletRepository, scope)
+//
+//    @Provides
+//    @ViewModelScoped
+//    fun provideSenderTransactionController(
+//        walletRepository: WalletRepository, @P2PTransactionScope scope: CoroutineScope
+//    ) = SenderTransactionController(walletRepository, scope)
 
 }

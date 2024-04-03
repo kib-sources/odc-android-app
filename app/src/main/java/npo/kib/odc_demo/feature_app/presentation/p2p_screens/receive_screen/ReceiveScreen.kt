@@ -36,6 +36,7 @@ import npo.kib.odc_demo.feature_app.presentation.common.components.MultiplePermi
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.StatusInfoBlock
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UserInfoBlock
+import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.animateFadeVerticalSlideInOut
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen.ReceiveUiState.OperationResult.ResultType.Success
@@ -185,10 +186,11 @@ private object ReceiveScreenSubScreens {
     fun InitialScreen(onClickStartAdvertising: () -> Unit) {
         Column(
             Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Top,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Top
         ) {
             Text(text = "Initial screen")
+            Spacer(modifier = Modifier.height(15.dp))
             ODCGradientButton(text = "Start advertising", onClick = onClickStartAdvertising)
         }
     }
@@ -217,8 +219,12 @@ private object ReceiveScreenSubScreens {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            UserInfoBlock(
+                modifier = Modifier.animateFadeVerticalSlideInOut(),
+                userInfo = dataBuffer.otherUserInfo
+            )
             when (transactionStatus) {
-                WAITING_FOR_OFFER -> ConnectedScreen(dataBuffer.otherUserInfo)
+                WAITING_FOR_OFFER -> ConnectedScreen()
                 OFFER_RECEIVED -> OfferReceivedScreen(amount = dataBuffer.amountRequest?.amount,
                     fromUser = dataBuffer.otherUserInfo,
                     onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
@@ -281,21 +287,17 @@ private object ReceiveScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             StatusInfoBlock(statusLabel = label)
-//            CircularProgressIndicator() fixme crashes the app
         }
     }
 
     context(AnimatedVisibilityScope)
     @Composable
-    fun ConnectedScreen(
-        otherUserInfo: UserInfo?
-    ) {
+    fun ConnectedScreen() {
         Column(
             Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            UserInfoBlock(userInfo = otherUserInfo)
             StatusInfoBlock(statusLabel = "Waiting for offer...") //todo add dots animation
         }
     }

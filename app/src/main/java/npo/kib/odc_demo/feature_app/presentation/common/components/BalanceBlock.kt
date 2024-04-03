@@ -2,6 +2,7 @@ package npo.kib.odc_demo.feature_app.presentation.common.components
 
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,6 +44,7 @@ fun BalanceBlock(
     appUser: AppUser = AppUser(),
     roundedCornerSize: Dp = 15.dp,
     refreshBalanceAndUserInfo: () -> Unit = {},
+    onWalletDetailsClick: () -> Unit,
     isUpdatingBalanceAndInfo: Boolean = false,
     textColor: Color = White,
     surfaceColor: Color = CustomColors.Confirm_Success
@@ -65,7 +67,7 @@ fun BalanceBlock(
                         .weight(3f)
                         .padding(
                             start = roundedCornerSize + 15.dp, top = 10.dp, bottom = 10.dp
-                        )
+                        ).clickable { onWalletDetailsClick() }
                 ) {
                     Text(
                         modifier = Modifier.weight(0.5f),
@@ -191,8 +193,8 @@ private fun PrevBalanceBlock() {
                         delay(4321)
                         isUpdating = false
                     }
-                })
-            BalanceBlock(isUpdatingBalanceAndInfo = true)
+                }, onWalletDetailsClick = {})
+            BalanceBlock(isUpdatingBalanceAndInfo = true, onWalletDetailsClick = {})
         }
     }
 }

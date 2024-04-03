@@ -32,7 +32,7 @@ fun HistoryBlock(onHistoryClick: () -> Unit, modifier: Modifier = Modifier) {
                 )
                 .clickable { onHistoryClick() }) {
         }
-        Text("History is here! Click!", modifier = Modifier.align(Alignment.Center))
+        Text("Click to see transaction history", modifier = Modifier.align(Alignment.Center))
     }
 }
 

@@ -27,6 +27,7 @@ import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalApp
 import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.bluetoothPermissionsList
 import npo.kib.odc_demo.feature_app.domain.util.log
 import npo.kib.odc_demo.feature_app.presentation.common.MainActivityUiState.Loading
+import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCPlainButton
 import npo.kib.odc_demo.ui.theme.ODCAppTheme
 
@@ -91,7 +92,7 @@ class MainActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = "Failure registering wallet")
-                        ODCPlainButton(
+                        ODCGradientButton(
                             text = "Try again", onClick = viewModel::registerWalletWithBank
                         )
                     }
