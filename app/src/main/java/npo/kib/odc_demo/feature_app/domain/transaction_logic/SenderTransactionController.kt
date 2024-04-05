@@ -20,6 +20,7 @@ import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.Fo
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_ACCEPTANCE_BLOCKS
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_OFFER_RESPONSE
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.algorithms.findBanknotesWithSum
+import npo.kib.odc_demo.feature_app.domain.util.log
 import javax.inject.Inject
 
 @ViewModelScoped
@@ -143,8 +144,8 @@ class SenderTransactionController @Inject constructor(
             if (currentStep.value == INITIAL) {
                 _transactionDataBuffer.update { it.copy(isAmountAvailable = null) }
                 updateStatus(CONSTRUCTING_AMOUNT)
-                //have to also partially clear protected blocks of banknotes before sending for some reason
-                // (most likely to reduce size, but also maybe for security)
+                this@SenderTransactionController.log("CONSTRUCTING_AMOUNT")
+                //partially clear protected blocks of banknotes before sending to reduce size
                 val resultBanknotes: List<BanknoteWithBlockchain>? =
                     getBanknotesFromAmount(amount)?.map {
                         ensureActive()
@@ -160,6 +161,7 @@ class SenderTransactionController @Inject constructor(
                 return@withContext if (resultBanknotes == null) {
                     _transactionDataBuffer.update { it.copy(isAmountAvailable = false) }
                     updateStatus(SHOWING_AMOUNT_AVAILABILITY)
+                    this@SenderTransactionController.log("SHOWING_AMOUNT_AVAILABILITY, isAmountAvailable = false")
                     false
                 } else {
                     _transactionDataBuffer.update {
@@ -173,6 +175,7 @@ class SenderTransactionController @Inject constructor(
                         )
                     }
                     updateStatus(SHOWING_AMOUNT_AVAILABILITY)
+                    this@SenderTransactionController.log("SHOWING_AMOUNT_AVAILABILITY, isAmountAvailable = true")
                     true
                 }
             } else throw transactionExceptionWithRole("Tried constructing amount while not on INITIAL step")
@@ -202,21 +205,30 @@ class SenderTransactionController @Inject constructor(
     }
 
     private suspend fun onAcceptanceBlocksReceived(acceptanceBlocks: AcceptanceBlocks) {
-        updateLastAcceptanceBLocks(acceptanceBlocks)
-        updateStatus(SIGNING_SENDING_NEW_BLOCK)
         withContext(defaultDispatcher) {
-            val currentBanknoteLastBlock = currentProcessedBanknote!!.blocks.last()
+            updateLastAcceptanceBLocks(acceptanceBlocks)
+            updateStatus(SIGNING_SENDING_NEW_BLOCK)
+            val currentBanknoteLastBlock = currentProcessedBanknote.blocks.last()
             val resultBlock = walletRepository.walletSignature(
                 parentBlock = currentBanknoteLastBlock,
                 childBlock = acceptanceBlocks.childBlock,
                 protectedBlock = acceptanceBlocks.protectedBlock
             )
             outputDataPacketChannel.send(resultBlock)
-            currentBanknoteOrdinal++
-            if (currentBanknoteOrdinal >= banknotesList!!.size) {
-                _transactionDataBuffer.update { it.copy(allBanknotesProcessed = true) }
-                updateStatus(ALL_BANKNOTES_PROCESSED)
-                updateStep(WAITING_FOR_RESULT)
+            val li = banknotesList.lastIndex
+            val ci = currentBanknoteIndex
+            when {
+                ci < li -> {
+                    currentBanknoteIndex += 1
+                }
+
+                ci == li -> {
+                    _transactionDataBuffer.update { it.copy(allBanknotesProcessed = true) }
+                    updateStatus(ALL_BANKNOTES_PROCESSED)
+                    updateStep(WAITING_FOR_RESULT)
+                }
+
+                else -> throw transactionExceptionWithRole("currentBanknoteIndex > banknotesList.lastIndex")
             }
         }
     }

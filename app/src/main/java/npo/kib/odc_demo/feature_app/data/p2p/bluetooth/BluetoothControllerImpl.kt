@@ -15,10 +15,13 @@ import kotlinx.coroutines.flow.*
 import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus.*
 import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
+import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController.Companion.DEVICE_NAME_PREFIX
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController.Companion.SERVICE_UUID
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.toCustomBluetoothDevice
+import npo.kib.odc_demo.feature_app.domain.util.containsPrefix
 import npo.kib.odc_demo.feature_app.domain.util.log
+import npo.kib.odc_demo.feature_app.domain.util.withoutPrefix
 import java.io.IOException
 import java.util.UUID
 
@@ -56,9 +59,23 @@ class BluetoothControllerImpl(
     override val errors: SharedFlow<String> = _errors.asSharedFlow()
 
     private val deviceFoundReceiver = DeviceFoundReceiver { device ->
-        _scannedDevices.update { devices ->
-            val newDevice = device.toCustomBluetoothDevice()
-            if (newDevice in devices) devices else devices + newDevice
+        var newDevice = device.toCustomBluetoothDevice()
+        this@BluetoothControllerImpl.log("Found a device! : $newDevice")
+        if (newDevice.name.containsPrefix(DEVICE_NAME_PREFIX)) {
+            val newName =
+                newDevice.name!!.withoutPrefix(DEVICE_NAME_PREFIX).ifBlank { "Blank name" }
+            newDevice = newDevice.copy(name = newName)
+            val scannedMap = _scannedDevices.value.associate { it.address to it.name }
+            //if device with the same address is already present, replace the name, else add the new device
+            val deviceIndex = scannedMap.keys.indexOf(newDevice.address)
+            _scannedDevices.update { devices ->
+                if (deviceIndex == -1) (devices + newDevice).sortedByDescending { it.name } else {
+                    devices.toMutableList().apply {
+                        this[deviceIndex] = newDevice
+                        sortedByDescending { it.name }
+                    }
+                }
+            }
         }
     }
 
@@ -67,7 +84,7 @@ class BluetoothControllerImpl(
             setConnectionStatus(if (isConnected) CONNECTED else DISCONNECTED)
         } else {
             CoroutineScope(ioDispatcher).launch {
-                _errors.emit("Can't connect to a non-paired device.")
+                _errors.emit("Pair devices first before connecting")
             }
         }
     }
@@ -113,9 +130,11 @@ class BluetoothControllerImpl(
                 resultCode
             }
 
-            this.log("Started advertising for: $actualDuration")
             callback(actualDuration)
-            setConnectionStatus(ADVERTISING)
+            actualDuration?.let {
+                this.log("Started advertising for: $actualDuration")
+                setConnectionStatus(ADVERTISING)
+            }
         }
 
         val discoverableIntent: Intent =
@@ -292,7 +311,7 @@ class BluetoothControllerImpl(
     }
 
     override suspend fun setDeviceName(newName: String): Boolean {
-        this.log("setDeviceName() called")
+        this.log("setDeviceName($newName) called")
         return withContext(ioDispatcher) {
             bluetoothAdapter?.setName(newName) ?: false
         }

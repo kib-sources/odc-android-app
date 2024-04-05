@@ -150,7 +150,7 @@ class P2PReceiveUseCase @Inject constructor(
 
     private fun changeDeviceNameToPattern() {
         scope.launch {
-            if (wasNameChanged()) this.log("Bluetooth name already changed")
+            if (wasNameChanged()) this@P2PReceiveUseCase.log("Bluetooth name already changed")
             else withContext(NonCancellable) {
                 this@P2PReceiveUseCase.log("Changing bluetooth name to pattern")
                 val currentName = bluetoothController.getDeviceName()
@@ -184,7 +184,7 @@ class P2PReceiveUseCase @Inject constructor(
                         _useCaseErrors.emit("Couldn't revert to old bluetooth name")
                     }
                 }
-            else this.log("Bluetooth name is not in pattern form right now, not reverting")
+            else this@P2PReceiveUseCase.log("Bluetooth name is not in pattern form right now, not reverting")
 
         }
     }

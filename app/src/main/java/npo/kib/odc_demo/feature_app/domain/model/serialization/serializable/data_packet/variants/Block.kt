@@ -11,7 +11,6 @@ import androidx.room.ForeignKey.Companion.CASCADE
 import kotlinx.serialization.Serializable
 import npo.kib.odc_demo.feature_app.data.db.BlockchainConverter
 import npo.kib.odc_demo.feature_app.domain.core.Crypto
-import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
 import npo.kib.odc_demo.feature_app.domain.core.checkHashes
 import npo.kib.odc_demo.feature_app.domain.core.getStringPem
 import npo.kib.odc_demo.feature_app.domain.model.serialization.PublicKeySerializerNotNull
@@ -78,25 +77,26 @@ data class Block(
     fun verification(publicKey: PublicKey): Boolean {
         // publicKey -- otok or bok
         if (magic == null) {
-            throw Exception("Блок не до конца определён. Не задан magic")
+            throw Exception("Block not fully defined: \"magic\" missing.")
         }
         if (transactionHash == null) {
-            throw Exception("Блок не до конца определён. Не задан hashValue")
+            throw Exception("Block not fully defined: \"hashValue\" missing.")
         }
         if (transactionHashSignature == null) {
-            throw Exception("Блок не до конца определён. Не задан signature")
+            throw Exception("Block not fully defined: \"signature\" missing.")
         }
 
         val hashValueCheck = makeBlockHashValue()
         this.log("local hash size: " + hashValueCheck.size)
         this.log("received hash .hexToByteArray: " + transactionHash.hexToByteArray())
-        this.log("received hash encodeToByteArray().size: " + transactionHash.encodeToByteArray().size)
         this.log("received hash .hexToByteArray.size: " + transactionHash.hexToByteArray().size)
-        this.log("local hash:    ${hashValueCheck.toHex()/*.toHexString()*/}" +
+        this.log("local hash: ${hashValueCheck/*.toHex()*/.toHexString()}" +
                 "\nreceived hash: $transactionHash")
-        if (!checkHashes(hashValueCheck, transactionHash.hexToByteArray())) {
-            throw Exception("Некорректно подсчитан hashValue")
+        checkHashes(hashValueCheck, transactionHash.hexToByteArray()).onFailure {
+            this@Block.log(it)
+            throw it
         }
+
         return Crypto.verifySignature(
             transactionHash.hexToByteArray(),
             transactionHashSignature,

@@ -163,9 +163,6 @@ class ReceiverTransactionController @Inject constructor(
     private suspend fun createAcceptanceBlocksAndSend() {
         updateStatus(CREATING_SENDING_ACCEPTANCE_BLOCKS)
         val acceptanceBlocks = withContext(defaultDispatcher) {
-            val banknoteIndex = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
-            val currentProcessedBanknote =
-                transactionDataBuffer.value.banknotesList!!.list[banknoteIndex]
             //new childBlock. New protected block from the old partly filled protected block's data.
             walletRepository.walletAcceptanceInit(
                 currentProcessedBanknote.blocks,
@@ -178,13 +175,12 @@ class ReceiverTransactionController @Inject constructor(
         updateStatus(ReceiverTransactionStatus.WAITING_FOR_SIGNED_BLOCK)
     }
 
-    // TODO verification disabled for demo (?)
+    // verification disabled for demo (?)
     private suspend fun verifyReceivedBlock(block: Block) {
         updateStatus(VERIFYING_RECEIVED_BLOCK)
         updateLastSignedBLock(block)
         withContext(defaultDispatcher) {
-            val currentProcessedBanknote = currentProcessedBanknote!!
-            // TODO verification disabled for demo
+            //  verification disabled for demo
 //        if (!block.verification(current_banknote_blocks.last().otok)) {
 //            sendNegativeResult("received block is incorrectly signed")
 //            throw Exception("received block is incorrectly signed")
@@ -198,26 +194,35 @@ class ReceiverTransactionController @Inject constructor(
             val lastSentNewProtectedBlock =
                 transactionDataBuffer.value.lastAcceptanceBlocks!!.protectedBlock
             val resultBanknote = BanknoteWithBlockchain(
-                currentProcessedBanknote.banknoteWithProtectedBlock.copy(
-                    protectedBlock = lastSentNewProtectedBlock
-                ), resultBlocks
+                currentProcessedBanknote.banknoteWithProtectedBlock.copy(protectedBlock = lastSentNewProtectedBlock),
+                resultBlocks
             )
             _transactionDataBuffer.update {
                 it.copy(
-                    finalBanknotesToDB = it.finalBanknotesToDB + resultBanknote,
-                    currentlyProcessedBanknoteOrdinal = it.currentlyProcessedBanknoteOrdinal + 1
+                    finalBanknotesToDB = it.finalBanknotesToDB + resultBanknote
                 )
             }
-        }
-        //start processing next banknote if not all banknotes are processed
-        if (currentBanknoteOrdinal < banknotesList!!.size) createAcceptanceBlocksAndSend()
-        else {
-            _transactionDataBuffer.update { it.copy(allBanknotesProcessed = true) }
-            updateStatus(ALL_BANKNOTES_VERIFIED)
-            //notify that all the banknotes were successfully processed
-            sendPositiveResult()
-            //wait for confirmation of reception from the other side
-            updateStep(WAITING_FOR_RESULT)
+
+            val li = banknotesList.lastIndex
+            val ci = currentBanknoteIndex
+            when {
+                ci < li -> {
+                    currentBanknoteIndex += 1
+                    //start processing next banknote when not all are processed
+                    createAcceptanceBlocksAndSend()
+                }
+
+                ci == li -> {
+                    updateStatus(ALL_BANKNOTES_VERIFIED)
+                    _transactionDataBuffer.update { it.copy(allBanknotesProcessed = true) }
+                    //wait for confirmation of reception from the other side
+                    updateStep(WAITING_FOR_RESULT)
+                    //notify that all the banknotes were successfully processed
+                    sendPositiveResult()
+                }
+
+                else -> throw transactionExceptionWithRole("currentBanknoteIndex > banknotesList.lastIndex")
+            }
         }
     }
 

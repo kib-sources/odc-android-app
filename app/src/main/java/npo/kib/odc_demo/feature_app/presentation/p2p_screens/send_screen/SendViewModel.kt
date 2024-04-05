@@ -61,7 +61,7 @@ class SendViewModel @Inject constructor(
             }
         }
     }.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(), Initial
+        viewModelScope, SharingStarted.WhileSubscribed(5000), Initial
     )
 
     val state: StateFlow<SendScreenState> = combine(
@@ -71,14 +71,14 @@ class SendViewModel @Inject constructor(
             uiState = uiState, transactionDataBuffer = buffer, bluetoothState = btState
         )
     }.stateIn(
-        viewModelScope, SharingStarted.WhileSubscribed(), SendScreenState()
+        viewModelScope, SharingStarted.WhileSubscribed(5000), SendScreenState()
     )
 
     private val vmErrors: MutableSharedFlow<String> = MutableSharedFlow(extraBufferCapacity = 10)
     val errors: SharedFlow<String> = merge(
         useCase.blErrors, useCase.transactionErrors, useCase.useCaseErrors, vmErrors
     ).shareIn(
-        viewModelScope, SharingStarted.WhileSubscribed()
+        viewModelScope, SharingStarted.WhileSubscribed(5000)
     )
 
     fun onEvent(event: SendScreenEvent) {

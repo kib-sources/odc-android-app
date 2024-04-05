@@ -1,7 +1,7 @@
 package npo.kib.odc_demo.feature_app.domain.core
 
-import android.util.Log
-import java.util.*
+import java.util.Calendar
+import kotlin.Result.Companion
 import kotlin.random.Random
 
 fun randomMagic(): String = (1..15).asSequence()
@@ -11,32 +11,30 @@ fun randomMagic(): String = (1..15).asSequence()
 
 
 fun checkHashes(
-    hash1: ByteArray,
-    hash2: ByteArray
-): Boolean {
+    hash1: ByteArray, hash2: ByteArray
+): Result<Boolean> {
     if (hash1.size != hash2.size) {
-        Log.d(
-            "checkHashes()",
-            "Hash sizes do not match. Hash1 size = ${hash1.size}, Hash2 size = ${hash2.size}"
-        )
-        return false
+        return Result.failure(Exception("Hash sizes do not match. Hash1 size = ${hash1.size}, Hash2 size = ${hash2.size}"))
     }
-    return hash1.zip(hash2).all { (first, second) ->
-        Log.d("checkHashes()", "Pair: First = $first ; Second = $second")
-        first == second
+    hash1.zip(hash2).onEach { (first, second) ->
+        if (first != second) return Companion.failure(Exception("checkHashes() Byte mismatch in hashes ByteArrays, byte A = $first , byte B = $second"))
     }
+    return Companion.success(true)
 }
 
-fun checkTimeIsNearCurrent(t: Int, epsilon: Int): Boolean {
+fun checkTimeIsNearCurrent(t: Int, epsilon: Int): Result<Boolean> {
     val timestamp = Calendar.getInstance().timeInMillis / 1000
     val diff = timestamp - t
-    return (diff in 0..epsilon)
+    return if (diff in 0..epsilon) Result.success(true)
+    else Result.failure(
+        Exception("Incorrect time." +
+                "\nBlock time: $t " +
+                "\nCurrent time: $timestamp " +
+                "\nDifference: $diff" +
+                "\nEpsilon: $epsilon"))
 }
 
 fun String.decodeHex(): ByteArray {
     require(length % 2 == 0) { "Must have an even length" }
-
-    return chunked(2)
-        .map { it.toInt(16).toByte() }
-        .toByteArray()
+    return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 }

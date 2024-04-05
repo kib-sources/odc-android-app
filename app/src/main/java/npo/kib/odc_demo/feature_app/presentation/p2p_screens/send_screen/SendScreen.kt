@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.send_screen
 
 import androidx.compose.animation.*
@@ -31,9 +33,7 @@ import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
 import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
-import npo.kib.odc_demo.feature_app.domain.util.containsPrefix
 import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
-import npo.kib.odc_demo.feature_app.domain.util.withoutPrefix
 import npo.kib.odc_demo.feature_app.presentation.common.components.CustomSnackbar
 import npo.kib.odc_demo.feature_app.presentation.common.components.MultiplePermissionsRequestBlock
 import npo.kib.odc_demo.feature_app.presentation.common.components.ODCGradientButton
@@ -77,10 +77,11 @@ fun SendRoute(
 
 @Composable
 private fun SendScreen(
-    navigateToP2PRoot: () -> Unit, //todo use in a separate button which would be inactive on unsafe steps
-    screenState: SendScreenState, errorsFlow: SharedFlow<String>, onEvent: (SendScreenEvent) -> Unit
+    navigateToP2PRoot: () -> Unit,
+    screenState: SendScreenState,
+    errorsFlow: SharedFlow<String>,
+    onEvent: (SendScreenEvent) -> Unit
 ) {
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -105,6 +106,19 @@ private fun SendScreen(
                 textDecoration = TextDecoration.Underline
             )
         }
+        Spacer(modifier = Modifier.height(5.dp))
+        val showUserInfoBlock by remember(screenState.uiState) {
+            mutableStateOf(screenState.uiState is InTransaction)
+        }
+        if (showUserInfoBlock) AnimatedVisibility(
+            visible = true, enter = EnterTransition.None, exit = ExitTransition.None
+        ) {
+            UserInfoBlock(
+                modifier = Modifier.animateFadeVerticalSlideInOut(),
+                userInfo = screenState.transactionDataBuffer.otherUserInfo
+            )
+        }
+        Spacer(modifier = Modifier.height(5.dp))
         with(SendScreenSubScreens) {
             AnimatedContent(
                 modifier = Modifier.fillMaxWidth(),
@@ -112,17 +126,13 @@ private fun SendScreen(
                 contentKey = { it.uiState },
                 label = "SendScreenAnimatedContent",
                 transitionSpec = {
-                    fadeIn(tween(1000, 0)) togetherWith fadeOut(tween(1000, 0))
+                    fadeIn(tween(1000)) togetherWith fadeOut(tween(1000))
                 },
                 contentAlignment = Alignment.Center,
             ) { state ->
                 when (val uiState = state.uiState) {
                     Initial -> InitialScreen(onClickStartSearching = {
-                        onEvent(
-                            SendScreenEvent.SetDiscovering(
-                                true
-                            )
-                        )
+                        onEvent(SendScreenEvent.SetDiscovering(true))
                     })
 
                     is Discovering -> SearchingScreen(foundDevices = screenState.bluetoothState.scannedDevices,
@@ -153,7 +163,7 @@ private fun SendScreen(
                 snackbarHostState.showSnackbar(message = "Error:\n$error")
             }
         }
-        SnackbarHost( //todo extract to common package
+        SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .fillMaxWidth(0.9f)
@@ -162,12 +172,8 @@ private fun SendScreen(
             CustomSnackbar(
                 snackbarData,
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-//                    .requiredHeight(40.dp)
-                    .padding(
-                        horizontal = 30.dp, vertical = 0.dp
-                    ),
+                    .fillMaxSize()
+                    .padding(horizontal = 30.dp),
                 textColor = Color.White.copy(alpha = 0.8f),
                 surfaceColor = Color.DarkGray.copy(alpha = 0.5f),
                 borderColor = Color.Transparent
@@ -194,7 +200,6 @@ private object SendScreenSubScreens {
 
     @Composable
     fun SearchingScreen(
-//        bondedDevices : List<CustomBluetoothDevice>,
         foundDevices: List<CustomBluetoothDevice>,
         onUserClicked: (CustomBluetoothDevice) -> Unit,
         onClickCancelSearching: () -> Unit
@@ -209,10 +214,9 @@ private object SendScreenSubScreens {
                 onClick = onClickCancelSearching,
                 gradientColors = GradientColors.ButtonNegativeActionColors
             )
-            UsersList(deviceList = foundDevices.filter { it.name.containsPrefix() }
-                .map { it.copy(name = it.name!!.withoutPrefix()) },
-                showAddresses = false,
-                onClickDevice = onUserClicked
+            Spacer(modifier = Modifier.height(10.dp))
+            UsersList(
+                deviceList = foundDevices, showAddresses = false, onClickDevice = onUserClicked
             )
         }
     }
@@ -241,10 +245,6 @@ private object SendScreenSubScreens {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            UserInfoBlock(
-                modifier = Modifier.animateFadeVerticalSlideInOut(),
-                userInfo = dataBuffer.otherUserInfo
-            )
             when (transactionStatus) {
                 INITIAL, SHOWING_AMOUNT_AVAILABILITY, CONSTRUCTING_AMOUNT, OFFER_REJECTED -> AmountSelectionScreen(
                     status = transactionStatus,
@@ -260,12 +260,12 @@ private object SendScreenSubScreens {
                 WAITING_FOR_BANKNOTES_RECEIVED_RESPONSE -> StatusInfoBlock(statusLabel = "Waiting for \"banknotes received\" response.")
                 WAITING_FOR_ACCEPTANCE_BLOCKS -> StatusInfoBlock(
                     statusLabel = "Waiting for acceptance blocks...",
-                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteIndex + 1}"
                 )
 
                 SIGNING_SENDING_NEW_BLOCK -> StatusInfoBlock(
                     statusLabel = "Signing and sending new block...",
-                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteIndex + 1}"
                 )
 
                 ALL_BANKNOTES_PROCESSED -> StatusInfoBlock(
@@ -315,18 +315,16 @@ private object SendScreenSubScreens {
         val amountIsValid by remember {
             derivedStateOf { amountText.isAValidAmount() }
         }
-        val isAmountAvailable by remember {
-            derivedStateOf { dataBuffer.isAmountAvailable == true }
+        val isAmountAvailable by remember(dataBuffer.isAmountAvailable) {
+            mutableStateOf(dataBuffer.isAmountAvailable == true)
         }
-        val shouldShowTextInput: Boolean by remember {
-            derivedStateOf {
-                when {
-                    status == INITIAL -> true
-                    status == SHOWING_AMOUNT_AVAILABILITY && !isAmountAvailable -> true
-                    status == OFFER_REJECTED -> true
+        val shouldShowTextInput: Boolean by remember(status) {
+            mutableStateOf(
+                when (status) {
+                    INITIAL, SHOWING_AMOUNT_AVAILABILITY, OFFER_REJECTED -> true
                     else -> false
                 }
-            }
+            )
         }
         Surface(
             modifier = Modifier.animateContentSize(), color = MaterialTheme.colorScheme.background
@@ -349,6 +347,7 @@ private object SendScreenSubScreens {
                         if (isAmountAvailable) ODCGradientButton(
                             text = "Send the offer", onClick = onClickSendOffer
                         )
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
 
                     OFFER_REJECTED -> StatusInfoBlock(

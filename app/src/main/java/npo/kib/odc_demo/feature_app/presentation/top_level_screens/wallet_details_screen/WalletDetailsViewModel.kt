@@ -19,7 +19,6 @@ class WalletDetailsViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(WalletDetailsState())
     val uiState = _uiState.asStateFlow()
 
-
     init {
         updateInfo()
     }

@@ -1,12 +1,5 @@
 package npo.kib.odc_demo.feature_app.domain.core
 
-/*
-    Модуль, реализующий кошелёк.
-    В МЖП (Минимально Жизнеспособном Продукте) должен быть в защищённой части телефона (SIM карта)
-    SIC!
-    В рамках презентации -- внутри самого приложения, что не безопасно .
- */
-
 import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
 import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
@@ -17,12 +10,16 @@ import java.security.PublicKey
 import java.util.Calendar
 import java.util.UUID
 
-/**
+/*
 todo
-1. make the methods that may take time suspend.
-2. better make Wallet inaccessible from the general code,
-later make it internal, and separate it to another module, that would
-contain repositories related to it.
+ 1. make the methods that may take time suspend.
+ 2. better make Wallet inaccessible from the general code,
+  later make it internal, and separate it to another module, that would
+  contain repositories related to it.
+ */
+/**
+ *  The wallet implementation.
+ *  In the MVP must be located on the SIM-card.
  */
 class Wallet(
     private val spk: PrivateKey,
@@ -37,11 +34,11 @@ class Wallet(
 
     fun banknoteVerification(banknote: Banknote) {
         if (banknote.bin != bin) {
-            throw Exception("Банкнота выпущена другим банком")
+            throw Exception("The banknote was issued by another bank")
         }
 
         if (!banknote.verification(bok)) {
-            throw Exception("Банкнота поддельная")
+            throw Exception("The banknote is counterfeit")
         }
     }
 
@@ -84,13 +81,13 @@ class Wallet(
 
     /** No time consumed */
     fun firstBlockVerification(block: Block) {
-        if (!block.verification(bok)) throw Exception("Некорректный Block")
+        if (!block.verification(bok)) throw Exception("Incorrect Block")
     }
 
     private fun blockchainVerification(blocks: List<Block>) {
         var lastKey = bok
         for (block in blocks) {
-            if (!block.verification(lastKey)) throw Exception("Некорректный blockchain")
+            if (!block.verification(lastKey)) throw Exception("Incorrect blockchain")
             lastKey = block.otok
         }
     }
@@ -166,25 +163,23 @@ class Wallet(
 
     /**
      *  Verifying
-     *  - That the new block is created within 60 seconds prior to the current time
+     *  - That the new block is created within epsilon seconds prior to the current time
      *  - Protected block's signature,
      *  - Child block's signature
      * */
     private fun acceptanceInitVerification(
         childBlock: Block, protectedBlock: ProtectedBlock, bok: PublicKey
     ) {
-        if (!checkTimeIsNearCurrent(childBlock.time, 60)) {
-            throw Exception("Некорректное время")
-        }
+        checkTimeIsNearCurrent(childBlock.time, 300).getOrThrow()
 
         val sokHash = Crypto.hash(protectedBlock.sok!!.getStringPem())
         if (!Crypto.verifySignature(sokHash, protectedBlock.sokSignature!!, bok)) {
-            throw Exception("soc не подписан банком")
+            throw Exception("soc signed not by the bank")
         }
 
         val otokHash = Crypto.hash(childBlock.otok.getStringPem())
         if (!Crypto.verifySignature(otokHash, protectedBlock.otokSignature, protectedBlock.sok)) {
-            throw Exception("otok задан не SIM картой")
+            throw Exception("otok defined not by the SIM card")
         }
     }
 

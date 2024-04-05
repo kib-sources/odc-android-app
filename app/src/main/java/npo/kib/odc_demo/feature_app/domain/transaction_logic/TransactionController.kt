@@ -25,7 +25,7 @@ abstract class TransactionController(
         onTransactionError()
     }
 
-    protected val scope = CoroutineScope(defaultDispatcher + exceptionHandler)
+    private val scope = CoroutineScope(defaultDispatcher + exceptionHandler)
 
     protected val _transactionDataBuffer: MutableStateFlow<TransactionDataBuffer> =
         MutableStateFlow(TransactionDataBuffer())
@@ -33,7 +33,7 @@ abstract class TransactionController(
 
     //todo maybe only create errors flow outside controllers
     // and catch TransactionException
-    protected val _errors = MutableSharedFlow<String>(extraBufferCapacity = 10)
+    private val _errors = MutableSharedFlow<String>(extraBufferCapacity = 10)
     val errors: SharedFlow<String> = _errors.asSharedFlow()
     protected lateinit var outputDataPacketChannel: Channel<DataPacketVariant>
         private set
@@ -45,18 +45,18 @@ abstract class TransactionController(
     protected val receivedPacketsFlow: Flow<DataPacketVariant>
         get() = receivedPacketsChannel.consumeAsFlow()
 
-    protected var currentBanknoteOrdinal: Int
-        get() = transactionDataBuffer.value.currentlyProcessedBanknoteOrdinal
+    protected var currentBanknoteIndex: Int
+        get() = transactionDataBuffer.value.currentlyProcessedBanknoteIndex
         set(value) = _transactionDataBuffer.update {
-            it.copy(currentlyProcessedBanknoteOrdinal = value)
+            it.copy(currentlyProcessedBanknoteIndex = value)
         }
-    protected val currentProcessedBanknote: BanknoteWithBlockchain?
-        get() = transactionDataBuffer.value.banknotesList?.list?.get(currentBanknoteOrdinal)
-    protected val banknotesList: List<BanknoteWithBlockchain>?
-        get() = transactionDataBuffer.value.banknotesList?.list
+    protected val currentProcessedBanknote: BanknoteWithBlockchain
+        get() = transactionDataBuffer.value.banknotesList?.list?.get(currentBanknoteIndex) ?: throw transactionExceptionWithRole("currentProcessedBanknote getter" +
+                " had null in ...banknotesList?.list?...")
+    protected val banknotesList: List<BanknoteWithBlockchain>
+        get() = transactionDataBuffer.value.banknotesList?.list ?: throw transactionExceptionWithRole("banknotesList getter had null in banknotesList?.list?")
 
-    protected var started: Boolean = false
-        private set
+    private var started: Boolean = false
 
     protected abstract fun onTransactionError()
 
@@ -93,10 +93,6 @@ abstract class TransactionController(
     fun startProcessingIncomingPackets() {
         receivedPacketsFlow.onEach { packet ->
             processPacketOnCurrentStep(packet)
-        }.onCompletion {
-            withContext(NonCancellable) {
-                resetController()
-            }
         }.flowOn(ioDispatcher).launchIn(scope)
     }
 

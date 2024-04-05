@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalAnimationApi::class)
+
 package npo.kib.odc_demo.feature_app.presentation.p2p_screens.receive_screen
 
 import androidx.activity.compose.LocalActivityResultRegistryOwner
@@ -5,16 +7,15 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -110,6 +111,19 @@ private fun ReceiveScreen(
                 textDecoration = TextDecoration.Underline
             )
         }
+        Spacer(modifier = Modifier.height(5.dp))
+        val showUserInfoBlock by remember(screenState.uiState) {
+            mutableStateOf(screenState.uiState is InTransaction)
+        }
+        if (showUserInfoBlock) AnimatedVisibility(
+            visible = true, enter = EnterTransition.None, exit = ExitTransition.None
+        ) {
+            UserInfoBlock(
+                modifier = Modifier.animateFadeVerticalSlideInOut(),
+                userInfo = screenState.transactionDataBuffer.otherUserInfo
+            )
+        }
+        Spacer(modifier = Modifier.height(5.dp))
         with(ReceiveScreenSubScreens) {
             AnimatedContent(
                 modifier = Modifier.fillMaxWidth(),
@@ -121,13 +135,10 @@ private fun ReceiveScreen(
                 },
                 contentAlignment = Alignment.Center,
             ) { state ->
+
                 when (val uiState = state.uiState) {
                     Initial -> InitialScreen(onClickStartAdvertising = {
-                        onEvent(
-                            ReceiveScreenEvent.SetAdvertising(
-                                true
-                            )
-                        )
+                        onEvent(ReceiveScreenEvent.SetAdvertising(true))
                     })
 
                     Advertising -> AdvertisingScreen(onClickStopAdvertising = {
@@ -152,6 +163,7 @@ private fun ReceiveScreen(
                 }
             }
         }
+
         val snackbarHostState = remember { SnackbarHostState() }
         LaunchedEffect(key1 = true) {
             errorsFlow.collect { error ->
@@ -167,12 +179,8 @@ private fun ReceiveScreen(
             CustomSnackbar(
                 snackbarData,
                 modifier = Modifier
-                    .fillMaxWidth()
-//                    .requiredHeight(40.dp)
-                    .fillMaxHeight()
-                    .padding(
-                        horizontal = 30.dp, vertical = 0.dp
-                    ),
+                    .fillMaxSize()
+                    .padding(horizontal = 30.dp),
                 textColor = Color.White.copy(alpha = 0.8f),
                 surfaceColor = Color.DarkGray.copy(alpha = 0.5f),
                 borderColor = Color.Transparent
@@ -203,7 +211,11 @@ private object ReceiveScreenSubScreens {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(text = "Advertising screen")
-            ODCGradientButton(text = "Stop advertising", onClick = onClickStopAdvertising, gradientColors = ButtonNegativeActionColors)
+            ODCGradientButton(
+                text = "Stop advertising",
+                onClick = onClickStopAdvertising,
+                gradientColors = ButtonNegativeActionColors
+            )
         }
     }
 
@@ -219,10 +231,6 @@ private object ReceiveScreenSubScreens {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            UserInfoBlock(
-                modifier = Modifier.animateFadeVerticalSlideInOut(),
-                userInfo = dataBuffer.otherUserInfo
-            )
             when (transactionStatus) {
                 WAITING_FOR_OFFER -> ConnectedScreen()
                 OFFER_RECEIVED -> OfferReceivedScreen(amount = dataBuffer.amountRequest?.amount,
@@ -230,7 +238,6 @@ private object ReceiveScreenSubScreens {
                     onClickAccept = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = true)) },
                     onClickReject = { onEvent(ReceiveScreenEvent.ReactToOffer(accept = false)) })
 
-                // all the transaction info statuses are displayed here
                 RECEIVING_BANKNOTES_LIST -> StatusInfoBlock(statusLabel = "Receiving banknotes...")
                 BANKNOTES_LIST_RECEIVED -> StatusInfoBlock(
                     statusLabel = "Banknotes received",
@@ -239,17 +246,17 @@ private object ReceiveScreenSubScreens {
 
                 CREATING_SENDING_ACCEPTANCE_BLOCKS -> StatusInfoBlock(
                     statusLabel = "Creating acceptance blocks",
-                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteIndex + 1}"
                 )
 
                 WAITING_FOR_SIGNED_BLOCK -> StatusInfoBlock(
                     statusLabel = "Waiting for signed block",
-                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteIndex + 1}"
                 )
 
                 VERIFYING_RECEIVED_BLOCK -> StatusInfoBlock(
                     statusLabel = "Verifying received block",
-                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteOrdinal + 1}"
+                    infoText = "Processing banknote # ${dataBuffer.currentlyProcessedBanknoteIndex + 1}"
                 )
 
                 ALL_BANKNOTES_VERIFIED -> StatusInfoBlock(
@@ -307,35 +314,34 @@ private object ReceiveScreenSubScreens {
     fun OfferReceivedScreen(
         amount: Int?, fromUser: UserInfo?, onClickAccept: () -> Unit, onClickReject: () -> Unit
     ) {
-//        Surface {
         Column(
             Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             StatusInfoBlock(
-                statusLabel = "Offer received from:", infoText = fromUser?.userName ?: "null"
-            )
-            StatusInfoBlock(
-                statusLabel = "Wallet ID:", infoText = fromUser?.walletId ?: "null"
+                statusLabel = "Received offer from", infoText = fromUser?.userName ?: "null"
             )
             StatusInfoBlock(
                 statusLabel = "Amount:", infoText = "$amount RUB"
             )
             Spacer(modifier = Modifier.height(5.dp))
-            ODCGradientButton(
-                text = "Accept offer",
-                gradientColors = ButtonPositiveActionColors,
-                onClick = onClickAccept
-            )
-            Spacer(modifier = Modifier.height(3.dp))
-            ODCGradientButton(
-                text = "Reject offer",
-                gradientColors = ButtonNegativeActionColors,
-                onClick = onClickReject
-            )
-
-//            }
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                ODCGradientButton(
+                    Modifier.weight(1f),
+                    text = "Accept",
+                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+                    gradientColors = ButtonPositiveActionColors,
+                    onClick = onClickAccept
+                )
+                ODCGradientButton(
+                    Modifier.weight(1f),
+                    text = "Reject",
+                    textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
+                    gradientColors = ButtonNegativeActionColors,
+                    onClick = onClickReject
+                )
+            }
         }
     }
 
