@@ -1,10 +1,13 @@
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("com.google.devtools.ksp")
-    id ("kotlin-parcelize")
-    id("org.jetbrains.kotlin.plugin.serialization")
+    id(Build.androidApplicationPlugin)
+    id(Build.kotlinAndroidPlugin)
+    id(Build.kspPlugin)
     id("com.google.dagger.hilt.android")
+//    id(CustomPlugins.androidApp)
+//    id(CustomPlugins.androidAppCompose)
+//    id(CustomPlugins.androidHilt)
+    id("kotlin-parcelize")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id(Testing.junit5_plugin)
 }
 
@@ -17,32 +20,31 @@ android {
         applicationId = "npo.kib.odc_demo"
         minSdk = 25
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         multiDexEnabled = true
 
-//        javaCompileOptions {
-//            annotationProcessorOptions {
-//                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-//            }
-//        }
         vectorDrawables {
             useSupportLibrary = true
         }
     }
 
     buildTypes {
-//        debug {  }
+        debug {
+            applicationIdSuffix = ".debug"
+        }
         release {
-//            isMinifyEnabled = true todo enable in release
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.named("debug").get()
+            // Ensure Baseline Profile is fresh for release builds.
+//            baselineProfile.automaticGenerationDuringBuild = true
         }
     }
 
@@ -59,7 +61,7 @@ android {
         freeCompilerArgs += "-Xcontext-receivers"
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtensionVersion
+        kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtVer
     }
     packaging {
         resources {
@@ -70,14 +72,14 @@ android {
 
 tasks.withType<Test> {
     useJUnitPlatform() // Enables JUnit Platform (JUnit 5 + JUnit 4)
-        minHeapSize = "512m"
-        maxHeapSize = "2048m"
-        jvmArgs = listOf("-XX:MaxPermSize=2048m")
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
+    jvmArgs = listOf("-XX:MaxPermSize=2048m")
 }
 
 dependencies {
     //AndroidX
-    implementation(AndroidX.lifecycleViewmodel)
+    runtimeOnly(AndroidX.lifecycleViewmodelCompose)
     implementation(AndroidX.lifecycleExtensions)
     implementation(AndroidX.lifecycleRuntime)
     implementation(AndroidX.lifecycleRuntimeCompose)
@@ -133,16 +135,11 @@ dependencies {
     //Room
     implementation(Room.roomRuntime)
     implementation(Room.roomKtx)
-    //KSP instead of Kapt for faster builds
-//    kapt(Room.roomCompiler)
     ksp(Room.roomCompiler)
 
     //Dagger-Hilt
     implementation(DaggerHilt.hiltAndroid)
-    //KSP instead of Kapt for faster builds
-    //kapt(DaggerHilt.hiltCompiler)
     ksp(DaggerHilt.hiltCompiler)
-//    kapt(DaggerHilt.hiltCompiler)
     implementation(DaggerHilt.hiltNavigationCompose)
 
     //Google Accompanist
@@ -164,7 +161,6 @@ dependencies {
     androidTestImplementation(Testing.hiltTesting)
     // Make Hilt generate code in the androidTest folder
     kspAndroidTest(DaggerHilt.hiltCompiler)
-//    kaptAndroidTest(DaggerHilt.hiltCompiler)
     //junit5
     testImplementation(platform(Testing.junitBOM))
     // (Required) Writing and executing Unit Tests on the JUnit Platform
@@ -201,11 +197,8 @@ dependencies {
     androidTestImplementation(Testing.mockWebServer)
 
     androidTestImplementation(Testing.testRunner)
-
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:1.6.4")
 }
-//
-//kapt {
-//    correctErrorTypes = true
-//    useBuildCache = true
-//}
+
+android.sourceSets.all {
+    kotlin.srcDir("src/$name/kotlin")
+}

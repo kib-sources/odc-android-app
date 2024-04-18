@@ -44,7 +44,7 @@
         </service>
 
         <activity
-            android:name=".feature_app.presentation.common.MainActivity"
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
