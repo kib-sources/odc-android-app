@@ -1,22 +1,28 @@
-buildscript{
-   repositories{
-       google()
-       mavenCentral()
-   }
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven { url = uri("https://kotlin.bintray.com/kotlinx") }
+        google()
+    }
 
     dependencies {
-//        classpath (Build.androidBuildTools)
-//        classpath (Build.kotlinGradlePlugin)
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
     }
 
 }
 plugins {
-    id("com.android.application") version Build.androidBuildToolsVersion apply false
-    id("org.jetbrains.kotlin.android") version Kotlin.version apply false
-    id("org.jetbrains.kotlin.kapt") version Kotlin.version apply false
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.6.10" apply false
-    id("com.android.library") version "7.4.2" apply false
-    id("org.jetbrains.kotlin.jvm") version "1.8.21" apply false
-    id("com.google.dagger.hilt.android") version "2.47" apply false
-//    id("com.android.library") version "7.4.2" apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
+    alias(libs.plugins.android.test) apply false
+    alias(libs.plugins.baselineprofile) apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kotlin.parcelize) apply false
+    alias(libs.plugins.hilt) apply false
+    alias(libs.plugins.ksp) apply false
+    alias(libs.plugins.secrets) apply false
+    alias(libs.plugins.room) apply false
 }

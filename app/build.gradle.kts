@@ -1,166 +1,130 @@
+import npo.kib.odc_demo.configs.BuildVariantSigningKey
+import npo.kib.odc_demo.configs.OdcBuildType
+
 plugins {
-    id("com.android.application")
-    id("kotlin-android")
-    id("org.jetbrains.kotlin.kapt")
-    id("com.google.dagger.hilt.android")
-    id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.odc.android.application)
+    alias(libs.plugins.odc.android.application.compose)
+    alias(libs.plugins.odc.android.application.flavors)
+    alias(libs.plugins.odc.android.hilt)
+//    alias(libs.plugins.baselineprofile) can add later along with benchmarks module
 }
 
 
 android {
     namespace = "npo.kib.odc_demo"
-    compileSdk = ProjectConfig.compileSdk
-
     defaultConfig {
-        applicationId = ProjectConfig.appId
-        minSdk = ProjectConfig.minSdk
-        targetSdk = ProjectConfig.targetSdk
-        versionCode = ProjectConfig.versionCode
-        versionName = ProjectConfig.versionName
+        applicationId = "npo.kib.odc_demo"
+
+        versionCode = 2
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        multiDexEnabled = true
+        /*Android application (APK) files contain executable bytecode files
+         * in the form of Dalvik Executable (DEX) files, which contain the compiled
+         * code used to run your app. The Dalvik Executable specification limits
+         * the total number of methods that can be referenced within a single DEX file to 65,536
+         * , including Android framework methods, library methods, and methods in your own code.
+         * Getting past this limit requires that you configure your app build process to generate
+         *  more than one DEX file, known as a multidex configuration.
+         * P.S. : required to be enabled for core library desugaring. */
+        multiDexEnabled = true //
 
-//        javaCompileOptions {
-//            annotationProcessorOptions {
-//                arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
-//            }
-//        }
         vectorDrawables {
             useSupportLibrary = true
         }
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = OdcBuildType.DEBUG.applicationIdSuffix
+        }
         release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
+            isMinifyEnabled = true
+            isShrinkResources = true
+            applicationIdSuffix = OdcBuildType.RELEASE.applicationIdSuffix
+
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.named(BuildVariantSigningKey.DEBUG.key).get()
+            // Ensure Baseline Profile is fresh for release builds.
+//            baselineProfile.automaticGenerationDuringBuild = true
         }
     }
 
-    buildFeatures {
-        viewBinding = true
-        compose = true
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = Compose.kotlinCompilerExtensionVersion
-    }
-    packagingOptions {
+    packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform() // Enables JUnit Platform (JUnit 5 + JUnit 4)
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
+    jvmArgs = listOf("-XX:MaxPermSize=2048m")
 }
 
 dependencies {
-    //AndroidX
-    implementation(AndroidX.lifecycleViewmodel)
-    implementation(AndroidX.lifecycleExtensions)
-    implementation(AndroidX.lifecycleRuntime)
-    implementation(AndroidX.preferenceKtx)
-    implementation(AndroidX.legacySupport)
-    implementation(AndroidX.coreKtx)
-    implementation(AndroidX.appCompat)
-    implementation(AndroidX.constraintLayout)
+    //Feature modules (top-level only)
 
-    //Compose
-    implementation(platform(Compose.composeBOM))
+    implementation(projects.feature.home)
+    implementation(projects.feature.settings)
 
-    implementation(Compose.ui)
-    implementation(Compose.uiToolingPreview)
-    implementation(Compose.activityCompose)
-    implementation(Compose.viewModelCompose)
-    implementation(Compose.runtime)
-    implementation(Compose.navigation)
-    implementation(Compose.hiltNavigationCompose)
-    implementation(Compose.material2)
-    implementation(Compose.material3)
+    //Core modules
 
-    //Material
-    implementation (Google.material)
+    implementation(projects.core.commonAndroid)
+//    implementation(projects.core.designSystem)
+    implementation(projects.core.ui)
+    implementation(projects.core.datastore)
+    implementation(projects.core.domain)
 
-    debugImplementation(Compose.uiTooling)
+//    AndroidX dependencies
 
-    //Coroutines
-    implementation(Coroutines.coroutinesAndroid)
-
-    //Serialization
-    implementation(Serialization.serialization)
-    implementation(Serialization.googleGson)
-
-    //CBOR
-    implementation(CBOR.cbor)
-
-    //Retrofit
-    implementation(Retrofit.retrofit)
-    implementation(Retrofit.gsonConverter)
-    implementation(Retrofit.okHttp)
-    implementation(Retrofit.okHttpLoggingInterfceptor)
-
-    //Nearby
-    implementation(Google.playServicesNearby)
-
-    //HTTP networking
-    implementation(Kittinunf.fuel)
-    implementation(Kittinunf.fuelAndroid)
-    implementation(Kittinunf.fuelCoroutines)
-
-    //Cryptography. Check vulnerability reports on Maven periodically.
-    implementation(BouncyCastle.bcprov)
-    implementation(BouncyCastle.bcpkix)
-
-    //Room
-    implementation(Room.roomRuntime)
-    implementation(Room.roomKtx)
-    kapt(Room.roomCompiler)
-
-    //Dagger-Hilt
-    implementation(DaggerHilt.hiltAndroid)
-    kapt(DaggerHilt.hiltCompiler)
+//    implementation(AndroidX.lifecycleExtensions)
+//    implementation(AndroidX.lifecycleRuntime)
+    runtimeOnly(libs.androidx.lifecycle.viewModelCompose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+//    implementation(AndroidX.preferenceKtx)
+//    implementation(AndroidX.legacySupport)
+//    implementation(AndroidX.appCompat)
+    implementation(libs.androidx.activity.activity)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
 //
-//    // Testing
-//    testImplementation(Compose.composeBOM)
-//    androidTestImplementation(Compose.composeBOM)
-//
-//    // Hilt testing dependency
-//    androidTestImplementation (Testing.hiltTesting)
-//    // Make Hilt generate code in the androidTest folder
-//    kaptAndroidTest(DaggerHilt.hiltCompiler)
-//
-//
-//    testImplementation(Testing.junit4)
-//    testImplementation(Testing.junitAndroidExt)
-//    testImplementation(Testing.truth)
-//    testImplementation(Testing.coroutines)
-//    testImplementation(Testing.turbine)
-//    testImplementation(Testing.composeUiTest)
-//    testImplementation(Testing.mockk)
-//    testImplementation(Testing.mockWebServer)
-//
-//    androidTestImplementation(Testing.junit4)
-//    androidTestImplementation(Testing.junitAndroidExt)
-//    androidTestImplementation(Testing.truth)
-//    androidTestImplementation(Testing.coroutines)
-//    androidTestImplementation(Testing.turbine)
-//    androidTestImplementation(Testing.composeUiTest)
-//    androidTestImplementation(Testing.mockkAndroid)
-//    androidTestImplementation(Testing.mockWebServer)
-//
-//
-//    androidTestImplementation(Testing.testRunner)
+//    //Compose
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3.windowSizeClass)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.runtime.android)
+
+    ksp(libs.hilt.compiler)
+
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
+
+    kspTest(libs.hilt.compiler)
+
+
+
 }
 
-//kapt {
-//    correctErrorTypes = true
+//baselineProfile {
+//    // Don't build on every iteration of a full assemble.
+//    // Instead enable generation directly for the release build variant.
+//    automaticGenerationDuringBuild = false
 //}
+
+android.sourceSets.all {
+    kotlin.srcDir("src/$name/kotlin")
+}
