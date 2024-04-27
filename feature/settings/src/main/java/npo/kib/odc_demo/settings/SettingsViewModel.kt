@@ -6,11 +6,11 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.common.data.util.SettingsValue.USER_NAME
 import npo.kib.odc_demo.datastore.DefaultDataStoreObject
+import npo.kib.odc_demo.datastore.DefaultDataStoreRepository
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
-import npo.kib.odc_demo.feature_app.data.util.SettingsValue.USER_NAME
-import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
+import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
 import javax.inject.Inject
 
 @HiltViewModel
@@ -47,7 +47,7 @@ class SettingsViewModel @Inject constructor(
 //     https://developer.android.com/reference/android/os/Bundle Bundle is "A mapping from String keys to various Parcelable values."
     fun saveChanges() {
         viewModelScope.launch {
-            defaultDatastore.writeValue(npo.kib.odc_demo.datastore.DefaultDataStoreObject.USER_NAME, enteredName.value.trim())
+            defaultDatastore.writeValue(DefaultDataStoreObject.USER_NAME, enteredName.value.trim())
             utilDataStore.writeValue(SHOULD_UPDATE_UI_USER_INFO, true)
         }
     }

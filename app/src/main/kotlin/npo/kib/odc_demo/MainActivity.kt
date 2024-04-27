@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -23,21 +25,19 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
-import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider.bluetoothPermissionsList
-import npo.kib.odc_demo.domain.util.log
-import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
 import npo.kib.odc_demo.MainActivityUiState.*
-import npo.kib.odc_demo.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.common.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
+import npo.kib.odc_demo.common.data.permissions.PermissionProvider.bluetoothPermissionsList
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-//    @Inject
-//    lateinit var userPreferencesDataSource : DefaultDataStoreRepository
+    private val mainViewModel: MainActivityViewModel by viewModels()
 
-    private val viewModel: MainActivityViewModel by viewModels()
-
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -48,7 +48,7 @@ class MainActivity : ComponentActivity() {
         // Update the uiState
         lifecycleScope.launch {
             lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.onEach { uiState = it }.collect()
+                mainViewModel.uiState.onEach { uiState = it }.collect()
             }
         }
 
@@ -64,21 +64,20 @@ class MainActivity : ComponentActivity() {
 
             // Update the dark content of the system bars to match the theme
             DisposableEffect(darkTheme) {
-                enableEdgeToEdge(
-                    /* SystemBarStyle.light(TRANSPARENT, TRANSPARENT) or SystemBarStyle.dark(TRANSPARENT)*/
+                enableEdgeToEdge(/* SystemBarStyle.light(TRANSPARENT, TRANSPARENT) or SystemBarStyle.dark(TRANSPARENT)*/
                     statusBarStyle = SystemBarStyle.auto(
                         TRANSPARENT,
                         TRANSPARENT,
-                    ) { darkTheme },
-                    navigationBarStyle = SystemBarStyle.auto(
+                    ) { darkTheme }, navigationBarStyle = SystemBarStyle.auto(
 //                        lightScrim,
 //                        darkScrim,
                         TRANSPARENT,
                         TRANSPARENT,
-                    ) { darkTheme }
-                )
+                    ) { darkTheme })
                 onDispose {}
             }
+
+            val appState = rememberODCAppState(windowSizeClass = calculateWindowSizeClass(activity = this))
 
             ODCAppTheme(useDarkTheme = darkTheme) {
                 when (uiState) {
@@ -92,14 +91,14 @@ class MainActivity : ComponentActivity() {
                     ) {
                         Text(text = "Failure registering wallet")
                         npo.kib.odc_demo.core.design_system.components.ODCGradientButton(
-                            text = "Try again", onClick = viewModel::registerWalletWithBank
+                            text = "Try again", onClick = mainViewModel::registerWalletWithBank
                         )
                     }
 
                     is Success -> CompositionLocalProvider(
                         LocalAppBluetoothPermissions provides bluetoothPermissionsList
                     ) {
-                        ODCApp(/* windowSizeClass = calculateWindowSizeClass(this)*/)
+                        ODCApp(appState)
                     }
                 }
             }

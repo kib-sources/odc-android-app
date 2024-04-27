@@ -9,20 +9,20 @@ import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.common.data.util.log
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PReceiveUseCase
-import npo.kib.odc_demo.feature_app.domain.util.log
+import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
+import npo.kib.odc_demo.domain.P2PReceiveUseCase
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionStatus
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothState
 import npo.kib.odc_demo.p2p.receive_screen.ReceiveScreenEvent.*
 import npo.kib.odc_demo.p2p.receive_screen.ReceiveUiState.*
 import npo.kib.odc_demo.p2p.receive_screen.ReceiveUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.p2p.receive_screen.ReceiveUiState.OperationResult.ResultType.Success
 import npo.kib.odc_demo.p2p.receive_screen.ReceiveViewModel.Companion.ReceiveViewModelFactory
+import npo.kib.odc_demo.transaction_logic.model.TransactionDataBuffer
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.ReceiverTransactionStatus
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.ReceiverTransactionStatus.*
 
 @HiltViewModel(assistedFactory = ReceiveViewModelFactory::class)
 class ReceiveViewModel @AssistedInject constructor(

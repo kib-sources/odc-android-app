@@ -1,7 +1,7 @@
-package npo.kib.odc_demo.feature_app.data.p2p.bluetooth
+package npo.kib.odc_demo.connectivity.bluetooth
 
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus.DISCONNECTED
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionStatus.DISCONNECTED
+import npo.kib.odc_demo.model.CustomBluetoothDevice
 
 data class BluetoothState(
     val connectionStatus: BluetoothConnectionStatus = DISCONNECTED,

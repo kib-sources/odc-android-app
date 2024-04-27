@@ -1,7 +1,9 @@
 package npo.kib.odc_demo.core.design_system.components
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
@@ -9,21 +11,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.DefaultAlpha
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.layout.*
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import npo.kib.odc_demo.R
-import npo.kib.odc_demo.ui.ThemePreviews
-import npo.kib.odc_demo.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.core.design_system.R
+import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
+import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 
 
 //todo fix scaling and placement of images
 @Composable
 fun ResponsiveImage(
     modifier: Modifier = Modifier,
-    painter: Painter = painterResource(R.drawable.profile_pic_sample_square),
+    painter: Painter = painterResource(id = R.drawable.profile_pic_sample_square),
     relativeSize: Float = 0.8f,
     contentDescription: String? = "Responsive Image",
     alignment: Alignment = Alignment.Center,
@@ -80,13 +85,4 @@ private fun ResponsiveImagePreview() {
         ResponsiveImage(modifier = Modifier.clip(shape))
         }
     }
-}
-
-@Composable
-@ThemePreviews
-private fun UserPSPreview(){
-    ODCAppTheme {
-        UserPhotoSmall(modifier = Modifier.fillMaxSize().aspectRatio(1f))
-    }
-
 }

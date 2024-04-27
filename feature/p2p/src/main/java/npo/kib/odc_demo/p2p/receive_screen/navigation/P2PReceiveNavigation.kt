@@ -10,13 +10,13 @@ const val p2pReceiveRoute = "p2p_receive_route"
 
 fun NavController.navigateToReceiveScreen(navOptions: NavOptions? = null) {
     this.navigate(
-        npo.kib.odc_demo.p2p.receive_screen.navigation.p2pReceiveRoute,
+        p2pReceiveRoute,
         navOptions
     )
 }
 
 fun NavGraphBuilder.receiveScreen(navigateToP2PRoot: () -> Unit) {
-    composable(route = npo.kib.odc_demo.p2p.receive_screen.navigation.p2pReceiveRoute) {
+    composable(route = p2pReceiveRoute) {
         ReceiveRoute(
             navigateToP2PRoot = navigateToP2PRoot,
             navBackStackEntry = it

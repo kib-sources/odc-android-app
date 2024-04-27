@@ -27,9 +27,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
 import npo.kib.odc_demo.core.design_system.components.ODCPlainButton
 import npo.kib.odc_demo.core.design_system.components.TransparentHintTextField
-import npo.kib.odc_demo.ui.GradientColors.ButtonNegativeActionColors
-import npo.kib.odc_demo.ui.GradientColors.ButtonPositiveActionColors
-import npo.kib.odc_demo.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.core.design_system.ui.GradientColors.ButtonNegativeActionColors
+import npo.kib.odc_demo.core.design_system.ui.GradientColors.ButtonPositiveActionColors
+import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 
 
 @Composable
@@ -75,7 +75,7 @@ fun SettingsScreen(
             Text(text = "Current user name:", fontWeight = FontWeight.ExtraBold)
             Text(text = uiState.userName, fontStyle = FontStyle.Italic)
             Spacer(modifier = Modifier.height(5.dp))
-            npo.kib.odc_demo.core.design_system.components.TransparentHintTextField(
+            TransparentHintTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(50.dp)
@@ -89,7 +89,7 @@ fun SettingsScreen(
             )
         }
         Row(horizontalArrangement = spacedBy(10.dp)) {
-            npo.kib.odc_demo.core.design_system.components.ODCGradientButton(
+            ODCGradientButton(
                 Modifier.weight(1f),
                 text = "Save changes",
                 textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
@@ -97,7 +97,7 @@ fun SettingsScreen(
                 enabled = uiState.isSaveButtonActive,
                 onClick = onClickSaveChanges
             )
-            npo.kib.odc_demo.core.design_system.components.ODCPlainButton(
+            ODCPlainButton(
                 Modifier.weight(1f),
                 text = "Go back",
                 textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),

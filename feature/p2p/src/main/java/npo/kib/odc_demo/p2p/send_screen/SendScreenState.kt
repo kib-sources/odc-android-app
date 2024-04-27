@@ -1,9 +1,9 @@
 package npo.kib.odc_demo.p2p.send_screen
 
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothState
+import npo.kib.odc_demo.transaction_logic.model.TransactionDataBuffer
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.Initial
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus
 
 data class SendScreenState(
     val uiState: SendUiState = Initial,

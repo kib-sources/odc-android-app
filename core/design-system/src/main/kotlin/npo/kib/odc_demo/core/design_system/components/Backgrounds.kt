@@ -17,9 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import npo.kib.odc_demo.ui.GradientColors
-import npo.kib.odc_demo.ui.ThemePreviews
-import npo.kib.odc_demo.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.core.design_system.ui.GradientColors
+import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
+import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 
 
 @Composable

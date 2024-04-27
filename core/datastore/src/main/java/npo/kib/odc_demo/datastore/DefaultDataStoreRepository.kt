@@ -1,7 +1,7 @@
 package npo.kib.odc_demo.datastore
 
 import kotlinx.coroutines.flow.Flow
-import npo.kib.odc_demo.feature_app.domain.model.user.UserPreferences
+import npo.kib.odc_demo.datastore.model.UserPreferences
 
 interface DefaultDataStoreRepository {
 

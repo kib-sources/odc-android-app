@@ -1,17 +1,13 @@
-package npo.kib.odc_demo.feature_app.data.api
+package npo.kib.odc_demo.network.api
 
 import kotlinx.coroutines.*
-import npo.kib.odc_demo.feature_app.domain.core.Wallet
-import npo.kib.odc_demo.feature_app.domain.core.getStringPem
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithProtectedBlock
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.bank_api.*
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
-import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
-import npo.kib.odc_demo.feature_app.domain.util.log
-import npo.kib.odc_demo.network.api.BankApi
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.wallet.Crypto.asPemString
+import npo.kib.odc_demo.wallet.Wallet
+import npo.kib.odc_demo.wallet.model.Banknote
+import npo.kib.odc_demo.wallet.model.BanknoteWithProtectedBlock
+import npo.kib.odc_demo.wallet.model.ProtectedBlock
+import npo.kib.odc_demo.wallet.model.data_packet.variants.Block
 
 class BankRepositoryImpl(
     private val bankApi: BankApi, private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -78,7 +74,7 @@ class BankRepositoryImpl(
         wallet: Wallet, block: Block, protectedBlock: ProtectedBlock
     ): Block {
         val request = ReceiveRequest(
-            bnid = block.bnid, otok = block.otok.getStringPem(),
+            bnid = block.bnid, otok = block.otok.asPemString(),
             otokSignature = protectedBlock.otokSignature, time = block.time,
             transactionSign = protectedBlock.transactionSignature, uuid = block.uuid.toString(),
             wid = wallet.walletId
@@ -98,7 +94,7 @@ class BankRepositoryImpl(
             banknotesRaw.map {
                 ensureActive()
                 Banknote(
-                    bin = it.bin.toInt(), amount = it.amount, code = it.code, bnid = it.bnid,
+                    bin = it.bin.toInt(), amount = it.amount, currencyCode = it.code, bnid = it.bnid,
                     signature = it.signature, time = it.time
                 )
             }

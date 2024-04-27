@@ -4,18 +4,20 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.Channel.Factory.UNLIMITED
 import kotlinx.coroutines.flow.*
-import npo.kib.odc_demo.feature_app.domain.model.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.TransactionResult.ResultType
-import npo.kib.odc_demo.wallet.WalletRepository
-import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
+import npo.kib.odc_demo.common_jvm.cancelChildren
+import npo.kib.odc_demo.transaction_logic.model.TransactionDataBuffer
+import npo.kib.odc_demo.transaction_logic.model.TransactionRole
+import npo.kib.odc_demo.wallet.model.BanknoteWithBlockchain
+import npo.kib.odc_demo.wallet.model.data_packet.DataPacketType
+import npo.kib.odc_demo.wallet.model.data_packet.variants.*
+import npo.kib.odc_demo.wallet.model.data_packet.variants.TransactionResult.ResultType
+import npo.kib.odc_demo.wallet.model.data_packet.variants.TransactionResult.ResultType.Failure
+import npo.kib.odc_demo.wallet_repository.repository.WalletRepository
 
 abstract class TransactionController(
     protected val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     protected val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default,
-    protected val walletRepository: npo.kib.odc_demo.wallet.WalletRepository,
+    protected val walletRepository: WalletRepository,
     protected val role: TransactionRole
 ) {
 
@@ -39,12 +41,12 @@ abstract class TransactionController(
     protected lateinit var outputDataPacketChannel: Channel<DataPacketVariant>
         private set
     val outputDataPacketFlow: Flow<DataPacketVariant>
-        get() = outputDataPacketChannel.consumeAsFlow() //todo fix calls outside. kotlin.lang.IllegalStateException: ReceiveChannel.consumeAsFlow can be collected just once
+        get() = outputDataPacketChannel.receiveAsFlow() //todo fix calls outside. kotlin.lang.IllegalStateException: ReceiveChannel.consumeAsFlow can be collected just once
 
     lateinit var receivedPacketsChannel: Channel<DataPacketVariant>
         private set
     protected val receivedPacketsFlow: Flow<DataPacketVariant>
-        get() = receivedPacketsChannel.consumeAsFlow()
+        get() = receivedPacketsChannel.receiveAsFlow()
 
     protected var currentBanknoteIndex: Int
         get() = transactionDataBuffer.value.currentlyProcessedBanknoteIndex
@@ -118,7 +120,7 @@ abstract class TransactionController(
     }
 
     protected suspend fun sendNegativeResult(message: String? = null) {
-        if (started) outputDataPacketChannel.send(TransactionResult(ResultType.Failure(message)))
+        if (started) outputDataPacketChannel.send(TransactionResult(Failure(message)))
     }
 
     protected fun updateReceivedTransactionResult(result: TransactionResult) {
@@ -145,11 +147,11 @@ abstract class TransactionController(
 
     protected fun DataPacketVariant.requireToBeOfTypes(vararg expectedTypes: DataPacketType) {
         if (!expectedTypes.contains(packetType)) {
-            if (this is TransactionResult && this.value is ResultType.Failure) throw transactionExceptionWithRole(
+            if (this is TransactionResult && this.value is Failure) throw transactionExceptionWithRole(
                 """Received an unexpected failure packet.
                 | It may signal that an error has happened on the other side.
                 | Received failure message:
-                | ${this.value.message}""".trimMargin()
+                | ${(this.value as Failure).message}""".trimMargin()
             )
             else throw transactionExceptionWithRole(
                 if (expectedTypes.isEmpty()) "Expected no packets right now but received $packetType"
@@ -159,7 +161,7 @@ abstract class TransactionController(
     }
 
     //todo for some reason with a protected constructor would not be visible in subclasses of TransactionController
-    protected class TransactionException(message: String? = null) : Exception(message)
+    protected class TransactionException internal constructor(message: String? = null) : Exception(message)
 
     protected fun transactionExceptionWithRole(message: String? = null) =
         TransactionException("${role.name}: ${message.orEmpty()}")

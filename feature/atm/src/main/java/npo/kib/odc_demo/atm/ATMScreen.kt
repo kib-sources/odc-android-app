@@ -21,17 +21,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
-import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
-import npo.kib.odc_demo.core.design_system.components.TransparentHintTextField
 import npo.kib.odc_demo.atm.ATMScreenEvent.SendAmountRequestToServer
 import npo.kib.odc_demo.atm.ATMUiState.*
 import npo.kib.odc_demo.atm.ATMUiState.ResultType.Failure
 import npo.kib.odc_demo.atm.ATMUiState.ResultType.Success
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.StatusInfoBlock
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.animateFadeVerticalSlideInOut
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.animateVerticalSlideInOut
-import npo.kib.odc_demo.ui.GradientColors
+import npo.kib.odc_demo.common_jvm.isAValidAmount
+import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
+import npo.kib.odc_demo.core.design_system.components.TransparentHintTextField
+import npo.kib.odc_demo.core.design_system.ui.GradientColors
+import npo.kib.odc_demo.core.design_system.components.StatusInfoBlock
+import npo.kib.odc_demo.core.design_system.components.animateFadeVerticalSlideInOut
+import npo.kib.odc_demo.core.design_system.components.animateVerticalSlideInOut
 
 @Composable
 fun ATMRoute(
@@ -131,7 +131,7 @@ private object AtmScreenSubScreens {
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            npo.kib.odc_demo.core.design_system.components.TransparentHintTextField(
+            TransparentHintTextField(
                 modifier = Modifier
                     .fillMaxWidth()
                     .requiredHeight(50.dp)
@@ -146,7 +146,7 @@ private object AtmScreenSubScreens {
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(10.dp))
-            npo.kib.odc_demo.core.design_system.components.ODCGradientButton(text = if (amountIsValid) "Send request" else "Invalid amount",
+            ODCGradientButton(text = if (amountIsValid) "Send request" else "Invalid amount",
                 enabled = amountIsValid,
                 gradientColors = if (amountIsValid) GradientColors.ButtonPositiveActionColors else GradientColors.ButtonNegativeActionColors,
                 onClick = {

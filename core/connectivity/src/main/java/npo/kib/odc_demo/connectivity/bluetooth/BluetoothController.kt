@@ -3,8 +3,7 @@ package npo.kib.odc_demo.connectivity.bluetooth
 import androidx.activity.result.ActivityResultRegistry
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.model.connection_status.BluetoothConnectionResult
+import npo.kib.odc_demo.model.CustomBluetoothDevice
 
 interface BluetoothController {
 
@@ -22,8 +21,8 @@ interface BluetoothController {
     fun startAdvertising(registry: ActivityResultRegistry, duration: Int, callback: (Int?) -> Unit)
     fun stopAdvertising(registry: ActivityResultRegistry)
 
-    fun startBluetoothServerAndGetFlow(): Flow<npo.kib.odc_demo.model.connection_status.BluetoothConnectionResult>
-    fun connectToDevice(device: CustomBluetoothDevice): Flow<npo.kib.odc_demo.model.connection_status.BluetoothConnectionResult>
+    fun startBluetoothServerAndGetFlow(): Flow<BluetoothConnectionResult>
+    fun connectToDevice(device: CustomBluetoothDevice): Flow<BluetoothConnectionResult>
 
     suspend fun trySendBytes(bytes: ByteArray): ByteArray?
 

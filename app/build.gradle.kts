@@ -1,31 +1,34 @@
+import npo.kib.odc_demo.configs.BuildVariantSigningKey
+import npo.kib.odc_demo.configs.OdcBuildType
+
 plugins {
-    id(Build.androidApplicationPlugin)
-    id(Build.kotlinAndroidPlugin)
-    id(Build.kspPlugin)
-    id("com.google.dagger.hilt.android")
-//    id(CustomPlugins.androidApp)
-//    id(CustomPlugins.androidAppCompose)
-//    id(CustomPlugins.androidHilt)
-    id("kotlin-parcelize")
-    id("org.jetbrains.kotlin.plugin.serialization")
-    id(Testing.junit5_plugin)
+    alias(libs.plugins.odc.android.application)
+    alias(libs.plugins.odc.android.application.compose)
+    alias(libs.plugins.odc.android.application.flavors)
+    alias(libs.plugins.odc.android.hilt)
+//    alias(libs.plugins.baselineprofile) can add later along with benchmarks module
 }
 
 
 android {
     namespace = "npo.kib.odc_demo"
-    compileSdk = 34
-
     defaultConfig {
         applicationId = "npo.kib.odc_demo"
-        minSdk = 25
-        targetSdk = 34
+
         versionCode = 2
-        versionName = "1.5"
+        versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        multiDexEnabled = true
+        /*Android application (APK) files contain executable bytecode files
+         * in the form of Dalvik Executable (DEX) files, which contain the compiled
+         * code used to run your app. The Dalvik Executable specification limits
+         * the total number of methods that can be referenced within a single DEX file to 65,536
+         * , including Android framework methods, library methods, and methods in your own code.
+         * Getting past this limit requires that you configure your app build process to generate
+         *  more than one DEX file, known as a multidex configuration.
+         * P.S. : required to be enabled for core library desugaring. */
+        multiDexEnabled = true //
 
         vectorDrawables {
             useSupportLibrary = true
@@ -34,38 +37,29 @@ android {
 
     buildTypes {
         debug {
-            applicationIdSuffix = ".debug"
+            applicationIdSuffix = OdcBuildType.DEBUG.applicationIdSuffix
         }
         release {
             isMinifyEnabled = true
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-            signingConfig = signingConfigs.named("debug").get()
+            isShrinkResources = true
+            applicationIdSuffix = OdcBuildType.RELEASE.applicationIdSuffix
+
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.named(BuildVariantSigningKey.DEBUG.key).get()
             // Ensure Baseline Profile is fresh for release builds.
 //            baselineProfile.automaticGenerationDuringBuild = true
         }
     }
 
-    buildFeatures {
-        viewBinding = true
-        compose = true
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-        freeCompilerArgs += "-Xcontext-receivers"
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = Kotlin.kotlinCompilerExtVer
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
         }
     }
 }
@@ -78,126 +72,58 @@ tasks.withType<Test> {
 }
 
 dependencies {
-    //AndroidX
-    runtimeOnly(AndroidX.lifecycleViewmodelCompose)
-    implementation(AndroidX.lifecycleExtensions)
-    implementation(AndroidX.lifecycleRuntime)
-    implementation(AndroidX.lifecycleRuntimeCompose)
-    implementation(AndroidX.preferenceKtx)
-    implementation(AndroidX.legacySupport)
-    implementation(AndroidX.coreKtx)
-    implementation(AndroidX.appCompat)
-    implementation(AndroidX.constraintLayout)
-    implementation(AndroidX.activity)
-    implementation(AndroidX.splashScreen)
+    //Feature modules (top-level only)
 
-    //Compose
-    implementation(platform(Compose.composeBOM))
+    implementation(projects.feature.home)
+    implementation(projects.feature.settings)
 
-    implementation(Compose.ui)
-    implementation(Compose.uiToolingPreview)
-    implementation(Compose.activity)
-    implementation(Compose.navigation)
-    implementation(Compose.windowSizeClass)
-    implementation(Compose.constraintLayoutCompose)
+    //Core modules
 
-    //Material
-    implementation(Compose.material3)
-    implementation(Google.material)
+    implementation(projects.core.commonAndroid)
+//    implementation(projects.core.designSystem)
+    implementation(projects.core.ui)
+    implementation(projects.core.datastore)
+    implementation(projects.core.domain)
 
-    debugImplementation(Compose.uiTooling)
+//    AndroidX dependencies
 
-    //Coroutines
-    implementation(Coroutines.coroutinesAndroid)
+//    implementation(AndroidX.lifecycleExtensions)
+//    implementation(AndroidX.lifecycleRuntime)
+    runtimeOnly(libs.androidx.lifecycle.viewModelCompose)
+    implementation(libs.androidx.lifecycle.runtimeCompose)
+//    implementation(AndroidX.preferenceKtx)
+//    implementation(AndroidX.legacySupport)
+//    implementation(AndroidX.appCompat)
+    implementation(libs.androidx.activity.activity)
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.core.splashscreen)
+//
+//    //Compose
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.material3.windowSizeClass)
+    implementation(libs.androidx.compose.runtime)
+    implementation(libs.androidx.compose.runtime.android)
 
-    //Serialization
-    implementation(Serialization.serialization)
-    implementation(Serialization.googleGson)
+    ksp(libs.hilt.compiler)
 
-    //CBOR
-    implementation(CBOR.cbor)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
 
-    //Retrofit
-    implementation(Retrofit.retrofit)
-    implementation(Retrofit.gsonConverter)
-    implementation(Retrofit.okHttp)
-    implementation(Retrofit.okHttpLoggingInterfceptor)
-
-    //HTTP networking
-    implementation(Kittinunf.fuel)
-    implementation(Kittinunf.fuelAndroid)
-    implementation(Kittinunf.fuelCoroutines)
-
-    //Cryptography. Check vulnerability reports on Maven periodically.
-    implementation(BouncyCastle.bcprov)
-    implementation(BouncyCastle.bcpkix)
-
-    //Room
-    implementation(Room.roomRuntime)
-    implementation(Room.roomKtx)
-    ksp(Room.roomCompiler)
-
-    //Dagger-Hilt
-    implementation(DaggerHilt.hiltAndroid)
-    ksp(DaggerHilt.hiltCompiler)
-    implementation(DaggerHilt.hiltNavigationCompose)
-
-    //Google Accompanist
-    implementation(GoogleAccompanist.permissions)
+    kspTest(libs.hilt.compiler)
 
 
-    //Datastore preferences
-    implementation(AndroidX.datastorePreferences)
 
-    //Kotlin reflection API
-    implementation(Kotlin.kotlinReflect)
-
-//    Testing
-
-    testImplementation(Compose.composeBOM)
-    androidTestImplementation(Compose.composeBOM)
-
-    // Hilt testing dependency
-    androidTestImplementation(Testing.hiltTesting)
-    // Make Hilt generate code in the androidTest folder
-    kspAndroidTest(DaggerHilt.hiltCompiler)
-    //junit5
-    testImplementation(platform(Testing.junitBOM))
-    // (Required) Writing and executing Unit Tests on the JUnit Platform
-    testImplementation(Testing.junit5_jupiter_api)
-    testRuntimeOnly(Testing.junit5_jupiter_engine)
-
-    androidTestImplementation(Testing.junit5_jupiter_api)
-    // (Optional) If you need "Parameterized Tests"
-    testImplementation(Testing.junit5_jupiter_params)
-
-//    androidTestImplementation("de.mannodermaus.junit5:android-test-core:1.4.0")
-//    androidTestRuntimeOnly("de.mannodermaus.junit5:android-test-runner:1.4.0")
-
-//    testImplementation(Testing.junitAndroidExt)
-//    androidTestImplementation(Testing.junitAndroidExt)
-
-
-    testImplementation(Testing.truth)
-    androidTestImplementation(Testing.truth)
-
-    testImplementation(Testing.coroutines)
-    androidTestImplementation(Testing.coroutines)
-
-    testImplementation(Testing.turbine)
-    androidTestImplementation(Testing.turbine)
-
-    testImplementation(Testing.composeUiTest)
-    androidTestImplementation(Testing.composeUiTest)
-
-    testImplementation(Testing.mockk)
-    androidTestImplementation(Testing.mockkAndroid)
-
-    testImplementation(Testing.mockWebServer)
-    androidTestImplementation(Testing.mockWebServer)
-
-    androidTestImplementation(Testing.testRunner)
 }
+
+//baselineProfile {
+//    // Don't build on every iteration of a full assemble.
+//    // Instead enable generation directly for the release build variant.
+//    automaticGenerationDuringBuild = false
+//}
 
 android.sourceSets.all {
     kotlin.srcDir("src/$name/kotlin")

@@ -7,10 +7,11 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import npo.kib.odc_demo.atm.atm_screen.navigation.p2pATMRoute
-import npo.kib.odc_demo.p2p.navigation.P2PDestination
+import npo.kib.odc_demo.atm.navigation.p2pATMRoute
+import npo.kib.odc_demo.p2p.navigation.P2PRootDestination
 import npo.kib.odc_demo.p2p.navigation.p2pRootRoute
-import npo.kib.odc_demo.p2p_send.navigation.p2pSendRoute
+import npo.kib.odc_demo.p2p.receive_screen.navigation.p2pReceiveRoute
+import npo.kib.odc_demo.p2p.send_screen.navigation.p2pSendRoute
 
 @Composable
 fun rememberP2PCommonState(
@@ -29,11 +30,11 @@ class P2PCommonState(
         @Composable get() = navController
                 .currentBackStackEntryAsState().value?.destination
 
-    val currentP2PDestination: P2PDestination?
+    val currentP2PRootDestination: P2PRootDestination?
         @Composable get() = when (currentDestination?.route) {
-            npo.kib.odc_demo.atm.atm_screen.navigation.p2pATMRoute -> P2PDestination.ATM
-            npo.kib.odc_demo.p2p_send.navigation.p2pSendRoute -> P2PDestination.SEND
-            npo.kib.odc_demo.p2p.receive_screen.navigation.p2pReceiveRoute -> P2PDestination.RECEIVE
+            p2pATMRoute -> P2PRootDestination.ATM
+            p2pSendRoute -> P2PRootDestination.SEND
+            p2pReceiveRoute -> P2PRootDestination.RECEIVE
             else -> null
         }
 

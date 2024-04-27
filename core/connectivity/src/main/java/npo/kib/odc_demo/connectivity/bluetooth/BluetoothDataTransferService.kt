@@ -1,14 +1,16 @@
-package npo.kib.odc_demo.feature_app.data.p2p.bluetooth
+package npo.kib.odc_demo.connectivity.bluetooth
 
-//import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.NextPacketSizeInfo
 import android.bluetooth.BluetoothSocket
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import npo.kib.odc_demo.feature_app.domain.model.serialization.bytesToInt
-import npo.kib.odc_demo.feature_app.domain.model.serialization.toBytes
-import npo.kib.odc_demo.feature_app.domain.util.log
+import kotlinx.coroutines.withContext
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.wallet.model.serialization.bytesToInt
+import npo.kib.odc_demo.wallet.model.serialization.toBytes
 import java.io.IOException
 
 class BluetoothDataTransferService(
@@ -88,11 +90,6 @@ class BluetoothDataTransferService(
                     chunksSent++
                 }
                 this@BluetoothDataTransferService.log("Sent all the chunks from the packet! Number of chunks: $chunksSent")
-//                chunkedBytes.forEach { chunk ->
-//                    ensureActive()
-//                    socket.outputStream.write(chunk)
-//                    this@BluetoothDataTransferService.log("Sending a chunk with size: ${chunk.size} B\n(Total: ${bytes..size} B of $nextPacketSize B )")
-//                }
             } catch (e: IOException) {
                 e.printStackTrace()
                 return@withContext false

@@ -5,7 +5,7 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavOptions
 import androidx.navigation.compose.composable
 import androidx.navigation.navOptions
-import npo.kib.odc_demo.history.HistoryScreen
+import npo.kib.odc_demo.history.HistoryRoute
 
 const val historyRoute = "history_route"
 
@@ -14,12 +14,11 @@ fun NavController.navigateToHistoryScreen(
         launchSingleTop = true
     }
 ) {
-    this.navigate(npo.kib.odc_demo.history.historyRoute, navOptions)
+    this.navigate(historyRoute, navOptions)
 }
 
-fun NavGraphBuilder.historyScreen(
-) {
-    composable(route = npo.kib.odc_demo.history.historyRoute) {
-        HistoryScreen()
+fun NavGraphBuilder.historyScreen(onBackClick: () -> Unit) {
+    composable(route = historyRoute) {
+        HistoryRoute(onBackClick = onBackClick)
     }
 }

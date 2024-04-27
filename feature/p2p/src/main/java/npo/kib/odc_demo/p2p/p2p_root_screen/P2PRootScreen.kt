@@ -5,9 +5,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import npo.kib.odc_demo.core.design_system.components.HistoryBlock
 import npo.kib.odc_demo.core.design_system.components.P2PSelectionButtonRow
-import npo.kib.odc_demo.ui.ThemePreviews
+import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
+import npo.kib.odc_demo.ui.components.HistoryBlock
 
 @Composable
 fun P2PRootScreen(
@@ -21,7 +21,7 @@ fun P2PRootScreen(
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        npo.kib.odc_demo.core.design_system.components.P2PSelectionButtonRow(
+        P2PSelectionButtonRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
@@ -30,7 +30,7 @@ fun P2PRootScreen(
             onclickReceive = onReceiveButtonClick,
             onClickSend = onSendButtonClick
         )
-        npo.kib.odc_demo.core.design_system.components.HistoryBlock(
+        HistoryBlock(
             onHistoryClick = onHistoryClick,
             modifier = Modifier
                 .weight(2f)

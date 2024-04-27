@@ -27,26 +27,24 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.data.permissions.PermissionProvider
-import npo.kib.odc_demo.feature_app.data.permissions.getTextToShowGivenPermissions
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
-import npo.kib.odc_demo.feature_app.domain.util.isAValidAmount
-import npo.kib.odc_demo.core.design_system.components.CustomSnackbar
-import npo.kib.odc_demo.core.design_system.components.MultiplePermissionsRequestBlock
-import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
-import npo.kib.odc_demo.core.design_system.components.TransparentHintTextField
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.StatusInfoBlock
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UserInfoBlock
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.UsersList
-import npo.kib.odc_demo.feature_app.presentation.p2p_screens.common.components.animateFadeVerticalSlideInOut
+import npo.kib.odc_demo.common.data.permissions.PermissionProvider
+import npo.kib.odc_demo.common_jvm.isAValidAmount
+import npo.kib.odc_demo.core.design_system.ui.GradientColors
+import npo.kib.odc_demo.common.data.permissions.getTextToShowGivenPermissions
+import npo.kib.odc_demo.core.design_system.components.StatusInfoBlock
+import npo.kib.odc_demo.ui.components.UserInfoBlock
+import npo.kib.odc_demo.ui.components.UsersList
+import npo.kib.odc_demo.core.design_system.components.animateFadeVerticalSlideInOut
+import npo.kib.odc_demo.model.CustomBluetoothDevice
+import npo.kib.odc_demo.transaction_logic.model.TransactionDataBuffer
 import npo.kib.odc_demo.p2p.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.*
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.OperationResult.ResultType.Success
-import npo.kib.odc_demo.ui.GradientColors
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus.*
+import npo.kib.odc_demo.ui.components.MultiplePermissionsRequestBlock
+import npo.kib.odc_demo.wallet.model_extensions.asAppUser
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -68,7 +66,7 @@ fun SendRoute(
         LaunchedEffect(key1 = multiplePermissionsState.allPermissionsGranted) {
             launch { navBackStackEntry.viewModelStore.clear() }
         }
-        npo.kib.odc_demo.core.design_system.components.MultiplePermissionsRequestBlock(
+        MultiplePermissionsRequestBlock(
             permissionsRequestText = getTextToShowGivenPermissions(
                 multiplePermissionsState.revokedPermissions,
                 multiplePermissionsState.shouldShowRationale,
@@ -117,7 +115,7 @@ private fun SendScreen(
         ) {
             UserInfoBlock(
                 modifier = Modifier.animateFadeVerticalSlideInOut(),
-                userInfo = screenState.transactionDataBuffer.otherUserInfo
+                appUser = screenState.transactionDataBuffer.otherUserInfo?.asAppUser()
             )
         }
         Spacer(modifier = Modifier.height(5.dp))

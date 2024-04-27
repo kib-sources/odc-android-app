@@ -6,9 +6,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import npo.kib.odc_demo.domain.DefaultDataStoreRepository
+import npo.kib.odc_demo.datastore.DefaultDataStoreRepository
 import npo.kib.odc_demo.datastore.DefaultDataStoreRepositoryImpl
-import npo.kib.odc_demo.domain.UtilityDataStoreRepository
+import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
 import npo.kib.odc_demo.datastore.UtilityDataStoreRepositoryImpl
 import javax.inject.Singleton
 
@@ -22,13 +22,13 @@ object DataStoreModule {
     fun provideDefaultDataStoreRepository(
         @ApplicationContext
         context: Context
-    ): npo.kib.odc_demo.domain.DefaultDataStoreRepository = DefaultDataStoreRepositoryImpl(context = context)
+    ): DefaultDataStoreRepository = DefaultDataStoreRepositoryImpl(context = context)
 
     @Provides
     @Singleton
     fun provideUtilityDataStoreRepository(
         @ApplicationContext
         context: Context
-    ): npo.kib.odc_demo.domain.UtilityDataStoreRepository = UtilityDataStoreRepositoryImpl(context = context)
+    ): UtilityDataStoreRepository = UtilityDataStoreRepositoryImpl(context = context)
 
 }

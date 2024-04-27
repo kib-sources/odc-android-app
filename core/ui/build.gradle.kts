@@ -1,5 +1,6 @@
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.odc.android.library)
+    alias(libs.plugins.odc.android.library.compose)
 }
 
 android {
@@ -11,4 +12,6 @@ android {
 }
 
 dependencies {
+    api(projects.core.designSystem)
+    api(projects.core.model)
 }

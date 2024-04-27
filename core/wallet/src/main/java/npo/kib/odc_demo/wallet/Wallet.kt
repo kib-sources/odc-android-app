@@ -1,22 +1,21 @@
 package npo.kib.odc_demo.wallet
 
-import npo.kib.odc_demo.wallet.Crypto.toHex
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.AcceptanceBlocks
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.Banknote
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.Block
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.ProtectedBlock
+import npo.kib.odc_demo.common_jvm.checkTimeIsNearCurrent
+import npo.kib.odc_demo.common_jvm.toHex
+import npo.kib.odc_demo.wallet.Crypto.asPemString
+import npo.kib.odc_demo.wallet.Crypto.randomMagic
+import npo.kib.odc_demo.wallet.model.Banknote
+import npo.kib.odc_demo.wallet.model.ProtectedBlock
+import npo.kib.odc_demo.wallet.model.data_packet.variants.AcceptanceBlocks
+import npo.kib.odc_demo.wallet.model.data_packet.variants.Block
+import npo.kib.odc_demo.wallet.model_extensions.makeBlockHashValue
+import npo.kib.odc_demo.wallet.model_extensions.verification
 import java.security.PrivateKey
 import java.security.PublicKey
 import java.util.Calendar
 import java.util.UUID
 
-/*
-todo
- 1. make the methods that may take time suspend.
- 2. better make Wallet inaccessible from the general code,
-  later make it internal, and separate it to another module, that would
-  contain repositories related to it.
- */
+//todo make the methods that may take time suspend.
 /**
  *  The wallet implementation.
  *  In the MVP must be located on the SIM-card.
@@ -30,7 +29,7 @@ class Wallet(
     val walletId: String //wid
 ) {
     private fun otokSignature(otok: PublicKey) =
-        Crypto.signature(Crypto.hash(otok.getStringPem()), spk)
+        Crypto.signature(Crypto.hash(otok.asPemString()), spk)
 
     fun banknoteVerification(banknote: Banknote) {
         if (banknote.bin != bin) {
@@ -64,18 +63,29 @@ class Wallet(
         val transactionHash = block.makeBlockHashValue()
         val transactionHashSign = Crypto.signature(transactionHash, this.spk)
         val protectedBlock = ProtectedBlock(
-            parentSok = null, parentSokSignature = null, parentOtokSignature = null, refUuid = uuid,
-            sok = this.sok, sokSignature = this.sokSignature, otokSignature = otokSignature(otok),
-            transactionSignature = transactionHashSign, time = banknote.time
+            parentSok = null,
+            parentSokSignature = null,
+            parentOtokSignature = null,
+            refUuid = uuid,
+            sok = this.sok,
+            sokSignature = this.sokSignature,
+            otokSignature = otokSignature(otok),
+            transactionSignature = transactionHashSign,
+            time = banknote.time
         )
         return Pair(block, protectedBlock)
     }
 
     //A
     fun initProtectedBlock(protectedBlock: ProtectedBlock) = ProtectedBlock(
-        parentSok = protectedBlock.sok, parentSokSignature = protectedBlock.sokSignature,
-        parentOtokSignature = protectedBlock.otokSignature, refUuid = null, sok = null,
-        sokSignature = null, otokSignature = "", transactionSignature = "",
+        parentSok = protectedBlock.sok,
+        parentSokSignature = protectedBlock.sokSignature,
+        parentOtokSignature = protectedBlock.otokSignature,
+        refUuid = null,
+        sok = null,
+        sokSignature = null,
+        otokSignature = "",
+        transactionSignature = "",
         time = (Calendar.getInstance().timeInMillis / 1000).toInt()
     )
 
@@ -102,7 +112,9 @@ class Wallet(
      *
      *   Todo need to run tests for the time taken and decide if worth making suspend
      * */
-    fun acceptanceInit(blocks: List<Block>, protectedBlock: ProtectedBlock): AcceptanceBlocks {
+    fun acceptanceInit(
+        blocks: List<Block>, protectedBlock: ProtectedBlock
+    ): AcceptanceBlocks {
         // TODO blockchain verification disabled for demo
 //        blockchainVerification(blocks)
 
@@ -116,7 +128,7 @@ class Wallet(
             throw Exception("protectedBlock.parentOtokSignature == null")
         }
 
-        val parentSokHash = Crypto.hash(protectedBlock.parentSok.getStringPem())
+        val parentSokHash = Crypto.hash(protectedBlock.parentSok.asPemString())
         // TODO verification disabled for demo
 //        if (!Crypto.verifySignature(parentSokHash, protectedBlock.parentSokSignature, bok)) {
 //            throw Exception("Некорректный soc")
@@ -154,9 +166,13 @@ class Wallet(
         val protectedBlockNew = ProtectedBlock(
             parentSok = protectedBlock.parentSok,
             parentSokSignature = protectedBlock.parentSokSignature,
-            parentOtokSignature = protectedBlock.parentOtokSignature, refUuid = uuid, sok = sok,
-            sokSignature = sokSignature, otokSignature = otokSignature(otok),
-            transactionSignature = transactionHashSign, time = protectedBlock.time
+            parentOtokSignature = protectedBlock.parentOtokSignature,
+            refUuid = uuid,
+            sok = sok,
+            sokSignature = sokSignature,
+            otokSignature = otokSignature(otok),
+            transactionSignature = transactionHashSign,
+            time = protectedBlock.time
         )
         return AcceptanceBlocks(childBlock, protectedBlockNew)
     }
@@ -172,12 +188,12 @@ class Wallet(
     ) {
         checkTimeIsNearCurrent(childBlock.time, 300).getOrThrow()
 
-        val sokHash = Crypto.hash(protectedBlock.sok!!.getStringPem())
+        val sokHash = Crypto.hash(protectedBlock.sok!!.asPemString())
         if (!Crypto.verifySignature(sokHash, protectedBlock.sokSignature!!, bok)) {
             throw Exception("soc signed not by the bank")
         }
 
-        val otokHash = Crypto.hash(childBlock.otok.getStringPem())
+        val otokHash = Crypto.hash(childBlock.otok.asPemString())
         if (!Crypto.verifySignature(otokHash, protectedBlock.otokSignature, protectedBlock.sok)) {
             throw Exception("otok defined not by the SIM card")
         }

@@ -1,43 +1,21 @@
 plugins {
-//    id(Build.androidApplicationPlugin)
-    id(Build.kotlinAndroidPlugin)
-    id(Build.androidLibraryPlugin)
-    id(Build.kspPlugin)
-    id(DaggerHilt.hiltPlugin)
+    alias(libs.plugins.odc.android.library)
+    alias(libs.plugins.odc.android.hilt)
+
 }
 
 android {
     namespace = "npo.kib.odc_demo.domain"
-    compileSdk = 34
-
-    defaultConfig {
-        minSdk = 24
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles("consumer-rules.pro")
-    }
-
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(
-                getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
-            )
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-    kotlinOptions {
-        jvmTarget = "11"
-    }
 }
 
 dependencies {
-
-    //Dagger-Hilt
-    implementation(DaggerHilt.hiltAndroid)
-    ksp(DaggerHilt.hiltCompiler)
+    implementation(projects.core.connectivity)
+    implementation(projects.core.commonAndroid)
+    implementation(projects.core.commonJvm)
+    implementation(projects.core.database)
+    implementation(projects.core.datastore)
+    implementation(projects.core.model)
+    implementation(projects.core.transactionLogic)
+    implementation(projects.core.wallet)
+    implementation(projects.core.walletRepository)
 }

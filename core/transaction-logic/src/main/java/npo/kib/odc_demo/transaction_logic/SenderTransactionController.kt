@@ -8,37 +8,38 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
-import npo.kib.odc_demo.wallet.WalletRepository
-import npo.kib.odc_demo.transaction_logic.TransactionStatus.SenderTransactionStatus
-import npo.kib.odc_demo.transaction_logic.TransactionStatus.SenderTransactionStatus.*
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForSender
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForSender.*
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForSender.INITIAL
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_ACCEPTANCE_BLOCKS
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForSender.WAITING_FOR_OFFER_RESPONSE
-import npo.kib.odc_demo.feature_app.domain.util.log
-import npo.kib.odc_demo.transaction_logic.TransactionRole.SENDER
+import npo.kib.odc_demo.common.data.util.log
 import npo.kib.odc_demo.transaction_logic.algorithms.findBanknotesWithSum
+import npo.kib.odc_demo.transaction_logic.model.TransactionRole.SENDER
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus.*
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForSender
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForSender.*
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForSender.WAITING_FOR_ACCEPTANCE_BLOCKS
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForSender.WAITING_FOR_OFFER_RESPONSE
+import npo.kib.odc_demo.wallet.model.BanknoteWithBlockchain
+import npo.kib.odc_demo.wallet.model.data_packet.DataPacketType.*
+import npo.kib.odc_demo.wallet.model.data_packet.variants.*
+import npo.kib.odc_demo.wallet_repository.repository.WalletRepository
 import javax.inject.Inject
+
 
 @ViewModelScoped
 class SenderTransactionController @Inject constructor(
-    walletRepository: npo.kib.odc_demo.wallet.WalletRepository
+    walletRepository: WalletRepository
 ) : TransactionController(
     walletRepository = walletRepository, role = SENDER
 ) {
-    private val _currentStep: MutableStateFlow<ForSender> = MutableStateFlow(INITIAL)
+    private val _currentStep: MutableStateFlow<ForSender> = MutableStateFlow(INITIAL_STEP)
     private val currentStep: StateFlow<ForSender> = _currentStep.asStateFlow()
 
     private fun updateStep(step: ForSender) {
         _currentStep.value = step
     }
 
-    private val _transactionStatus: MutableStateFlow<SenderTransactionStatus> =
-        MutableStateFlow(SenderTransactionStatus.INITIAL)
+    private val _transactionStatus: MutableStateFlow<SenderTransactionStatus> = MutableStateFlow(
+        INITIAL
+    )
     val transactionStatus = _transactionStatus.asStateFlow()
 
     private fun updateStatus(newStatus: SenderTransactionStatus) {
@@ -57,8 +58,8 @@ class SenderTransactionController @Inject constructor(
     public override fun initController(): Boolean {
         val started = super.initController()
         if (started) {
-            updateStep(INITIAL)
-            updateStatus(SenderTransactionStatus.INITIAL)
+            updateStep(INITIAL_STEP)
+            updateStatus(INITIAL)
         }
         return started
     }
@@ -68,7 +69,7 @@ class SenderTransactionController @Inject constructor(
         if (packet.packetType == USER_INFO) {
             updateOtherUserInfo(packet as UserInfo)
         } else when (currentStep.value) {
-            INITIAL -> {
+            INITIAL_STEP -> {
                 //nothing is expected to be received here yet
                 //initial step where we can try to construct amount and then send it
                 //when we send it (trigger manually through UI), the step is set to WAITING_FOR_OFFER_RESPONSE
@@ -86,7 +87,7 @@ class SenderTransactionController @Inject constructor(
                     is TransactionResult.ResultType.Failure -> {
                         //when rejected go back to initial and be able to send offer again or
                         // try to construct another amount
-                        updateStep(INITIAL)
+                        updateStep(INITIAL_STEP)
                         updateStatus(OFFER_REJECTED)
                     }
                 }
@@ -142,23 +143,22 @@ class SenderTransactionController @Inject constructor(
      * */
     suspend fun tryConstructAmount(amount: Int): Boolean {
         return withContext(defaultDispatcher) {
-            if (currentStep.value == INITIAL) {
+            if (currentStep.value == INITIAL_STEP) {
                 _transactionDataBuffer.update { it.copy(isAmountAvailable = null) }
                 updateStatus(CONSTRUCTING_AMOUNT)
                 this@SenderTransactionController.log("CONSTRUCTING_AMOUNT")
                 //partially clear protected blocks of banknotes before sending to reduce size
-                val resultBanknotes: List<BanknoteWithBlockchain>? =
-                    getBanknotesFromAmount(amount)?.map {
-                        ensureActive()
-                        val newProtectedBlock = walletRepository.walletInitProtectedBlock(
-                            it.banknoteWithProtectedBlock.protectedBlock
+                val resultBanknotes: List<BanknoteWithBlockchain>? = getBanknotesFromAmount(amount)?.map {
+                    ensureActive()
+                    val newProtectedBlock = walletRepository.walletInitProtectedBlock(
+                        it.banknoteWithProtectedBlock.protectedBlock
+                    )
+                    it.copy(
+                        banknoteWithProtectedBlock = it.banknoteWithProtectedBlock.copy(
+                            protectedBlock = newProtectedBlock
                         )
-                        it.copy(
-                            banknoteWithProtectedBlock = it.banknoteWithProtectedBlock.copy(
-                                protectedBlock = newProtectedBlock
-                            )
-                        )
-                    }
+                    )
+                }
                 return@withContext if (resultBanknotes == null) {
                     _transactionDataBuffer.update { it.copy(isAmountAvailable = false) }
                     updateStatus(SHOWING_AMOUNT_AVAILABILITY)
@@ -171,7 +171,7 @@ class SenderTransactionController @Inject constructor(
                             banknotesList = BanknotesList(resultBanknotes),
                             amountRequest = AmountRequest(
                                 amount = amount,
-                                walletId = walletRepository.getOrRegisterWallet().walletId
+                                walletId = walletRepository.getWalletId()!!
                             )
                         )
                     }
@@ -179,12 +179,12 @@ class SenderTransactionController @Inject constructor(
                     this@SenderTransactionController.log("SHOWING_AMOUNT_AVAILABILITY, isAmountAvailable = true")
                     true
                 }
-            } else throw transactionExceptionWithRole("Tried constructing amount while not on INITIAL step")
+            } else throw transactionExceptionWithRole("Tried constructing amount while not on INITIAL_STEP step")
         }
     }
 
     suspend fun trySendOffer() = when {
-        currentStep.value != INITIAL -> throw transactionExceptionWithRole("Tried sending offer while not on INITIAL step")
+        currentStep.value != INITIAL_STEP -> throw transactionExceptionWithRole("Tried sending offer while not on INITIAL_STEP step")
         transactionDataBuffer.value.isAmountAvailable == true -> {
             updateStep(WAITING_FOR_OFFER_RESPONSE)
             updateStatus(SenderTransactionStatus.WAITING_FOR_OFFER_RESPONSE)
@@ -237,8 +237,7 @@ class SenderTransactionController @Inject constructor(
     private suspend fun deleteLocalBanknotes() {
         withContext(NonCancellable) {
             updateStatus(DELETING_BANKNOTES_FROM_WALLET)
-            val bnidList =
-                transactionDataBuffer.value.banknotesList?.list?.map { it.banknoteWithProtectedBlock.banknote.bnid }
+            val bnidList = transactionDataBuffer.value.banknotesList?.list?.map { it.banknoteWithProtectedBlock.banknote.bnid }
             if (bnidList == null) throw transactionExceptionWithRole(
                 "BanknotesList in buffer is null"
             ) else if (bnidList.isEmpty()) throw transactionExceptionWithRole(

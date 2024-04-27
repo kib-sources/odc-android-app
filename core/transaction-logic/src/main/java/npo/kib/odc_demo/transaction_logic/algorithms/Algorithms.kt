@@ -1,7 +1,7 @@
 package npo.kib.odc_demo.transaction_logic.algorithms
 
 import kotlinx.coroutines.ensureActive
-import npo.kib.odc_demo.database.Amount
+import npo.kib.odc_demo.wallet.model.Amount
 import kotlin.coroutines.coroutineContext
 
 
@@ -52,8 +52,8 @@ fun findSubsetWithSum(
  *  @see <a href="https://en.wikipedia.org/wiki/Subset_sum_problem">Subset Sum Problem</a>
  * */
 fun _findBanknotesWithSum(
-    banknotesIdsAmounts: List<npo.kib.odc_demo.database.Amount>, targetSum: Int
-): List<npo.kib.odc_demo.database.Amount>? {
+    banknotesIdsAmounts: List<npo.kib.odc_demo.wallet.model.Amount>, targetSum: Int
+): List<npo.kib.odc_demo.wallet.model.Amount>? {
     if (targetSum <= 0 || banknotesIdsAmounts.isEmpty()) return null
 
     val n = banknotesIdsAmounts.size
@@ -73,7 +73,7 @@ fun _findBanknotesWithSum(
 
     if (dpTable[n][targetSum] != targetSum) return null
 
-    val selectedBanknotes = mutableListOf<npo.kib.odc_demo.database.Amount>()
+    val selectedBanknotes = mutableListOf<npo.kib.odc_demo.wallet.model.Amount>()
     var i = n
     var j = targetSum
     while (i > 0 && j > 0) {
@@ -94,7 +94,7 @@ fun _findBanknotesWithSum(
  *  - Solved here with Dynamic Programming.
  *  @see <a href="https://en.wikipedia.org/wiki/Subset_sum_problem">Subset Sum Problem</a>
  * */
-suspend fun findBanknotesWithSum(banknotesIdsAmounts: List<npo.kib.odc_demo.database.Amount>, targetSum: Int): List<npo.kib.odc_demo.database.Amount>? {
+suspend fun findBanknotesWithSum(banknotesIdsAmounts: List<npo.kib.odc_demo.wallet.model.Amount>, targetSum: Int): List<npo.kib.odc_demo.wallet.model.Amount>? {
     if (targetSum <= 0 || banknotesIdsAmounts.isEmpty()) return null
 
     coroutineContext.ensureActive()
@@ -115,7 +115,7 @@ suspend fun findBanknotesWithSum(banknotesIdsAmounts: List<npo.kib.odc_demo.data
         }
     }
     if (!dp[n][targetSum]) return null
-    val selectedBanknotes = mutableListOf<npo.kib.odc_demo.database.Amount>()
+    val selectedBanknotes = mutableListOf<npo.kib.odc_demo.wallet.model.Amount>()
     var i = n
     var j = targetSum
     while (i > 0 && j > 0) {

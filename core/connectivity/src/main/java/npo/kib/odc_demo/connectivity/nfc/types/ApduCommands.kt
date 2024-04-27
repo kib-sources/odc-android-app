@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data.p2p.nfc.types
+package npo.kib.odc_demo.connectivity.nfc.types
 
 object ApduCommands {
     const val CONNECTED: Byte = 0x1

@@ -20,21 +20,23 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
-import npo.kib.odc_demo.R.drawable
-import npo.kib.odc_demo.core.design_system.components.ODCBottomBar
-import npo.kib.odc_demo.core.design_system.components.ODCPlainBackground
-import npo.kib.odc_demo.core.design_system.components.ODCTopBar
-import npo.kib.odc_demo.core.design_system.components.backgroundHorizGradient
+import npo.kib.odc_demo.core.design_system.ui.DevicePreviews
+import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
+import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.home.HomeScreenDefaultPreview
 import npo.kib.odc_demo.navigation.ODCNavHost
-import npo.kib.odc_demo.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.navigation.TopLevelDestination
+import npo.kib.odc_demo.ui.components.ODCBottomBar
+import npo.kib.odc_demo.ui.components.ODCNavRail
+import npo.kib.odc_demo.ui.components.ODCTopBar
+import npo.kib.odc_demo.ui.components.backgroundHorizGradient
 
 @Composable
 fun ODCApp(
-    appState: ODCAppState = rememberODCAppState(/*windowSizeClass = windowSizeClass*/)
+    appState: ODCAppState
 ) {
     Box {
         val placeholderVisible = remember { MutableTransitionState(true) }
@@ -49,7 +51,8 @@ fun ODCApp(
             AnimatedVisibility(
                 modifier = Modifier
                     .fillMaxSize()
-                    .zIndex(1f).clickable(false){},
+                    .zIndex(1f)
+                    .clickable(false) {},
                 visibleState = placeholderVisible,
                 enter = EnterTransition.None,
                 exit = fadeOut(animationSpec = tween(500))
@@ -61,15 +64,31 @@ fun ODCApp(
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
-                        painterResource(id = drawable.logo_1),
+                        painterResource(id = npo.kib.odc_demo.core.ui.R.drawable.logo_1),
                         contentDescription = null,
                         colorFilter = ColorFilter.colorMatrix(
                             ColorMatrix(
                                 floatArrayOf(
-                                    0.33f, 0.33f, 0.33f, 0f, 0f,
-                                    0.33f, 0.33f, 0.33f, 0f, 0f,
-                                    0.33f, 0.33f, 0.33f, 0f, 0f,
-                                    0f, 0f, 0f, 1f, 0f
+                                    0.33f,
+                                    0.33f,
+                                    0.33f,
+                                    0f,
+                                    0f,
+                                    0.33f,
+                                    0.33f,
+                                    0.33f,
+                                    0f,
+                                    0f,
+                                    0.33f,
+                                    0.33f,
+                                    0.33f,
+                                    0f,
+                                    0f,
+                                    0f,
+                                    0f,
+                                    0f,
+                                    1f,
+                                    0f
                                 ) //Should allow to convert to grayscale
                             )
                         )
@@ -97,7 +116,7 @@ fun ODCApp(
                 bottomBar = {
                     if (appState.shouldShowBottomBar) {
                         Column {
-                            npo.kib.odc_demo.core.design_system.components.ODCBottomBar(
+                            ODCBottomBar(
                                 destinations = appState.topLevelDestinations,
                                 onNavigateToDestination = appState::navigateToTopLevelDestination,
                                 currentDestination = appState.currentDestination,
@@ -112,20 +131,37 @@ fun ODCApp(
                         }
                     }
                 }) { paddingValues ->
-                Column(
-                    modifier = Modifier
+                Row(
+                    Modifier
                         .fillMaxSize()
                         .padding(paddingValues)
                         .consumeWindowInsets(paddingValues)
+                        .windowInsetsPadding(
+                            WindowInsets.safeDrawing.only(
+                                WindowInsetsSides.Horizontal,
+                            ),
+                        ),
                 ) {
-                    npo.kib.odc_demo.core.design_system.components.ODCTopBar(
-                        modifier = Modifier.height(
-                            100.dp
+                    if (appState.shouldShowNavRail) {
+                        ODCNavRail(
+                            destinations = appState.topLevelDestinations,
+                            onNavigateToDestination = appState::navigateToTopLevelDestination,
+                            currentDestination = appState.currentDestination,
                         )
-                    )
-                    ODCNavHost(
-                        appState = appState, modifier = Modifier
-                    )
+                    }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(paddingValues)
+                            .consumeWindowInsets(paddingValues)
+                    ) {
+                        val destination = appState.currentTopLevelDestination
+                        val shouldShowTopAppBar = destination != null
+                        if (destination != null) ODCTopBar(
+                            titleRes = destination.titleTextId, modifier = Modifier.height(100.dp)
+                        )
+                        ODCNavHost(appState = appState)
+                    }
                 }
             }
         }
@@ -133,10 +169,31 @@ fun ODCApp(
 }
 
 
-@Preview
+@ThemePreviews
+@DevicePreviews
 @Composable
-private fun ODCAppPreview() {
+private fun HomeScreenPreview() {
     ODCAppTheme {
-        ODCApp()
+        BoxWithConstraints(propagateMinConstraints = false) {
+            val topBarHeightPercentage = maxHeight * 0.1f
+            val topBarWithBalanceBlockHeightPercentage = maxHeight * 0.25f
+            val bottomBarHeightPercentage = maxHeight * 0.07f
+
+
+            Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
+                ODCTopBar(titleRes = android.R.string.untitled, modifier = Modifier)
+            }, bottomBar = {
+                ODCBottomBar(
+                    destinations = TopLevelDestination.entries,
+                    {},
+                    currentDestination = null,
+                    modifier = Modifier/*.height(bottomBarHeightPercentage)*/
+                )
+            }) { paddingValues ->
+                Box(modifier = Modifier.padding(paddingValues = paddingValues)) {
+                    HomeScreenDefaultPreview()
+                }
+            }
+        }
     }
 }

@@ -6,17 +6,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.model.user.UserPreferences
+import npo.kib.odc_demo.MainActivityUiState.*
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.datastore.model.UserPreferences
 import npo.kib.odc_demo.datastore.DefaultDataStoreRepository
 import npo.kib.odc_demo.domain.GetInfoFromWalletUseCase
-import npo.kib.odc_demo.domain.util.log
-import npo.kib.odc_demo.feature_app.presentation.common.MainActivityUiState.*
 import javax.inject.Inject
 
 @HiltViewModel
 class MainActivityViewModel @Inject constructor(
-    private val useCase: npo.kib.odc_demo.domain.GetInfoFromWalletUseCase,
-    private val defaultDatastore: npo.kib.odc_demo.datastore.DefaultDataStoreRepository
+    private val useCase: GetInfoFromWalletUseCase,
+    private val defaultDatastore: DefaultDataStoreRepository
 ) : ViewModel() {
 
     //In init{} the wallet is getting registered, ui is in loading state,
@@ -26,11 +26,11 @@ class MainActivityViewModel @Inject constructor(
     private val _uiState: MutableStateFlow<MainActivityUiState> = MutableStateFlow(Loading)
     val uiState = _uiState.asStateFlow()
 
-    private val userPreferences: StateFlow<npo.kib.odc_demo.model.user.UserPreferences> =
+    private val userPreferences: StateFlow<UserPreferences> =
         defaultDatastore.userPreferencesFlow.stateIn(
             scope = viewModelScope,
-            initialValue = npo.kib.odc_demo.model.user.UserPreferences(),
             started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = UserPreferences()
         )
 
     init {
@@ -64,6 +64,6 @@ sealed interface MainActivityUiState {
      * and other app resources are loading. */
     data object Loading : MainActivityUiState
     data object FailureConnectingToBank : MainActivityUiState
-    data class Success(val userPreferences: npo.kib.odc_demo.model.user.UserPreferences) :
+    data class Success(val userPreferences: UserPreferences) :
         MainActivityUiState
 }

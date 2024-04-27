@@ -1,8 +1,8 @@
 package npo.kib.odc_demo.database
 
 import androidx.room.TypeConverter
-import npo.kib.odc_demo.feature_app.domain.core.getString
-import npo.kib.odc_demo.feature_app.domain.core.loadPublicKey
+import npo.kib.odc_demo.wallet.Crypto.asPlainString
+import npo.kib.odc_demo.wallet.Crypto.generatePublicKey
 import java.security.PublicKey
 import java.util.*
 
@@ -17,11 +17,11 @@ class BlockchainConverter {
     }
 
     @TypeConverter
-    fun fromPublicKey(key: PublicKey?) = key?.getString()
+    fun fromPublicKey(key: PublicKey?) = key?.asPlainString()
 
     @TypeConverter
     fun toPublicKey(str: String?): PublicKey? {
         return if (str.isNullOrEmpty()) null
-        else str.loadPublicKey()
+        else str.generatePublicKey()
     }
 }

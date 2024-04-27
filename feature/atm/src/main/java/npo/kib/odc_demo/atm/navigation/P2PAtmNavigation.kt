@@ -10,11 +10,11 @@ import npo.kib.odc_demo.atm.ATMRoute
 const val p2pATMRoute = "p2p_atm_route"
 
 fun NavController.navigateToATMScreen(navOptions: NavOptions? = null) {
-    this.navigate(npo.kib.odc_demo.atm.atm_screen.navigation.p2pATMRoute, navOptions)
+    this.navigate(p2pATMRoute, navOptions)
 }
 
 fun NavGraphBuilder.atmScreen(navigateToP2PRoot: () -> Unit) {
-    composable(route = npo.kib.odc_demo.atm.atm_screen.navigation.p2pATMRoute) {
+    composable(route = p2pATMRoute) {
         ATMRoute(navigateToP2PRoot = navigateToP2PRoot)
     }
 }

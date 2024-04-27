@@ -1,12 +1,12 @@
-package npo.kib.odc_demo.feature_app.data.api.di
+package npo.kib.odc_demo.network.api.di
 
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import npo.kib.odc_demo.network.api.BankRepositoryImpl
 import npo.kib.odc_demo.network.api.BankApi
-import npo.kib.odc_demo.feature_app.data.api.BankRepositoryImpl
-import npo.kib.odc_demo.feature_app.domain.repository.BankRepository
+import npo.kib.odc_demo.network.api.BankRepository
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit

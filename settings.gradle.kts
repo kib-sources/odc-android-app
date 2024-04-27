@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google()
         mavenCentral()
@@ -14,24 +15,30 @@ dependencyResolutionManagement {
 }
 
 
+
 rootProject.name = "OpenDigitalCash"
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 include(":app")
-include(":core:design-system")
-include(":feature:home")
-include(":feature:settings")
-include(":feature:connectivity")
+//feature
 include(":feature:atm")
-include(":core:datastore")
-include(":core:database")
-include(":core:network")
-include(":core:connectivity")
-include(":core:wallet")
 include(":feature:history")
-include(":feature:wallet-details")
+include(":feature:home")
 include(":feature:p2p")
-include(":core:model")
+include(":feature:settings")
+include(":feature:wallet-details")
+//core
+include(":core:common-android")
+include(":core:common-jvm")
+include(":core:connectivity")
+include(":core:database")
+include(":core:datastore")
+include(":core:design-system")
 include(":core:domain")
+include(":core:model")
+include(":core:network")
 include(":core:transaction-logic")
-include(":core:common")
 include(":core:ui")
+include(":core:wallet")
+include(":core:testing")
+include(":core:wallet-repository")
