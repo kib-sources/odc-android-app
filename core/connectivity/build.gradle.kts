@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.connectivity"
+    namespace = "npo.kib.odc_demo.core.connectivity"
 }
 
 dependencies {

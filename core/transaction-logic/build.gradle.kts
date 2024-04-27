@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.transaction_logic"
+    namespace = "npo.kib.odc_demo.core.transaction_logic"
 }
 
 dependencies {

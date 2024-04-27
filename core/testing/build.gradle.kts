@@ -5,7 +5,7 @@ plugins {
  }
 
 android {
-    namespace = "npo.kib.odc_demo.testing"
+    namespace = "npo.kib.odc_demo.core.testing"
 
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

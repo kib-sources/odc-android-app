@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.atm"
+    namespace = "npo.kib.odc_demo.feature.atm"
 }
 
 dependencies {

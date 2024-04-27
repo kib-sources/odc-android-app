@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.p2p.navigation
 
-import npo.kib.odc_demo.p2p.R
+import npo.kib.odc_demo.feature.p2p.R
 import npo.kib.odc_demo.ui.icon.Icon
 import npo.kib.odc_demo.ui.icon.Icon.DrawableResourceIcon
 import npo.kib.odc_demo.ui.icon.ODCIcons

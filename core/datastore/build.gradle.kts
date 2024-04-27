@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.datastore"
+    namespace = "npo.kib.odc_demo.core.datastore"
 }
 
 dependencies {

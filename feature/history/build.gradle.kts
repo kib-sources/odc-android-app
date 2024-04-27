@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.history"
+    namespace = "npo.kib.odc_demo.feature.history"
 }
 
 dependencies {

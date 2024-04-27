@@ -26,12 +26,8 @@ import npo.kib.odc_demo.atm.ATMUiState.*
 import npo.kib.odc_demo.atm.ATMUiState.ResultType.Failure
 import npo.kib.odc_demo.atm.ATMUiState.ResultType.Success
 import npo.kib.odc_demo.common_jvm.isAValidAmount
-import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
-import npo.kib.odc_demo.core.design_system.components.TransparentHintTextField
+import npo.kib.odc_demo.core.design_system.components.*
 import npo.kib.odc_demo.core.design_system.ui.GradientColors
-import npo.kib.odc_demo.core.design_system.components.StatusInfoBlock
-import npo.kib.odc_demo.core.design_system.components.animateFadeVerticalSlideInOut
-import npo.kib.odc_demo.core.design_system.components.animateVerticalSlideInOut
 
 @Composable
 fun ATMRoute(

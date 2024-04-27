@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.settings"
+    namespace = "npo.kib.odc_demo.feature.settings"
 }
 
 dependencies {

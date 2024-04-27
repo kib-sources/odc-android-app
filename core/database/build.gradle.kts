@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.database"
+    namespace = "npo.kib.odc_demo.core.database"
 }
 
 dependencies {

@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.wallet_details"
+    namespace = "npo.kib.odc_demo.feature.wallet_details"
 }
 
 dependencies {
 
     implementation(projects.core.domain)
-    implementation(project(":core:wallet"))
+    implementation(projects.core.wallet)
 }

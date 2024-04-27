@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "npo.kib.odc_demo.p2p"
+    namespace = "npo.kib.odc_demo.feature.p2p"
 }
 
 dependencies {

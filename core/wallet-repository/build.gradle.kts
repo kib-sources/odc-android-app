@@ -5,7 +5,7 @@ plugins {
 
 android {
 
-    namespace = "npo.kib.odc_demo.wallet_repository"
+    namespace = "npo.kib.odc_demo.core.wallet_repository"
 
 
 }
