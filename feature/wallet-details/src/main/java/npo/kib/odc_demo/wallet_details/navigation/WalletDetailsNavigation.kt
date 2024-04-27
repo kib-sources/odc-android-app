@@ -15,11 +15,11 @@ fun NavController.navigateToWalletDetailsScreen(
         restoreState = true
     }
 ) {
-    this.navigate(npo.kib.odc_demo.wallet_details.navigation.walletDetailsRoute, navOptions)
+    this.navigate(walletDetailsRoute, navOptions)
 }
 
 fun NavGraphBuilder.walletDetailsScreen(onBackClick: () -> Unit) {
-    composable(route = npo.kib.odc_demo.wallet_details.navigation.walletDetailsRoute) {
+    composable(route = walletDetailsRoute) {
         WalletDetailsRoute(onBackClick)
     }
 }

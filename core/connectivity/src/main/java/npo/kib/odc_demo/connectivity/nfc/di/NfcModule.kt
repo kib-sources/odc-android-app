@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data.p2p.nfc.di
+package npo.kib.odc_demo.connectivity.nfc.di
 
 import dagger.Module
 import dagger.hilt.InstallIn

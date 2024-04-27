@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.p2p.send_screen
 
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
+import npo.kib.odc_demo.model.CustomBluetoothDevice
 
 sealed interface SendScreenEvent {
     data class SetDiscovering(val active: Boolean) : SendScreenEvent

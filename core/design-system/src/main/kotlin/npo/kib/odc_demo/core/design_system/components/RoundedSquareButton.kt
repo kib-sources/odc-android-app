@@ -13,8 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import npo.kib.odc_demo.R
-
+import npo.kib.odc_demo.core.design_system.R
 
 @Composable
 fun RoundedSquareButton(modifier: Modifier = Modifier, onClick: () -> Unit, iconImageResId: Int) {

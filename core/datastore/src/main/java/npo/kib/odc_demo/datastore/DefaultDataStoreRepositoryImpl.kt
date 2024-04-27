@@ -13,11 +13,10 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import npo.kib.odc_demo.datastore.DefaultDataStoreObject.USER_NAME
-import npo.kib.odc_demo.feature_app.domain.model.user.UserPreferences
-import npo.kib.odc_demo.feature_app.domain.repository.DefaultDataStoreRepository
+import npo.kib.odc_demo.datastore.model.UserPreferences
 
 class DefaultDataStoreRepositoryImpl(private val context: Context) :
-    npo.kib.odc_demo.domain.DefaultDataStoreRepository {
+    DefaultDataStoreRepository {
 
     private companion object {
         const val NAME = "DEFAULT_DATASTORE"
@@ -41,7 +40,7 @@ class DefaultDataStoreRepositoryImpl(private val context: Context) :
         }
     }
 
-    override suspend fun <T> readValue(key: DefaultDataStoreObject<T>): T {
+    override suspend fun <T> readValue(key: DefaultDataStoreObject<T>): T? {
         return datastore.data.catch { exception ->
             // Handle IOException
             if (exception is IOException) {

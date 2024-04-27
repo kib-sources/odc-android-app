@@ -7,11 +7,11 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.common.data.util.log
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
-import npo.kib.odc_demo.feature_app.domain.model.user.toAppUser
-import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.use_cases.GetInfoFromWalletUseCase
-import npo.kib.odc_demo.feature_app.domain.util.log
+import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
+import npo.kib.odc_demo.domain.GetInfoFromWalletUseCase
+import npo.kib.odc_demo.wallet.model_extensions.asAppUser
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -45,7 +45,7 @@ class HomeViewModel @Inject constructor(
                 _homeScreenState.update { it.copy(isUpdatingBalanceAndInfo = true) }
                 this@HomeViewModel.log("Updating balance")
                 val balance = async { useCase.getSumInWallet() }
-                val currentAppUser = async { useCase.getLocalUserInfo().toAppUser() }
+                val currentAppUser = async { useCase.getLocalUserInfo().asAppUser() }
                 _homeScreenState.update {
                     it.copy(balance = balance.await(), currentUser = currentAppUser.await())
                 }

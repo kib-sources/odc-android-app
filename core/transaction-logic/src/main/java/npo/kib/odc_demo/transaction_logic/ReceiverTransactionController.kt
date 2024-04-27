@@ -3,21 +3,21 @@ package npo.kib.odc_demo.transaction_logic
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.BanknoteWithBlockchain
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.DataPacketType.*
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.*
-import npo.kib.odc_demo.transaction_logic.TransactionRole.RECEIVER
-import npo.kib.odc_demo.wallet.WalletRepository
-import npo.kib.odc_demo.transaction_logic.TransactionStatus.*
-import npo.kib.odc_demo.transaction_logic.TransactionStatus.ReceiverTransactionStatus.*
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForReceiver
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForReceiver.*
-import npo.kib.odc_demo.transaction_logic.TransactionSteps.ForReceiver.WAITING_FOR_SIGNED_BLOCK
+import npo.kib.odc_demo.transaction_logic.model.TransactionRole.RECEIVER
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.*
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.ReceiverTransactionStatus.*
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForReceiver
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForReceiver.*
+import npo.kib.odc_demo.transaction_logic.model.TransactionSteps.ForReceiver.WAITING_FOR_SIGNED_BLOCK
+import npo.kib.odc_demo.wallet.model.BanknoteWithBlockchain
+import npo.kib.odc_demo.wallet.model.data_packet.DataPacketType.*
+import npo.kib.odc_demo.wallet.model.data_packet.variants.*
+import npo.kib.odc_demo.wallet_repository.repository.WalletRepository
 import javax.inject.Inject
 
 @ViewModelScoped
 class ReceiverTransactionController @Inject constructor(
-    walletRepository: npo.kib.odc_demo.wallet.WalletRepository
+    walletRepository: WalletRepository
 ) : TransactionController(
     walletRepository = walletRepository, role = RECEIVER
 ) {

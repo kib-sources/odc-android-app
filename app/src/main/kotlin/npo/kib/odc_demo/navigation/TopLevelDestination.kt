@@ -1,8 +1,8 @@
 package npo.kib.odc_demo.navigation
 
 import npo.kib.odc_demo.R
-import npo.kib.odc_demo.ui.Icon
-import npo.kib.odc_demo.ui.ODCIcons
+import npo.kib.odc_demo.ui.icon.Icon
+import npo.kib.odc_demo.ui.icon.ODCIcons
 
 enum class TopLevelDestination(
     val selectedIcon: Icon,

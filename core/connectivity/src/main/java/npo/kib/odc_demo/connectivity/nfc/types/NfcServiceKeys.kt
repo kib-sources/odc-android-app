@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data.p2p.nfc.types
+package npo.kib.odc_demo.connectivity.nfc.types
 
 object NfcServiceKeys {
     const val SERVICE_ENABLE_KEY = "enable"

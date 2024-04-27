@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data.p2p.bluetooth
+package npo.kib.odc_demo.connectivity.bluetooth
 
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver

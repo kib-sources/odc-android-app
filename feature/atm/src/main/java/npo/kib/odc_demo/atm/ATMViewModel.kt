@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.atm.ATMScreenEvent.SendAmountRequestToServer
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.ServerConnectionStatus.*
-import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.repository.WalletRepository
-import npo.kib.odc_demo.feature_app.domain.util.log
 import npo.kib.odc_demo.atm.ATMUiState.*
 import npo.kib.odc_demo.atm.ATMUiState.ResultType.Failure
 import npo.kib.odc_demo.atm.ATMUiState.ResultType.Success
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
+import npo.kib.odc_demo.network.api.ServerConnectionStatus.*
+import npo.kib.odc_demo.wallet_repository.repository.WalletRepository
 import javax.inject.Inject
 
 @HiltViewModel

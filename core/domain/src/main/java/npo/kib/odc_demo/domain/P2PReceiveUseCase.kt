@@ -4,31 +4,31 @@ import androidx.activity.result.ActivityResultRegistry
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.common.data.util.logOut
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothController
 import npo.kib.odc_demo.datastore.DefaultDataStoreObject.USER_NAME
+import npo.kib.odc_demo.datastore.DefaultDataStoreRepository
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.CACHED_BLUETOOTH_NAME
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.IS_BLUETOOTH_NAME_CHANGED
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.feature_app.di.P2PUseCaseScope
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult.ConnectionEstablished
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult.TransferSucceeded
-import npo.kib.odc_demo.feature_app.domain.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
-import npo.kib.odc_demo.feature_app.domain.model.serialization.TypeToBytesConverter.toSerializedDataPacket
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
-import npo.kib.odc_demo.datastore.DefaultDataStoreRepository
 import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.ReceiverTransactionController
-import npo.kib.odc_demo.feature_app.domain.util.cancelChildren
-import npo.kib.odc_demo.feature_app.domain.util.log
-import npo.kib.odc_demo.feature_app.domain.util.logOut
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionStatus
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothState
+import npo.kib.odc_demo.common.data.di.P2PUseCaseScope
+import npo.kib.odc_demo.common_jvm.cancelChildren
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionResult.ConnectionEstablished
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionResult.TransferSucceeded
+import npo.kib.odc_demo.transaction_logic.ReceiverTransactionController
+import npo.kib.odc_demo.wallet.model.serialization.BytesToTypeConverter.deserializeToDataPacketVariant
+import npo.kib.odc_demo.wallet.model.serialization.TypeToBytesConverter.toSerializedDataPacket
 import javax.inject.Inject
 
 @ViewModelScoped
 class P2PReceiveUseCase @Inject constructor(
     private val transactionController: ReceiverTransactionController,
     private val bluetoothController: BluetoothController,
-    private val defaultDataStoreRepository: npo.kib.odc_demo.datastore.DefaultDataStoreRepository,
-    private val utilityDataStoreRepository: npo.kib.odc_demo.datastore.UtilityDataStoreRepository,
+    private val defaultDataStoreRepository: DefaultDataStoreRepository,
+    private val utilityDataStoreRepository: UtilityDataStoreRepository,
     @P2PUseCaseScope private val scope: CoroutineScope
 ) {
     private var connectionJob: Job? = null

@@ -13,10 +13,9 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
-import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
 
-class UtilityDataStoreRepositoryImpl(private val context: Context) :
-    npo.kib.odc_demo.domain.UtilityDataStoreRepository {
+
+class UtilityDataStoreRepositoryImpl(private val context: Context) : UtilityDataStoreRepository {
 
     private companion object {
         const val NAME = "UTILITY_DATASTORE"
@@ -25,8 +24,11 @@ class UtilityDataStoreRepositoryImpl(private val context: Context) :
             this[obj.key] ?: obj.defaultValue
     }
 
-    private val datastore: DataStore<Preferences> =
-        PreferenceDataStoreFactory.create(produceFile = { context.preferencesDataStoreFile(NAME) })
+    private val datastore: DataStore<Preferences> = PreferenceDataStoreFactory.create(produceFile = {
+        context.preferencesDataStoreFile(
+            NAME
+        )
+    })
 
 
     override val publicUtilDataFlow: Flow<PublicUtilData> = datastore.data.map { preferences ->
@@ -40,7 +42,7 @@ class UtilityDataStoreRepositoryImpl(private val context: Context) :
         }
     }
 
-    override suspend fun <T> readValue(key: UtilityDataStoreObject<T>): T {
+    override suspend fun <T> readValue(key: UtilityDataStoreObject<T>): T? {
         return datastore.data.catch { exception ->
             // Handle IOException
             if (exception is IOException) {

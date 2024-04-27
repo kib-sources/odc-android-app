@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.feature_app.data.p2p.bluetooth
+package npo.kib.odc_demo.connectivity.bluetooth
 
 import android.annotation.SuppressLint
 import android.app.Activity
@@ -12,16 +12,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.ActivityOptionsCompat
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus.*
-import npo.kib.odc_demo.feature_app.domain.model.connection_status.BluetoothConnectionResult
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController.Companion.DEVICE_NAME_PREFIX
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.BluetoothController.Companion.SERVICE_UUID
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.toCustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.domain.util.containsPrefix
-import npo.kib.odc_demo.feature_app.domain.util.log
-import npo.kib.odc_demo.feature_app.domain.util.withoutPrefix
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.common_jvm.containsPrefix
+import npo.kib.odc_demo.common_jvm.withoutPrefix
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionStatus.*
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothController.Companion.DEVICE_NAME_PREFIX
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothController.Companion.SERVICE_UUID
+import npo.kib.odc_demo.model.CustomBluetoothDevice
 import java.io.IOException
 import java.util.UUID
 

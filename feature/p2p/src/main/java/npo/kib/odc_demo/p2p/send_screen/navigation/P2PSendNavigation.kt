@@ -10,8 +10,7 @@ const val p2pSendRoute = "p2p_send_route"
 
 fun NavController.navigateToSendScreen(navOptions: NavOptions? = null) {
     this.navigate(
-        npo.kib.odc_demo.p2p_send.navigation.p2pSendRoute,
-        navOptions
+        p2pSendRoute, navOptions
     )
 //    or pass options in builder:
 //    this.navigate(p2pSendNavigationRoute){ /*Here is NavOptionsBuilder, like popUpTo(){}, launchSingleTop
@@ -19,10 +18,9 @@ fun NavController.navigateToSendScreen(navOptions: NavOptions? = null) {
 }
 
 fun NavGraphBuilder.sendScreen(navigateToP2PRoot: () -> Unit) {
-    composable(route = npo.kib.odc_demo.p2p_send.navigation.p2pSendRoute) {
+    composable(route = p2pSendRoute) {
         SendRoute(
-            navigateToP2PRoot = navigateToP2PRoot,
-            navBackStackEntry = it
+            navigateToP2PRoot = navigateToP2PRoot, navBackStackEntry = it
         )
     }
 }

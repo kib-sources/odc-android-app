@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import npo.kib.odc_demo.feature_app.domain.model.serialization.serializable.data_packet.variants.UserInfo
-import npo.kib.odc_demo.feature_app.domain.use_cases.GetInfoFromWalletUseCase
+import npo.kib.odc_demo.domain.GetInfoFromWalletUseCase
+import npo.kib.odc_demo.wallet.model.data_packet.variants.UserInfo
 import javax.inject.Inject
 
 @HiltViewModel

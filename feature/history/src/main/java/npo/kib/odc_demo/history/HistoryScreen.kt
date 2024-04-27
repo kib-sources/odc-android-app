@@ -9,16 +9,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import npo.kib.odc_demo.core.design_system.components.ODCGradientBackground
-import npo.kib.odc_demo.ui.GradientColors
-
-//@Composable
-//fun HistoryScreenRoute() {
-//
-//}
+import npo.kib.odc_demo.core.design_system.ui.GradientColors
 
 @Composable
-fun HistoryScreen() {
-    npo.kib.odc_demo.core.design_system.components.ODCGradientBackground(
+fun HistoryRoute(onBackClick: () -> Unit) {
+    // vm here
+    HistoryScreen(onBackClick = onBackClick)
+}
+
+@Composable
+private fun HistoryScreen(onBackClick: () -> Unit) {
+    ODCGradientBackground(
         Modifier.padding(
             horizontal = 5.dp,
             vertical = 10.dp

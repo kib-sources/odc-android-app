@@ -1,14 +1,13 @@
-package npo.kib.odc_demo.feature_app.data.p2p.nfc
+package npo.kib.odc_demo.connectivity.nfc
 
 import android.content.Intent
 import android.nfc.cardemulation.HostApduService
 import android.os.Bundle
 import android.util.Log
-import npo.kib.odc_demo.feature_app.domain.core.Crypto.toHex
-import npo.kib.odc_demo.feature_app.domain.util.log
-import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.ApduCommands
-import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceCommands
-import npo.kib.odc_demo.feature_app.data.p2p.nfc.types.NfcServiceKeys
+import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.connectivity.nfc.types.ApduCommands
+import npo.kib.odc_demo.connectivity.nfc.types.NfcServiceCommands
+import npo.kib.odc_demo.connectivity.nfc.types.NfcServiceKeys
 import java.io.ByteArrayOutputStream
 
 class NfcService : HostApduService() {
@@ -53,13 +52,14 @@ class NfcService : HostApduService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun processCommandApdu(commandApdu: ByteArray?, extras: Bundle?): ByteArray {
 
         if (commandApdu == null) return byteArrayOf(ApduCommands.ERROR)
 
         if (!isServiceEnabled) return byteArrayOf(ApduCommands.REJECTED)
 
-        log(commandApdu.decodeToString() + " message " + commandApdu.toHex())
+        log(commandApdu.decodeToString() + " message " + commandApdu.toHexString())
 
         //Инициализация соединения
         if (commandApdu.contentEquals(selectApdu)) {

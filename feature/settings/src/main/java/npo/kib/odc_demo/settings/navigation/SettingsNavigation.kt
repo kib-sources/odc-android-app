@@ -15,11 +15,11 @@ fun NavController.navigateToSettingsScreen(
         restoreState = true
     }
 ) {
-    this.navigate(npo.kib.odc_demo.settings.navigation.settingsRoute, navOptions)
+    this.navigate(settingsRoute, navOptions)
 }
 
 fun NavGraphBuilder.settingsScreen(onBackClick: () -> Unit) {
-    composable(route = npo.kib.odc_demo.settings.navigation.settingsRoute) {
+    composable(route = settingsRoute) {
         SettingsRoute(onBackClick = onBackClick)
     }
 }

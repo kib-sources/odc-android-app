@@ -1,5 +1,8 @@
 package npo.kib.odc_demo
 
+import androidx.compose.material3.windowsizeclass.WindowSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass.Companion
 import androidx.compose.runtime.*
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -8,11 +11,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import kotlinx.coroutines.CoroutineScope
-import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination.HOME
-import npo.kib.odc_demo.feature_app.presentation.common.navigation.TopLevelDestination.SETTINGS
-import npo.kib.odc_demo.home.home_screen.navigation.homeRoute
-import npo.kib.odc_demo.home.home_screen.navigation.navigateToHomeGraph
+import npo.kib.odc_demo.home.navigation.homeRoute
+import npo.kib.odc_demo.home.navigation.navigateToHomeGraph
 import npo.kib.odc_demo.navigation.TopLevelDestination
+import npo.kib.odc_demo.navigation.TopLevelDestination.HOME
+import npo.kib.odc_demo.navigation.TopLevelDestination.SETTINGS
 import npo.kib.odc_demo.settings.navigation.navigateToSettingsScreen
 import npo.kib.odc_demo.settings.navigation.settingsRoute
 
@@ -20,12 +23,14 @@ import npo.kib.odc_demo.settings.navigation.settingsRoute
 @Composable
 fun rememberODCAppState(
     navController: NavHostController = rememberNavController(),
-    coroutineScope: CoroutineScope = rememberCoroutineScope()
+    coroutineScope: CoroutineScope = rememberCoroutineScope(),
+    windowSizeClass: WindowSizeClass
 ): ODCAppState =
     remember(navController) {
         ODCAppState(
             navController,
-            coroutineScope
+            coroutineScope,
+            windowSizeClass
         )
     }
 
@@ -33,22 +38,25 @@ fun rememberODCAppState(
 @Stable
 class ODCAppState(
     val navController: NavHostController,
-    private val coroutineScope: CoroutineScope
-//    val windowSizeClass: WindowSizeClass add later if/when adapting UI to different screen classes is needed
+    private val coroutineScope: CoroutineScope,
+    val windowSizeClass: WindowSizeClass
 ) {
     val currentDestination: NavDestination?
         @Composable get() = navController.currentBackStackEntryAsState().value?.destination
 
     val currentTopLevelDestination: TopLevelDestination?
         @Composable get() = when (currentDestination?.route) {
-            npo.kib.odc_demo.home.home_screen.navigation.homeRoute -> HOME
-            npo.kib.odc_demo.settings.navigation.settingsRoute -> SETTINGS
+            homeRoute -> HOME
+            settingsRoute -> SETTINGS
             else -> null
         }
 
     //To be able to disable bottom bar on log-in screen in the future
-    var shouldShowBottomBar: Boolean by mutableStateOf(true)
-        private set
+    val shouldShowBottomBar: Boolean
+        get() = windowSizeClass.widthSizeClass == WindowWidthSizeClass.Compact
+
+    val shouldShowNavRail: Boolean
+        get() = !shouldShowBottomBar
 
 
     val topLevelDestinations: List<TopLevelDestination> = TopLevelDestination.entries
@@ -73,6 +81,5 @@ class ODCAppState(
             SETTINGS -> navController.navigateToSettingsScreen(topLevelNavOptions)
         }
     }
-
 
 }

@@ -1,6 +1,6 @@
 package npo.kib.odc_demo.home
 
-import npo.kib.odc_demo.feature_app.domain.model.user.AppUser
+import npo.kib.odc_demo.model.user.AppUser
 
 data class HomeScreenState(
     val balance: Int = 0,
@@ -9,6 +9,5 @@ data class HomeScreenState(
 //    val historyState : HistoryState,
 //    val transactionHistoryList: List<Int>
     //todo store past transactions and display in history block.
-    // Can store failed transactions as well. Will have moved to multi-modular architecture
-    // by the start of implementing history.
+    // Can store failed transactions as well.
 )

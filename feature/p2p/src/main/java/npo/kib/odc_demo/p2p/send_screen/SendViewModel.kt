@@ -6,20 +6,20 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import npo.kib.odc_demo.common.data.util.log
 import npo.kib.odc_demo.datastore.UtilityDataStoreObject.SHOULD_UPDATE_UI_USER_INFO
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothConnectionStatus
-import npo.kib.odc_demo.feature_app.data.p2p.bluetooth.BluetoothState
-import npo.kib.odc_demo.feature_app.domain.p2p.bluetooth.CustomBluetoothDevice
-import npo.kib.odc_demo.feature_app.domain.repository.UtilityDataStoreRepository
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionDataBuffer
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus
-import npo.kib.odc_demo.feature_app.domain.transaction_logic.TransactionStatus.SenderTransactionStatus.*
-import npo.kib.odc_demo.feature_app.domain.use_cases.P2PSendUseCase
-import npo.kib.odc_demo.feature_app.domain.util.log
+import npo.kib.odc_demo.datastore.UtilityDataStoreRepository
+import npo.kib.odc_demo.domain.P2PSendUseCase
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothConnectionStatus
+import npo.kib.odc_demo.connectivity.bluetooth.BluetoothState
+import npo.kib.odc_demo.model.CustomBluetoothDevice
+import npo.kib.odc_demo.transaction_logic.model.TransactionDataBuffer
 import npo.kib.odc_demo.p2p.send_screen.SendScreenEvent.*
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.*
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.OperationResult.ResultType.Failure
 import npo.kib.odc_demo.p2p.send_screen.SendUiState.OperationResult.ResultType.Success
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus
+import npo.kib.odc_demo.transaction_logic.model.TransactionStatus.SenderTransactionStatus.*
 import javax.inject.Inject
 
 @HiltViewModel

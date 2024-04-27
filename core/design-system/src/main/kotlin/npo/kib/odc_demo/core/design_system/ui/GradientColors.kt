@@ -1,6 +1,5 @@
 package npo.kib.odc_demo.core.design_system.ui
 
-import android.graphics.Color
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
 import npo.kib.odc_demo.core.design_system.ui.theme.CustomColors
@@ -33,3 +32,5 @@ sealed class GradientColors(
     )
 
 }
+
+fun GradientColors.asList() = listOf(color1, color2)

@@ -18,7 +18,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
 import npo.kib.odc_demo.core.design_system.components.ODCPlainButton
-import npo.kib.odc_demo.ui.theme.ODCAppTheme
+import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 
 @Composable
 fun WalletDetailsRoute(
@@ -79,13 +79,13 @@ private fun WalletDetailsScreen(
 
         }
         Row(horizontalArrangement = spacedBy(10.dp)) {
-            npo.kib.odc_demo.core.design_system.components.ODCGradientButton(
+            ODCGradientButton(
                 Modifier.weight(1f),
                 text = "Update information",
                 textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),
                 onClick = updateInfo
             )
-            npo.kib.odc_demo.core.design_system.components.ODCPlainButton(
+            ODCPlainButton(
                 Modifier.weight(1f),
                 text = "Go back",
                 textStyle = TextStyle(color = MaterialTheme.colorScheme.onBackground),

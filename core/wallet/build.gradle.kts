@@ -1,6 +1,7 @@
 plugins {
-    id("com.android.library")
-    id("org.jetbrains.kotlin.android")
+    alias(libs.plugins.odc.android.library)
+    alias(libs.plugins.odc.android.hilt)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -13,5 +14,15 @@ android {
 }
 
 dependencies {
+    implementation(projects.core.commonAndroid)
+    implementation(projects.core.commonJvm)
+    implementation(projects.core.model)
 
+    implementation(libs.bouncycastle.pkix)
+    implementation(libs.kotlinx.serialization)
+    implementation(libs.cbor)
+
+    testImplementation(platform(libs.junit.bom))
+    testImplementation(libs.junit.jupiter.aggregator)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

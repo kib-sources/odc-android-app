@@ -12,13 +12,13 @@ const val p2pRootRoute = "p2p_root_route"
 
 fun NavController.navigateToP2PSelectionGraph(navOptions: NavOptions? = null) {
     this.navigate(
-        npo.kib.odc_demo.p2p.p2pSelectionGraphRoutePattern,
+        p2pSelectionGraphRoutePattern,
         navOptions
     )
 }
 
 fun NavGraphBuilder.p2pSelectionGraph(
-    startingP2PRoute: String = npo.kib.odc_demo.p2p.p2pRootRoute,
+    startingP2PRoute: String = p2pRootRoute,
     onHistoryClick: () -> Unit,
     onATMButtonClick: () -> Unit,
     onReceiveButtonClick: () -> Unit,
@@ -26,10 +26,10 @@ fun NavGraphBuilder.p2pSelectionGraph(
     nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
     navigation(
-        route = npo.kib.odc_demo.p2p.p2pSelectionGraphRoutePattern,
+        route = p2pSelectionGraphRoutePattern,
         startDestination = startingP2PRoute
     ) {
-        composable(route = npo.kib.odc_demo.p2p.p2pRootRoute) {
+        composable(route = p2pRootRoute) {
             P2PRootScreen(
                 onHistoryClick = onHistoryClick,
                 onATMButtonClick = onATMButtonClick,

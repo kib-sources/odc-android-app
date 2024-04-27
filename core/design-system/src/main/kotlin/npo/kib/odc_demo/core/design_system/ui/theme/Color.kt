@@ -1,6 +1,5 @@
 package npo.kib.odc_demo.core.design_system.ui.theme
 
-import android.graphics.Color
 import androidx.compose.ui.graphics.Color
 //todo change light theme colors
 val md_theme_light_primary = Color(0xFF00639C)

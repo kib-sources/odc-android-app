@@ -4,11 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import npo.kib.odc_demo.ODCAppState
-import npo.kib.odc_demo.history.historyScreen
-import npo.kib.odc_demo.home.home_screen.navigation.HOME_GRAPH_ROUTE_PATTERN
-import npo.kib.odc_demo.home.home_screen.navigation.homeGraph
+import npo.kib.odc_demo.home.navigation.HOME_GRAPH_ROUTE_PATTERN
+import npo.kib.odc_demo.home.navigation.homeGraph
 import npo.kib.odc_demo.settings.navigation.settingsScreen
-import npo.kib.odc_demo.wallet_details.navigation.walletDetailsScreen
 
 /**
  * Top-level navigation graph
@@ -19,18 +17,13 @@ import npo.kib.odc_demo.wallet_details.navigation.walletDetailsScreen
 fun ODCNavHost(
     appState: ODCAppState,
     modifier: Modifier = Modifier,
-    startDestination: String = npo.kib.odc_demo.home.home_screen.navigation.HOME_GRAPH_ROUTE_PATTERN
+    startDestination: String = HOME_GRAPH_ROUTE_PATTERN
 ) {
     val navController = appState.navController
     NavHost(
         navController = navController, startDestination = startDestination, modifier = modifier
     ) {
-        homeGraph(onHistoryClick = navController::navigateToHistoryScreen,
-            onWalletDetailsClick = navController::navigateToWalletDetailsScreen,
-            nestedGraphs = {
-                historyScreen()
-            })
+        homeGraph(topLevelNavController = navController)
         settingsScreen(onBackClick = navController::popBackStack)
-        walletDetailsScreen(onBackClick = navController::popBackStack)
     }
 }
