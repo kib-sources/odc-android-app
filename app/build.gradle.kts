@@ -15,8 +15,8 @@ android {
     defaultConfig {
         applicationId = "npo.kib.odc_demo"
 
-        versionCode = 2
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "2.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -125,6 +125,6 @@ dependencies {
 //    automaticGenerationDuringBuild = false
 //}
 
-android.sourceSets.all {
-    kotlin.srcDir("src/$name/kotlin")
-}
+//android.sourceSets.all {
+//    kotlin.srcDir("src/$name/kotlin")
+//}

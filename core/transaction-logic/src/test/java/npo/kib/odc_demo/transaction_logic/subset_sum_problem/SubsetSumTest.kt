@@ -4,8 +4,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
-import npo.kib.odc_demo.transaction_logic.algorithms.findBanknotesWithSum
-import npo.kib.odc_demo.wallet.model.Amount
+import npo.kib.odc_demo.core.transaction_logic.algorithms.findBanknotesWithSum
+import npo.kib.odc_demo.core.wallet.model.Amount
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test

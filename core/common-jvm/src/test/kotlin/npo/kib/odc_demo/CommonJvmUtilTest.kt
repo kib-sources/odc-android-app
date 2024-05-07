@@ -1,8 +1,8 @@
 package npo.kib.odc_demo
 
-import npo.kib.odc_demo.common_jvm.containsPrefix
-import npo.kib.odc_demo.common_jvm.isAValidAmount
-import npo.kib.odc_demo.common_jvm.withoutPrefix
+import npo.kib.odc_demo.core.common_jvm.containsPrefix
+import npo.kib.odc_demo.core.common_jvm.isAValidAmount
+import npo.kib.odc_demo.core.common_jvm.withoutPrefix
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 

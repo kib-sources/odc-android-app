@@ -8,11 +8,8 @@ android {
 }
 
 dependencies {
-
     implementation(projects.core.datastore)
-    implementation(projects.core.walletRepository)
-    implementation(projects.core.wallet)
-    implementation(projects.core.network)
+    implementation(projects.core.domain)
     implementation(projects.core.commonAndroid)
     implementation(projects.core.commonJvm)
 }

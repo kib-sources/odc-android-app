@@ -13,4 +13,6 @@ dependencies {
     implementation(projects.core.commonAndroid)
     implementation(projects.core.wallet)
 
+    implementation(libs.kotlinx.datetime)
+
 }

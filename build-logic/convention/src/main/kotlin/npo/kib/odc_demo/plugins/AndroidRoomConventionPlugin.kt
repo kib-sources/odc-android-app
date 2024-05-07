@@ -5,8 +5,13 @@ import com.google.devtools.ksp.gradle.KspExtension
 import npo.kib.odc_demo.configs.getDefaultLibs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.process.CommandLineArgumentProvider
+import java.io.File
 
 class AndroidRoomConventionPlugin : Plugin<Project> {
 
@@ -19,7 +24,7 @@ class AndroidRoomConventionPlugin : Plugin<Project> {
 
             extensions.configure<KspExtension> {
                 //with ksp, if set to true, causes build error when using abstract dao objects.
-                arg("room.generateKotlin", "false")
+                arg("room.generateKotlin", "true")
             }
 
             extensions.configure<RoomExtension> {

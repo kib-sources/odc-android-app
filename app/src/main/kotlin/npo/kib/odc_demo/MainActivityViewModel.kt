@@ -7,10 +7,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.MainActivityUiState.*
-import npo.kib.odc_demo.common.data.util.log
-import npo.kib.odc_demo.datastore.model.UserPreferences
-import npo.kib.odc_demo.datastore.DefaultDataStoreRepository
-import npo.kib.odc_demo.domain.GetInfoFromWalletUseCase
+import npo.kib.odc_demo.core.common.data.util.log
+import npo.kib.odc_demo.core.datastore.model.UserPreferences
+import npo.kib.odc_demo.core.datastore.DefaultDataStoreRepository
+import npo.kib.odc_demo.core.domain.GetInfoFromWalletUseCase
 import javax.inject.Inject
 
 @HiltViewModel

@@ -5,9 +5,7 @@ import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -23,16 +21,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import kotlinx.coroutines.delay
+import npo.kib.odc_demo.core.design_system.components.ODCPlainBackground
 import npo.kib.odc_demo.core.design_system.ui.DevicePreviews
 import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
 import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
-import npo.kib.odc_demo.home.HomeScreenDefaultPreview
+import npo.kib.odc_demo.feature.home.HomeScreenDefaultPreview
 import npo.kib.odc_demo.navigation.ODCNavHost
 import npo.kib.odc_demo.navigation.TopLevelDestination
-import npo.kib.odc_demo.ui.components.ODCBottomBar
-import npo.kib.odc_demo.ui.components.ODCNavRail
-import npo.kib.odc_demo.ui.components.ODCTopBar
-import npo.kib.odc_demo.ui.components.backgroundHorizGradient
+import npo.kib.odc_demo.ui.components.*
 
 @Composable
 fun ODCApp(
@@ -98,8 +94,8 @@ fun ODCApp(
         }
 
         //val shouldShowSomeCustomBackground: Boolean
-        npo.kib.odc_demo.core.design_system.components.ODCPlainBackground {
-//        todo can use ConstraintLayout or BoxWithConstraints instead of the Scaffold
+        ODCPlainBackground {
+//         can use ConstraintLayout or BoxWithConstraints instead of the Scaffold
 //        BoxWithConstraints(modifier = Modifier
 //            .fillMaxSize()
 //            /*.windowInsetsPadding(WindowInsets.systemBars)*//*.consumeWindowInsets(WindowInsets.systemBars)*/) {
@@ -110,13 +106,25 @@ fun ODCApp(
             val systemNavHeight = (WindowInsets.systemBars.getBottom(
                 LocalDensity.current
             ) / LocalDensity.current.density).dp
+            val systemTopBarWithCutoutHeight = (WindowInsets.safeDrawing.getTop(
+                LocalDensity.current
+            ) / LocalDensity.current.density).dp
             Scaffold(containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onBackground,
                 contentWindowInsets = WindowInsets(0, 0, 0, 0),
+//                topBar = {
+//                    Box(
+//                    modifier = Modifier
+//                        .requiredHeight(systemTopBarWithCutoutHeight)
+//                        .fillMaxWidth()
+//                        .background(MaterialTheme.colorScheme.background)
+//                        .testBorder(MaterialTheme.colorScheme.onBackground))
+//                         },
                 bottomBar = {
                     if (appState.shouldShowBottomBar) {
                         Column {
                             ODCBottomBar(
+                                modifier = Modifier.testBorder(Color.Magenta),
                                 destinations = appState.topLevelDestinations,
                                 onNavigateToDestination = appState::navigateToTopLevelDestination,
                                 currentDestination = appState.currentDestination,
@@ -127,40 +135,57 @@ fun ODCApp(
                                     .backgroundHorizGradient()
                                     .fillMaxWidth()
                                     .requiredHeight(systemNavHeight)
+                                    .testBorder(Color.Cyan)
                             )
                         }
                     }
                 }) { paddingValues ->
-                Row(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .consumeWindowInsets(paddingValues)
-                        .windowInsetsPadding(
-                            WindowInsets.safeDrawing.only(
-                                WindowInsetsSides.Horizontal,
-                            ),
-                        ),
-                ) {
-                    if (appState.shouldShowNavRail) {
-                        ODCNavRail(
-                            destinations = appState.topLevelDestinations,
-                            onNavigateToDestination = appState::navigateToTopLevelDestination,
-                            currentDestination = appState.currentDestination,
-                        )
-                    }
-                    Column(
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Box(
                         modifier = Modifier
+                            .requiredHeight(systemTopBarWithCutoutHeight)
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.background)
+                            .testBorder(MaterialTheme.colorScheme.onBackground)
+                    )
+                    Row(
+                        Modifier
                             .fillMaxSize()
                             .padding(paddingValues)
                             .consumeWindowInsets(paddingValues)
+                            .windowInsetsPadding(
+                                WindowInsets.safeDrawing.only(
+                                    WindowInsetsSides.Horizontal,
+                                ),
+                            )
+                            .testBorder(Color.Yellow),
                     ) {
-                        val destination = appState.currentTopLevelDestination
-                        val shouldShowTopAppBar = destination != null
-                        if (destination != null) ODCTopBar(
-                            titleRes = destination.titleTextId, modifier = Modifier.height(100.dp)
-                        )
-                        ODCNavHost(appState = appState)
+                        if (appState.shouldShowNavRail) {
+                            ODCNavRail(
+                                destinations = appState.topLevelDestinations,
+                                onNavigateToDestination = appState::navigateToTopLevelDestination,
+                                currentDestination = appState.currentDestination,
+                            )
+                        }
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .testBorder(Color.Blue)
+                        ) {
+                            val destination = appState.currentTopLevelDestination
+                            if (destination != null) ODCTopBar(
+                                titleRes = destination.titleTextId,
+                                modifier = Modifier
+                                    .height(100.dp)
+                                    .testBorder(Color.Green)
+                            )
+                            ODCNavHost(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .testBorder(),
+                                appState = appState
+                            )
+                        }
                     }
                 }
             }
@@ -168,6 +193,12 @@ fun ODCApp(
     }
 }
 
+
+// can set to true to see borders of all containers for testing
+private fun Modifier.testBorder(color: Color = Color.Red) = if (false) this.border(
+    1.dp,
+    color
+) else this
 
 @ThemePreviews
 @DevicePreviews
@@ -180,16 +211,21 @@ private fun HomeScreenPreview() {
             val bottomBarHeightPercentage = maxHeight * 0.07f
 
 
-            Scaffold(modifier = Modifier.fillMaxSize(), topBar = {
-                ODCTopBar(titleRes = android.R.string.untitled, modifier = Modifier)
-            }, bottomBar = {
-                ODCBottomBar(
-                    destinations = TopLevelDestination.entries,
-                    {},
-                    currentDestination = null,
-                    modifier = Modifier/*.height(bottomBarHeightPercentage)*/
-                )
-            }) { paddingValues ->
+            Scaffold(modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    ODCTopBar(
+                        titleRes = android.R.string.untitled,
+                        modifier = Modifier
+                    )
+                },
+                bottomBar = {
+                    ODCBottomBar(
+                        destinations = TopLevelDestination.entries,
+                        {},
+                        currentDestination = null,
+                        modifier = Modifier/*.height(bottomBarHeightPercentage)*/
+                    )
+                }) { paddingValues ->
                 Box(modifier = Modifier.padding(paddingValues = paddingValues)) {
                     HomeScreenDefaultPreview()
                 }
