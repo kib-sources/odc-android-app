@@ -26,9 +26,9 @@ import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import npo.kib.odc_demo.MainActivityUiState.*
-import npo.kib.odc_demo.common.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
-import npo.kib.odc_demo.common.data.permissions.PermissionProvider.bluetoothPermissionsList
-import npo.kib.odc_demo.common.data.util.log
+import npo.kib.odc_demo.core.common.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
+import npo.kib.odc_demo.core.common.data.permissions.PermissionProvider.bluetoothPermissionsList
+import npo.kib.odc_demo.core.common.data.util.log
 import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 
 
@@ -68,12 +68,13 @@ class MainActivity : ComponentActivity() {
                     statusBarStyle = SystemBarStyle.auto(
                         TRANSPARENT,
                         TRANSPARENT,
-                    ) { darkTheme }, navigationBarStyle = SystemBarStyle.auto(
+                    ) { darkTheme },
+                    navigationBarStyle = SystemBarStyle.light/*auto*/(
 //                        lightScrim,
 //                        darkScrim,
                         TRANSPARENT,
                         TRANSPARENT,
-                    ) { darkTheme })
+                    ) /*{ darkTheme }*/)
                 onDispose {}
             }
 

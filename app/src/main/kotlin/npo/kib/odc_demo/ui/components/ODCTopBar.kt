@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.sp
 import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
 import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 import npo.kib.odc_demo.core.ui.R
+import npo.kib.odc_demo.core.ui.components.BalanceBlock
 
 
 @Composable

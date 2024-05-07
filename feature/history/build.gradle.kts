@@ -8,4 +8,8 @@ android {
 }
 
 dependencies {
+//    implementation(projects.core.commonAndroid)
+//    implementation(projects.core.database)
+    implementation(projects.core.domain)
+    implementation(libs.kotlinx.datetime)
 }

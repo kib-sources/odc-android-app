@@ -1,3 +1,6 @@
+import npo.kib.odc_demo.configs.enableUseJunitPlatform
+import npo.kib.odc_demo.configs.enableUseJunitPlatformAndroid
+
 plugins {
     alias(libs.plugins.odc.android.library)
     alias(libs.plugins.odc.android.hilt)
@@ -9,9 +12,12 @@ android {
 
     defaultConfig {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     }
 
 }
+
+enableUseJunitPlatform()
 
 dependencies {
     implementation(projects.core.commonAndroid)
@@ -26,3 +32,4 @@ dependencies {
     testImplementation(libs.junit.jupiter.aggregator)
     testImplementation(libs.kotlinx.coroutines.test)
 }
+

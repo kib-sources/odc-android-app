@@ -2,7 +2,6 @@ package npo.kib.odc_demo
 
 import androidx.compose.material3.windowsizeclass.WindowSizeClass
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass.Companion
 import androidx.compose.runtime.*
 import androidx.navigation.NavDestination
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -11,13 +10,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navOptions
 import kotlinx.coroutines.CoroutineScope
-import npo.kib.odc_demo.home.navigation.homeRoute
-import npo.kib.odc_demo.home.navigation.navigateToHomeGraph
+import npo.kib.odc_demo.feature.home.navigation.homeRoute
+import npo.kib.odc_demo.feature.home.navigation.navigateToHomeGraph
 import npo.kib.odc_demo.navigation.TopLevelDestination
 import npo.kib.odc_demo.navigation.TopLevelDestination.HOME
 import npo.kib.odc_demo.navigation.TopLevelDestination.SETTINGS
-import npo.kib.odc_demo.settings.navigation.navigateToSettingsScreen
-import npo.kib.odc_demo.settings.navigation.settingsRoute
+import npo.kib.odc_demo.feature.settings.navigation.navigateToSettingsScreen
+import npo.kib.odc_demo.feature.settings.navigation.settingsRoute
 
 
 @Composable

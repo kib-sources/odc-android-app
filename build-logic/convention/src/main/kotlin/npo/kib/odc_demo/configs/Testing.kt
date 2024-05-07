@@ -1,7 +1,10 @@
 package npo.kib.odc_demo.configs
 
+import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.withType
 
 /**
  * Configure Testing-specific options, with junit5
@@ -36,3 +39,13 @@ internal fun Project.configureAndroidTestingDepsJunit5() {
 //        }
 //    }
 //}
+
+fun LibraryExtension.enableUseJunitPlatformAndroid() =
+    testOptions {
+        unitTests.all {
+            it.useJUnitPlatform()
+        }
+    }
+
+
+fun Project.enableUseJunitPlatform() = tasks.withType<Test> { useJUnitPlatform() }

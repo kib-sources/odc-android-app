@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import npo.kib.odc_demo.ODCAppState
-import npo.kib.odc_demo.home.navigation.HOME_GRAPH_ROUTE_PATTERN
-import npo.kib.odc_demo.home.navigation.homeGraph
-import npo.kib.odc_demo.settings.navigation.settingsScreen
+import npo.kib.odc_demo.feature.home.navigation.HOME_GRAPH_ROUTE_PATTERN
+import npo.kib.odc_demo.feature.home.navigation.homeGraph
+import npo.kib.odc_demo.feature.settings.navigation.settingsScreen
 
 /**
  * Top-level navigation graph

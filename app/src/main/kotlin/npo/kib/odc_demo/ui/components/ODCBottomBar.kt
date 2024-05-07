@@ -29,8 +29,8 @@ import npo.kib.odc_demo.core.design_system.ui.theme.CustomColors.Gradient_Color_
 import npo.kib.odc_demo.core.design_system.ui.theme.CustomColors.Gradient_Color_2
 import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 import npo.kib.odc_demo.navigation.TopLevelDestination
-import npo.kib.odc_demo.ui.icon.Icon.DrawableResourceIcon
-import npo.kib.odc_demo.ui.icon.Icon.ImageVectorIcon
+import npo.kib.odc_demo.core.ui.icon.Icon.DrawableResourceIcon
+import npo.kib.odc_demo.core.ui.icon.Icon.ImageVectorIcon
 
 @Composable
 fun ODCBottomBar(

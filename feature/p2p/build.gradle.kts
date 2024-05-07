@@ -8,7 +8,6 @@ android {
 }
 
 dependencies {
-//    implementation(projects.feature.p2p)
     implementation(projects.feature.atm)
 
     implementation(libs.accompanist.permissions)
