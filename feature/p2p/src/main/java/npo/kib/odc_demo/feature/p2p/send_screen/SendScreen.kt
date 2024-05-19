@@ -287,7 +287,6 @@ private object SendScreenSubScreens {
             }
             //todo maybe keep visible only on safe steps, store safe steps as a list
             //fixme currently crashes the app
-            //fixme now is hidden behind bottom navigation bar
 //            Text(
 //                text = "Disconnect",
 //                color = MaterialTheme.colorScheme.onBackground,

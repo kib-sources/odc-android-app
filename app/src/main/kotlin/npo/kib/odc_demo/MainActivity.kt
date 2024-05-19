@@ -2,15 +2,10 @@ package npo.kib.odc_demo
 
 import android.graphics.Color.TRANSPARENT
 import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.SystemBarStyle
+import androidx.activity.*
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
 import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
@@ -29,6 +24,7 @@ import npo.kib.odc_demo.MainActivityUiState.*
 import npo.kib.odc_demo.core.common.data.permissions.PermissionProvider.LocalAppBluetoothPermissions
 import npo.kib.odc_demo.core.common.data.permissions.PermissionProvider.bluetoothPermissionsList
 import npo.kib.odc_demo.core.common.data.util.log
+import npo.kib.odc_demo.core.design_system.components.ODCGradientButton
 import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
 
 
@@ -74,34 +70,39 @@ class MainActivity : ComponentActivity() {
 //                        darkScrim,
                         TRANSPARENT,
                         TRANSPARENT,
-                    ) /*{ darkTheme }*/)
+                    ) /*{ darkTheme }*/
+                )
                 onDispose {}
             }
 
-            val appState = rememberODCAppState(windowSizeClass = calculateWindowSizeClass(activity = this))
+            val appState =
+                rememberODCAppState(windowSizeClass = calculateWindowSizeClass(activity = this))
 
             ODCAppTheme(useDarkTheme = darkTheme) {
-                when (uiState) {
-                    Loading -> {/* Splash screen is active */
-                    }
+//                Box(Modifier.windowInsetsPadding(WindowInsets.safeDrawing)) {
+                    when (uiState) {
+                        Loading -> {/* Splash screen is active */
+                        }
 
-                    FailureConnectingToBank -> Column(
-                        Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = "Failure registering wallet")
-                        npo.kib.odc_demo.core.design_system.components.ODCGradientButton(
-                            text = "Try again", onClick = mainViewModel::registerWalletWithBank
-                        )
-                    }
+                        FailureConnectingToBank -> Column(
+                            Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(text = "Failure registering wallet")
+                            ODCGradientButton(
+                                text = "Try again",
+                                onClick = mainViewModel::registerWalletWithBank
+                            )
+                        }
 
-                    is Success -> CompositionLocalProvider(
-                        LocalAppBluetoothPermissions provides bluetoothPermissionsList
-                    ) {
-                        ODCApp(appState)
+                        is Success -> CompositionLocalProvider(
+                            LocalAppBluetoothPermissions provides bluetoothPermissionsList
+                        ) {
+                            ODCApp(appState)
+                        }
                     }
-                }
+//                }
             }
         }
     }
@@ -110,9 +111,19 @@ class MainActivity : ComponentActivity() {
 /**
  * The default light scrim, as defined by androidx and the platform:
  */
-private val lightScrim = android.graphics.Color.argb(0xe6, 0xFF, 0xFF, 0xFF)
+private val lightScrim = android.graphics.Color.argb(
+    0xe6,
+    0xFF,
+    0xFF,
+    0xFF
+)
 
 /**
  * The default dark scrim, as defined by androidx and the platform:
  */
-private val darkScrim = android.graphics.Color.argb(0x80, 0x1b, 0x1b, 0x1b)
+private val darkScrim = android.graphics.Color.argb(
+    0x80,
+    0x1b,
+    0x1b,
+    0x1b
+)
