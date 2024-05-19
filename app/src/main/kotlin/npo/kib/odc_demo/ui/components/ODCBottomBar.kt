@@ -14,23 +14,18 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import npo.kib.odc_demo.core.design_system.ui.DevicePreviews
-import npo.kib.odc_demo.core.design_system.ui.GradientColors
 import npo.kib.odc_demo.core.design_system.ui.ThemePreviews
-import npo.kib.odc_demo.core.design_system.ui.asList
 import npo.kib.odc_demo.core.design_system.ui.theme.CustomColors.Gradient_Color_1
 import npo.kib.odc_demo.core.design_system.ui.theme.CustomColors.Gradient_Color_2
 import npo.kib.odc_demo.core.design_system.ui.theme.ODCAppTheme
-import npo.kib.odc_demo.navigation.TopLevelDestination
 import npo.kib.odc_demo.core.ui.icon.Icon.DrawableResourceIcon
 import npo.kib.odc_demo.core.ui.icon.Icon.ImageVectorIcon
+import npo.kib.odc_demo.navigation.TopLevelDestination
 
 @Composable
 fun ODCBottomBar(
@@ -39,8 +34,7 @@ fun ODCBottomBar(
     currentDestination: NavDestination?,
     modifier: Modifier = Modifier,
     height: Dp = 60.dp,
-    itemSize: Dp = height / 2, //offset should be of the same parity.
-    itemVerticalOffset: Dp = height / 2, //Without the offset the items jump too high for some reason
+    itemSize: Dp = height / 2,
     shape: Shape = BottomBarShape()
 ) {
     NavigationBar(
@@ -48,15 +42,15 @@ fun ODCBottomBar(
             .requiredHeight(height)
             .clip(shape)
             .backgroundHorizGradient(),
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        windowInsets = WindowInsets(0,0,0,0)
     ) {
         destinations.forEach { destination ->
             val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
             NavigationBarItem(modifier = Modifier
-                .offset(y = itemVerticalOffset)
                 .requiredSize(itemSize),
                 selected = selected,
-                alwaysShowLabel = true,
+                alwaysShowLabel = false,
                 onClick = { onNavigateToDestination(destination) },
                 icon = {
                     val icon = if (selected) destination.selectedIcon
@@ -75,7 +69,7 @@ fun ODCBottomBar(
                         )
                     }
                 },
-                label = { /*Text(stringResource(id = destination.iconTextId))*/ })
+                label = null)
         }
     }
 }

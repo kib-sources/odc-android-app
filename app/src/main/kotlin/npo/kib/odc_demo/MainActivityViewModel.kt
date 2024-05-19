@@ -14,7 +14,7 @@ import npo.kib.odc_demo.core.domain.GetInfoFromWalletUseCase
 import javax.inject.Inject
 
 @HiltViewModel
-class MainActivityViewModel @Inject constructor(
+internal class MainActivityViewModel @Inject constructor(
     private val useCase: GetInfoFromWalletUseCase,
     private val defaultDatastore: DefaultDataStoreRepository
 ) : ViewModel() {
@@ -42,6 +42,7 @@ class MainActivityViewModel @Inject constructor(
     fun registerWalletWithBank() {
         viewModelScope.launch(Dispatchers.IO) {
             this.log("Registering wallet with bank")
+            _uiState.value = Loading
             registerWallet()
             val registered = isWalletRegistered()
             _uiState.value = if (registered) Success(userPreferences.value)
@@ -59,7 +60,7 @@ class MainActivityViewModel @Inject constructor(
 
 }
 
-sealed interface MainActivityUiState {
+internal sealed interface MainActivityUiState {
     /** Keeping the splashscreen on. The wallet is being registered at this point
      * and other app resources are loading. */
     data object Loading : MainActivityUiState

@@ -279,7 +279,6 @@ private object ReceiveScreenSubScreens {
             //todo can hide or make inactive on unsafe statuses.
             // Right now works only on safe statuses else triggers a warning snackbar
             //fixme currently crashes the app
-            //fixme now is hidden behind bottom navigation bar
 //            ODCGradientActionButton(text = "Disconnect",
 //                gradientColors = GradientColors.ButtonNegativeActionColors,
 //                onClick = { onEvent(ReceiveScreenEvent.Disconnect) })

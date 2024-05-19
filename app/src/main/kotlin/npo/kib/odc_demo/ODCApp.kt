@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -65,27 +64,12 @@ fun ODCApp(
                         colorFilter = ColorFilter.colorMatrix(
                             ColorMatrix(
                                 floatArrayOf(
-                                    0.33f,
-                                    0.33f,
-                                    0.33f,
-                                    0f,
-                                    0f,
-                                    0.33f,
-                                    0.33f,
-                                    0.33f,
-                                    0f,
-                                    0f,
-                                    0.33f,
-                                    0.33f,
-                                    0.33f,
-                                    0f,
-                                    0f,
-                                    0f,
-                                    0f,
-                                    0f,
-                                    1f,
-                                    0f
-                                ) //Should allow to convert to grayscale
+                                    0.33f, 0.33f, 0.33f, 0f,
+                                    0f, 0.33f, 0.33f, 0.33f,
+                                    0f, 0f, 0.33f, 0.33f,
+                                    0.33f, 0f, 0f, 0f,
+                                    0f, 0f, 1f, 0f
+                                ) //This matrix describes conversion to grayscale
                             )
                         )
                     )
@@ -93,71 +77,54 @@ fun ODCApp(
             }
         }
 
-        //val shouldShowSomeCustomBackground: Boolean
         ODCPlainBackground {
-//         can use ConstraintLayout or BoxWithConstraints instead of the Scaffold
-//        BoxWithConstraints(modifier = Modifier
-//            .fillMaxSize()
-//            /*.windowInsetsPadding(WindowInsets.systemBars)*//*.consumeWindowInsets(WindowInsets.systemBars)*/) {
-//            val topBarHeight = maxHeight * 0.1f
-//            val bottomBarHeight = maxHeight * 0.07f
-//        }
-            // https://developer.android.com/jetpack/compose/layouts/insets
-            val systemNavHeight = (WindowInsets.systemBars.getBottom(
-                LocalDensity.current
-            ) / LocalDensity.current.density).dp
-            val systemTopBarWithCutoutHeight = (WindowInsets.safeDrawing.getTop(
-                LocalDensity.current
-            ) / LocalDensity.current.density).dp
+            val bottomSystemNavPadding =
+                WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
             Scaffold(containerColor = Color.Transparent,
                 contentColor = MaterialTheme.colorScheme.onBackground,
-                contentWindowInsets = WindowInsets(0, 0, 0, 0),
-//                topBar = {
-//                    Box(
-//                    modifier = Modifier
-//                        .requiredHeight(systemTopBarWithCutoutHeight)
-//                        .fillMaxWidth()
-//                        .background(MaterialTheme.colorScheme.background)
-//                        .testBorder(MaterialTheme.colorScheme.onBackground))
-//                         },
                 bottomBar = {
                     if (appState.shouldShowBottomBar) {
-                        Column {
+                        Box(modifier = Modifier.fillMaxWidth()) {
                             ODCBottomBar(
-                                modifier = Modifier.testBorder(Color.Magenta),
+                                modifier = Modifier
+                                    .padding(bottom = bottomSystemNavPadding)
+                                    .align(Alignment.TopCenter)
+                                    .testBorder(Color.Magenta),
                                 destinations = appState.topLevelDestinations,
                                 onNavigateToDestination = appState::navigateToTopLevelDestination,
                                 currentDestination = appState.currentDestination,
-                                height = 55.dp
+                                height = 60.dp
                             )
                             Box(
                                 modifier = Modifier
                                     .backgroundHorizGradient()
                                     .fillMaxWidth()
-                                    .requiredHeight(systemNavHeight)
+                                    .requiredHeight(bottomSystemNavPadding)
+                                    .align(Alignment.BottomCenter)
                                     .testBorder(Color.Cyan)
                             )
                         }
                     }
-                }) { paddingValues ->
-                Column(modifier = Modifier.fillMaxSize()) {
-                    Box(
-                        modifier = Modifier
-                            .requiredHeight(systemTopBarWithCutoutHeight)
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.background)
-                            .testBorder(MaterialTheme.colorScheme.onBackground)
-                    )
+                }
+            ) { paddingValues ->
+                Column(
+                    modifier = Modifier
+//                        .fillMaxSize()
+//                        .padding(paddingValues)
+//                        .consumeWindowInsets(paddingValues)
+//                        .safeDrawingPadding()
+                ) {
+//                    Box(
+//                        modifier = Modifier
+//                            .requiredHeight(systemTopBarWithCutoutHeight)
+//                            .fillMaxWidth()
+//                            .background(MaterialTheme.colorScheme.background)
+//                            .testBorder(MaterialTheme.colorScheme.onBackground)
+//                    )
                     Row(
                         Modifier
                             .fillMaxSize()
-                            .padding(paddingValues)
-                            .consumeWindowInsets(paddingValues)
-                            .windowInsetsPadding(
-                                WindowInsets.safeDrawing.only(
-                                    WindowInsetsSides.Horizontal,
-                                ),
-                            )
                             .testBorder(Color.Yellow),
                     ) {
                         if (appState.shouldShowNavRail) {
@@ -170,6 +137,9 @@ fun ODCApp(
                         Column(
                             modifier = Modifier
                                 .fillMaxSize()
+                                .padding(paddingValues)
+                                .consumeWindowInsets(paddingValues)
+                                .safeDrawingPadding()
                                 .testBorder(Color.Blue)
                         ) {
                             val destination = appState.currentTopLevelDestination
@@ -192,13 +162,15 @@ fun ODCApp(
         }
     }
 }
+//}
 
 
 // can set to true to see borders of all containers for testing
-private fun Modifier.testBorder(color: Color = Color.Red) = if (false) this.border(
-    1.dp,
-    color
-) else this
+private fun Modifier.testBorder(color: Color = Color.Red) =
+    if (false) this.border(
+        1.dp,
+        color
+    ) else this
 
 @ThemePreviews
 @DevicePreviews

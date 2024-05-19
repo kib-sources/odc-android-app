@@ -1,6 +1,7 @@
 package npo.kib.odc_demo.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -14,9 +15,9 @@ import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
 import npo.kib.odc_demo.core.design_system.ui.GradientColors
 import npo.kib.odc_demo.core.design_system.ui.asList
-import npo.kib.odc_demo.navigation.TopLevelDestination
 import npo.kib.odc_demo.core.ui.icon.Icon.DrawableResourceIcon
 import npo.kib.odc_demo.core.ui.icon.Icon.ImageVectorIcon
+import npo.kib.odc_demo.navigation.TopLevelDestination
 
 @Composable
 fun ODCNavRail(
@@ -30,6 +31,7 @@ fun ODCNavRail(
         modifier = modifier.backgroundVertGradient(),
         containerColor = Color.Transparent,
         header = @Composable {},
+        windowInsets = WindowInsets(0,0,0,0)
     ) {
         destinations.forEach {destination ->
             val selected = currentDestination.isTopLevelDestinationInHierarchy(destination)
