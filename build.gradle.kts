@@ -2,7 +2,6 @@ buildscript {
     repositories {
         gradlePluginPortal()
         mavenCentral()
-        maven { url = uri("https://kotlin.bintray.com/kotlinx") }
         google()
     }
 
@@ -25,4 +24,15 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.secrets) apply false
     alias(libs.plugins.room) apply false
+
+//    alias(libs.plugins.module.graph) apply true
+    alias(libs.plugins.module.graph.assertion) apply true
+}
+
+tasks.register("printModulePaths") {
+    subprojects {
+        if (subprojects.size == 0) {
+            println(this.path)
+        }
+    }
 }

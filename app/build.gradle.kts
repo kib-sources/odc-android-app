@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.odc.android.application.flavors)
     alias(libs.plugins.odc.android.hilt)
 //    alias(libs.plugins.baselineprofile) can add later along with benchmarks module
+//    alias(libs.plugins.module.graph)
 }
 
 
@@ -16,7 +17,7 @@ android {
         applicationId = "npo.kib.odc_demo"
 
         versionCode = 3
-        versionName = "2.1.0"
+        versionName = "2.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -127,4 +128,18 @@ dependencies {
 
 //android.sourceSets.all {
 //    kotlin.srcDir("src/$name/kotlin")
+//}
+
+//for the module this is declared in
+//moduleGraphConfig {
+//    readmePath = "${rootDir}/README.md"
+//    heading = "# App Module Graph "
+//    theme.set(Theme.FOREST)
+//    linkText = LinkText.CONFIGURATION
+//    setStyleByModuleType = true
+//}
+
+//If in root build.gradle then add (but still fails "need at least 2 modules in the project")
+//tasks.findByName("createModuleGraph")?.apply {
+//    doNotTrackState("Otherwise gradle may complain about a file lock of README.md")
 //}

@@ -192,3 +192,5 @@ fabric.properties
 /build
 /captures
 .cxx
+/generateModuleGraphs.sh
+/docs/
