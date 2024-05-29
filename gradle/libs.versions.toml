@@ -54,7 +54,8 @@ kotlinxCoroutines = "1.8.0"
 kotlinxDatetime = "0.5.0"
 kotlinxSerializationJson = "1.6.3"
 ksp = "1.9.22-1.0.18"
-moduleGraph = "2.5.0"
+moduleGraphAssertion = "2.5.0"
+moduleGraph = "0.10.0"
 mockk = "1.13.10"
 mockwebserver = "4.12.0"
 okhttp = "4.12.0"
@@ -226,7 +227,8 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 kotlin-parcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-module-graph = { id = "com.jraska.module.graph.assertion", version.ref = "moduleGraph" }
+module-graph-assertion = { id = "com.jraska.module.graph.assertion", version.ref = "moduleGraphAssertion" }
+module-graph = { id = "dev.iurysouza.modulegraph", version.ref = "moduleGraph" }
 protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
 roborazzi = { id = "io.github.takahirom.roborazzi", version.ref = "roborazzi" }
 room = { id = "androidx.room", version.ref = "room" }
