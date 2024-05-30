@@ -1,0 +1,258 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 3,
+    "identityHash": "25389117d69c96f50487eab670c1627e",
+    "entities": [
+      {
+        "tableName": "banknotes",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`bin` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `currencyCode` INTEGER NOT NULL, `bnid` TEXT NOT NULL, `signature` TEXT NOT NULL, `time` INTEGER NOT NULL, `parentSok` TEXT, `parentSokSignature` TEXT, `parentOtokSignature` TEXT, `refUuid` TEXT, `sok` TEXT, `sokSignature` TEXT, `otokSignature` TEXT NOT NULL, `transactionSignature` TEXT NOT NULL, `protected_time` INTEGER NOT NULL, PRIMARY KEY(`bnid`))",
+        "fields": [
+          {
+            "fieldPath": "banknote.bin",
+            "columnName": "bin",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.amount",
+            "columnName": "amount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.currencyCode",
+            "columnName": "currencyCode",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.bnid",
+            "columnName": "bnid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.signature",
+            "columnName": "signature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "banknote.time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protectedBlock.parentSok",
+            "columnName": "parentSok",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.parentSokSignature",
+            "columnName": "parentSokSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.parentOtokSignature",
+            "columnName": "parentOtokSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.refUuid",
+            "columnName": "refUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.sok",
+            "columnName": "sok",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.sokSignature",
+            "columnName": "sokSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "protectedBlock.otokSignature",
+            "columnName": "otokSignature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protectedBlock.transactionSignature",
+            "columnName": "transactionSignature",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "protectedBlock.time",
+            "columnName": "protected_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "bnid"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "block",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`uuid` TEXT NOT NULL, `parentUuid` TEXT, `block_bnid` TEXT NOT NULL, `otok` TEXT NOT NULL, `time` INTEGER NOT NULL, `magic` TEXT, `transactionHash` TEXT, `transactionHashSignature` TEXT, PRIMARY KEY(`uuid`), FOREIGN KEY(`block_bnid`) REFERENCES `banknotes`(`bnid`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "uuid",
+            "columnName": "uuid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "parentUuid",
+            "columnName": "parentUuid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "bnid",
+            "columnName": "block_bnid",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "otok",
+            "columnName": "otok",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "time",
+            "columnName": "time",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "magic",
+            "columnName": "magic",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "transactionHash",
+            "columnName": "transactionHash",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "transactionHashSignature",
+            "columnName": "transactionHashSignature",
+            "affinity": "TEXT",
+            "notNull": false
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "uuid"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_block_block_bnid",
+            "unique": false,
+            "columnNames": [
+              "block_bnid"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_block_block_bnid` ON `${TABLE_NAME}` (`block_bnid`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "banknotes",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "block_bnid"
+            ],
+            "referencedColumns": [
+              "bnid"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "wallet_transactions",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `otherName` TEXT, `otherWid` TEXT, `isReceived` INTEGER NOT NULL, `isWithAtm` INTEGER NOT NULL, `amount` INTEGER NOT NULL, `date_time` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "otherName",
+            "columnName": "otherName",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "otherWid",
+            "columnName": "otherWid",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isReceived",
+            "columnName": "isReceived",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isWithAtm",
+            "columnName": "isWithAtm",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "amount",
+            "columnName": "amount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date_time",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      }
+    ],
+    "views": [],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '25389117d69c96f50487eab670c1627e')"
+    ]
+  }
+}
