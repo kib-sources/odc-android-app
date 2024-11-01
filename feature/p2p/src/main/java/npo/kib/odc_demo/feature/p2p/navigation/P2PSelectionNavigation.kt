@@ -23,6 +23,7 @@ fun NavGraphBuilder.p2pSelectionGraph(
     onATMButtonClick: () -> Unit,
     onReceiveButtonClick: () -> Unit,
     onSendButtonClick: () -> Unit,
+    onNfcButtonClick: () -> Unit,
     nestedGraphs: NavGraphBuilder.() -> Unit
 ) {
     navigation(
@@ -34,7 +35,8 @@ fun NavGraphBuilder.p2pSelectionGraph(
                 onHistoryClick = onHistoryClick,
                 onATMButtonClick = onATMButtonClick,
                 onReceiveButtonClick = onReceiveButtonClick,
-                onSendButtonClick = onSendButtonClick
+                onSendButtonClick = onSendButtonClick,
+                onNfcButtonClick = onNfcButtonClick
             )
         }
         nestedGraphs()

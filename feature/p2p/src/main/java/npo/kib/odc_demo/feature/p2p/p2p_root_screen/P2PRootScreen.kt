@@ -14,10 +14,13 @@ internal fun P2PRootScreen(
     onHistoryClick: () -> Unit,
     onATMButtonClick: () -> Unit,
     onReceiveButtonClick: () -> Unit,
-    onSendButtonClick: () -> Unit
+    onSendButtonClick: () -> Unit,
+    onNfcButtonClick: () -> Unit
 ) {
     Column(
-        modifier = Modifier.fillMaxSize().padding(20.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(20.dp),
         horizontalAlignment = CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -27,7 +30,8 @@ internal fun P2PRootScreen(
                 .weight(1f),
             onclickATM = onATMButtonClick,
             onclickReceive = onReceiveButtonClick,
-            onClickSend = onSendButtonClick
+            onClickSend = onSendButtonClick,
+            onClickNfc = onNfcButtonClick
         )
         HistoryBlock(
             onHistoryClick = onHistoryClick,
@@ -41,5 +45,5 @@ internal fun P2PRootScreen(
 @ThemePreviews
 @Composable
 private fun P2PRootScreenPreview() {
-    P2PRootScreen({}, {}, {}, {})
+    P2PRootScreen({}, {}, {}, {}, {  })
 }

@@ -68,7 +68,8 @@ fun P2PSelectionButtonRow(
     modifier: Modifier = Modifier,
     onclickATM: () -> Unit = {},
     onclickReceive: () -> Unit = {},
-    onClickSend: () -> Unit = {}
+    onClickSend: () -> Unit = {},
+    onClickNfc: () -> Unit = {}
 ) {
     Row(
         modifier = modifier.requiredSize(width = 300.dp, height = 80.dp),
@@ -87,6 +88,12 @@ fun P2PSelectionButtonRow(
         RoundedSquareButton(
             modifier = Modifier.weight(1f),
             onClick = onClickSend,
+            iconImageResId = R.drawable.send_money
+        )
+
+        RoundedSquareButton(
+            modifier = Modifier.weight(1f),
+            onClick = onClickNfc,
             iconImageResId = R.drawable.send_money
         )
     }
