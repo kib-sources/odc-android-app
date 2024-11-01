@@ -20,5 +20,6 @@ dependencies {
     implementation(libs.androidx.activity.activity)
     implementation(libs.kotlinx.serialization)
     implementation(libs.cbor)
+    implementation(libs.play.services.nearby)
 
 }

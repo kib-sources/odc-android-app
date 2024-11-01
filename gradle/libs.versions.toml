@@ -76,6 +76,7 @@ material = "1.12.0"
 junit = "4.13.2"
 junit5 = "5.8.1"
 androidExtJunitVersion = "1.1.5"
+playServicesNearby = "19.3.0"
 
 [libraries]
 accompanist-permissions = { group = "com.google.accompanist", name = "accompanist-permissions", version.ref = "accompanist" }
@@ -209,6 +210,7 @@ androidx-activity-activity = { group = "androidx.activity", name = "activity", v
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidExtJunitVersion" }
 junit5-plugin =  { group = "de.mannodermaus.gradle.plugins", name = "android-junit5", version.ref = "junit5Plugin" }
+play-services-nearby = { group = "com.google.android.gms", name = "play-services-nearby", version.ref = "playServicesNearby" }
 
 
 [plugins]
