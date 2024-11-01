@@ -19,8 +19,8 @@ import npo.kib.odc_demo.core.common.data.util.myLogs
 import npo.kib.odc_demo.core.common_jvm.toHex
 import npo.kib.odc_demo.core.connectivity.nfc.types.NfcServiceCommands
 import npo.kib.odc_demo.core.connectivity.nfc.types.NfcServiceKeys
-import npo.kib.odc_demo.core.model.ConnectingStatus
-import npo.kib.odc_demo.core.model.SearchingStatus
+import npo.kib.odc_demo.core.connectivity.ConnectingStatus
+import npo.kib.odc_demo.core.connectivity.SearchingStatus
 
 
 class NfcControllerImpl (

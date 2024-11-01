@@ -6,7 +6,6 @@ dependencies {
     implementation(libs.kotlin.stdlib)
     implementation(libs.kotlinx.datetime)
     implementation(libs.google.gson)
-    implementation(libs.play.services.nearby)
 
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter.aggregator)

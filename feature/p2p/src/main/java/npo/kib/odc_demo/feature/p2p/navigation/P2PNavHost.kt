@@ -5,6 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import npo.kib.odc_demo.feature.atm.navigation.atmScreen
 import npo.kib.odc_demo.feature.atm.navigation.navigateToATMScreen
+import npo.kib.odc_demo.feature.p2p.nfc_screen.navigation.navigateToNfcScreen
+import npo.kib.odc_demo.feature.p2p.nfc_screen.navigation.nfcScreen
 import npo.kib.odc_demo.feature.p2p.receive_screen.navigation.navigateToReceiveScreen
 import npo.kib.odc_demo.feature.p2p.receive_screen.navigation.receiveScreen
 import npo.kib.odc_demo.feature.p2p.rememberP2PCommonState
@@ -28,6 +30,7 @@ fun P2PNavHost(
             onATMButtonClick = navController::navigateToATMScreen,
             onReceiveButtonClick = navController::navigateToReceiveScreen,
             onSendButtonClick = navController::navigateToSendScreen,
+            onNfcButtonClick = navController::navigateToNfcScreen,
             nestedGraphs = {
                 atmScreen(navigateToP2PRoot = p2pCommonState::popToRoot)
                 receiveScreen(
@@ -36,6 +39,7 @@ fun P2PNavHost(
                 sendScreen(
                     navigateToP2PRoot = p2pCommonState::popToRoot
                 )
+                nfcScreen(navigateToP2PRoot = p2pCommonState::popToRoot)
             })
     }
 }

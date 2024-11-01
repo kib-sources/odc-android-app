@@ -1,4 +1,4 @@
-package npo.kib.odc_demo.core.model
+package npo.kib.odc_demo.core.connectivity
 
 import com.google.android.gms.nearby.connection.ConnectionInfo
 
